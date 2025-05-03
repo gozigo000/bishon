@@ -1,16 +1,12 @@
-'use client';
-import JSZip from 'jszip';
 import { useState, useCallback } from 'react';
 
-
 interface FileDropZoneProps {
-    onFileSelect?: (fileName: string, documentContent?: string) => void;
+    onFileSelect?: (file: File) => void;
 }
 
 export default function FileDropZone({ onFileSelect }: FileDropZoneProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [fileName, setFileName] = useState<string | null>(null);
-    const [documentContent, setDocumentContent] = useState<string | null>(null);
 
     const handleDragOver = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -39,49 +35,11 @@ export default function FileDropZone({ onFileSelect }: FileDropZoneProps) {
         const docxFile = files.find(file => file.name.endsWith('.docx'));
         if (docxFile) {
             setFileName(docxFile.name);
-            await processDocxFile(docxFile);
+            onFileSelect?.(docxFile);
         } else {
             alert('.docx 파일을 업로드 해주세요.');
         }
     }, [onFileSelect]);
-
-    const processDocxFile = async (file: File) => {
-        try {
-            const zip = new JSZip();
-            const zipContent = await zip.loadAsync(file);
-
-            // document.xml 파일 찾기
-            const documentXml = zipContent.file('word/document.xml');
-            if (documentXml) {
-                // document.xml 파일 내용 가져오기
-                const content = await documentXml.async('text');
-                // 화면에 보여줄 ooxml 파일 내용 
-                setDocumentContent(content.slice(0, 50));
-                onFileSelect?.(file.name, content);
-                // txt 파일 다운로드
-                downloadTxtFile(content, file.name);
-            } else {
-                console.error('document.xml을 찾을 수 없습니다.');
-            }
-        } catch (error) {
-            console.error('파일 처리 중 오류 발생:', error);
-        }
-    };
-
-    const downloadTxtFile = (content: string, originalFileName: string) => {
-        // 원본 파일 이름에서 확장자를 제거하고 .txt 추가
-        const txtFileName = originalFileName.replace('.docx', '_content.txt');
-        // Blob 객체 생성
-        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        // 즉시 다운로드 (다운로드 링크 생성 & 클릭)
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = txtFileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-    };
 
 
     return (
@@ -100,32 +58,21 @@ export default function FileDropZone({ onFileSelect }: FileDropZoneProps) {
             <img
                 className={`
                     w-[100px] h-[100px] 
-                    md:w-[200px] md:h-[180px] 
+                    md:w-[200px] md:h-[200px] 
                     lg:w-[220px] lg:h-[220px] 
-                    mb-6 object-contain 
-                    animate-spin-slow transition-shadow ${isDragging ? 'drag-glow' : ''} 
+                    mb-10 object-contain 
+                    animate-spin-slow transition-shadow ${isDragging ? 'drag-glow' : ''}
+                    cursor-grab select-none 
                 `}
                 src="/react.svg"
                 alt="React Logo"
             />
             {fileName ? (
-                <>
-                    <p className="text-gray-200 text-base sm:text-lg md:text-xl font-semibold">
-                        {fileName}
-                    </p>
-                    {documentContent && (
-                        <div className="mt-4 max-h-40 overflow-auto">
-                            <p className="text-xs sm:text-sm text-gray-400">
-                                document.xml 내용:
-                            </p>
-                            <pre className="text-xs sm:text-sm text-left mt-2 text-gray-300 break-words">
-                                {documentContent}
-                            </pre>
-                        </div>
-                    )}
-                </>
+                <p className=" text-cyan-100 text-base sm:text-lg md:text-xl font-semibold  select-none">
+                    {fileName}
+                </p>
             ) : (
-                <p className="text-base sm:text-lg md:text-xl break-words text-white select-none">
+                <p className=" text-gray-300 text-base sm:text-lg md:text-xl break-words select-none">
                     파일(.docx)을 여기로 드래그하세요
                 </p>
             )}
