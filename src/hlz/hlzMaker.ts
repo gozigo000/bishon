@@ -9,7 +9,7 @@ type Img = {
 
 export async function makeHlz( {wordFile, fileName}: {wordFile: File | ArrayBuffer, fileName: string}): Promise<File> {
     try {
-        console.debug('\n === hlzMaker.ts === ');
+        console.debug('\n=== hlz 생성 시작 ===');
 
         // docx 파일이면 ArrayBuffer로 변환
         const wordZip = new JSZip();
@@ -33,7 +33,6 @@ export async function makeHlz( {wordFile, fileName}: {wordFile: File | ArrayBuff
         // ooxml 문자열 -> hlz 문자열 변환 및 이미지 처리
         const ooxmlConverter = new OoxmlConverter(ooxml, oImgs);
         const { hlzXml, hImgs } = await ooxmlConverter.convert();
-        console.debug('hlzXml', hlzXml);
 
         // hlz 생성
         const hlzZip = new JSZip();
@@ -50,7 +49,7 @@ export async function makeHlz( {wordFile, fileName}: {wordFile: File | ArrayBuff
             compressionOptions: { level: 1 } // 압축 레벨
         });
         
-        console.debug(` === Gererating hlz is Done ===`);
+        console.debug(`=== hlz 생성 완료 ===`);
 
         return new File([zipBuffer], `${fileName.replace('.docx', '.hlz')}`);
 
