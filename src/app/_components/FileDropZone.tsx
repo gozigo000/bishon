@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
 
 interface FileDropZoneProps {
-    onFileSelect?: (file: File) => void;
+    onFileSelect: (file: File) => void;
+    isLoading?: boolean;
 }
 
-export default function FileDropZone({ onFileSelect }: FileDropZoneProps) {
+export default function FileDropZone({ onFileSelect, isLoading = false }: FileDropZoneProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [fileName, setFileName] = useState<string | null>(null);
 
@@ -12,7 +13,7 @@ export default function FileDropZone({ onFileSelect }: FileDropZoneProps) {
         e.preventDefault();
         setIsDragging(true);
     }, []);
-    
+
     const handleDragLeave = useCallback((e: React.DragEvent) => {
         e.preventDefault();
 
@@ -27,7 +28,7 @@ export default function FileDropZone({ onFileSelect }: FileDropZoneProps) {
         }
     }, []);
 
-    const handleDrop = useCallback(async (e: React.DragEvent) => {
+    const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
         setIsDragging(false);
 
@@ -48,20 +49,23 @@ export default function FileDropZone({ onFileSelect }: FileDropZoneProps) {
                 border-2 border-dashed rounded-lg 
                 px-12 py-12 
                 flex flex-col items-center justify-center 
-                transition-colors drag-glow
-                ${isDragging ? 'border-blue-300 bg-blue-50' : 'border-gray-500 bg-transparent '}
+                transition-colors
+                ${isLoading ? 'drag-glow-more' : 'drag-glow'}
+                ${isDragging || isLoading ? 'border-blue-300 bg-blue-50' : 
+                    'border-gray-500 bg-transparent'}
                 `}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-        >
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                >
             <img
                 className={`
                     w-[100px] h-[100px] 
                     md:w-[200px] md:h-[200px] 
                     lg:w-[220px] lg:h-[220px] 
                     mb-10 object-contain 
-                    animate-spin-slow transition-shadow ${isDragging ? 'drag-glow' : ''}
+                    ${isLoading ? 'animate-spin-fast' : 'animate-spin-slow'}
+                    transition-shadow
                     cursor-grab select-none 
                 `}
                 src="/react.svg"

@@ -1,5 +1,5 @@
 import Title from "./_components/Title";
-import FileUploader from "./_components/FileUploader";
+import FileUploader from "./_components/FileUpDownloader";
 
 export default function Home() {
 

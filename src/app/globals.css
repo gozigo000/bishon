@@ -18,17 +18,24 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-@keyframes spin-slow {
+@keyframes spin {
   0% { transform: rotate(0deg);}
   100% { transform: rotate(360deg);}
 }
 .animate-spin-slow {
-  animation: spin-slow 50s linear infinite;
+  animation: spin 50s linear infinite;
+}
+.animate-spin-fast {
+  animation: spin 0.3s linear infinite;
 }
 .react-logo:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 .drag-glow {
   filter: drop-shadow(0 0 2em #61dafb88);
+  transition: filter 0.2s ease;
+}
+.drag-glow-more {
+  filter: drop-shadow(0 0 8em #61dafb88);
   transition: filter 0.2s ease;
 }
