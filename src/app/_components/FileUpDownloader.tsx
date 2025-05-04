@@ -25,7 +25,7 @@ export default function FileUploader() {
             // 즉시 다운로드 (다운로드 링크 생성 & 클릭)
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = file.name.replace('.docx', '.hlz');
+            link.download = file.name.replace('.docx', '.zip'); // 다운 받을 파일 이름
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
