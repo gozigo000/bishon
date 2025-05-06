@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
         }
 
         // hlz 파일 생성
-        const { file: hlzFile, report: hlzReport } = await makeHlz({ wordFile: file, fileName: file.name });
+        const { file: hlzFile, report: diffReport } = await makeHlz({ wordFile: file, fileName: file.name });
         // fin 파일 생성
         const finFile = await makeFin({ hlzFile: hlzFile, fileName: file.name });
         // ZIP 파일 생성
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
         const report = {
             status: 'success' as const,
             convertedFiles: [hlzFile.name, finFile.name],
-            message: JSON.stringify(hlzReport)
+            message: JSON.stringify(diffReport)
         };
         
         // 파일과 보고 내용을 함께 전송
