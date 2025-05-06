@@ -31,9 +31,11 @@ export class DocxPropNode {
                 this.innerList.push(oNode.tagName);
                 return;
             }
+            case 'w:jc': 
             case 'w:vertAlign': {
                 const tagName = oNode.tagName;
-                if (!DocxPropNode.valTags.has(tagName)) return;
+                // TODO:개선하기
+                // if (!DocxPropNode.valTags.has(tagName)) return;
                 this.innerDict[tagName] = oNode.getAttribute('w:val');
                 return;
             }
