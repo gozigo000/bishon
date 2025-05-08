@@ -13,14 +13,12 @@ export class OomlConverter {
     public static convert(xmlStr: string): string {
         try {
             const dom = new JSDOM(xmlStr, { contentType: 'text/xml' });
-            console.log(`xmlStr: ${xmlStr}`);
             let ooml = dom.window.document.documentElement;
-            console.log(`ooml: ${ooml}`);
             if (ooml.tagName !== 'm:oMath') {
                 ooml = ooml.getElementsByTagName('m:oMath')[0] as HTMLElement;
             }
-            if (ooml.tagName !== 'm:oMath') {
-                throw new Error(`Expected 'oMath' node, but got '${ooml.tagName}'!`);
+            if (!ooml) {
+                throw new Error('<m:oMath> 노드가 없습니다!');
             }    
             // OOML XML 문자열을 LaTeX 문자열로 변환
             const latexStr = convertMoMath(ooml)

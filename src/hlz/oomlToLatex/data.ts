@@ -283,6 +283,7 @@ export const T: Record<string, string> = {
     "2200": "\\forall ",
     "2202": "\\partial ", // ∂
     "2203": "\\exists ",
+    "2206": "\\Delta ", // ∆
     "2207": "\\nabla ", // ∇
     
     // 논리기호 
@@ -321,6 +322,12 @@ export const T: Record<string, string> = {
     "220b": "\\ni ",
     "220c": "\\nni ",
 
+    // 괄호 좌/우
+    "230a": "\\lceil ",
+    "230b": "\\rceil ",
+    "2308": "\\lfloor ",
+    "2309": "\\rfloor ",
+
     //mxd. Double arrows
     "21d0": "\\Leftarrow ",
     "21d1": "\\Uparrow ",
@@ -357,15 +364,13 @@ export const FUNC: Record<string, string> = {
     'coth': '\\coth({fe})',
     'sec': '\\sec({fe})',
     'csc': '\\csc({fe})',
+    'cot': '\\cot({fe})',
 
-    // TODO: 이 함수들은 구현이 안되어 있는 것 같음.
     'log': '\\log({fe})',
-    // 'ln': '\\ln({fe})',
-    // 'exp': '\\exp({fe})',
+    'ln': '\\ln({fe})',
+    // TODO: 이 함수들은 구현이 안되어 있는 것 같음.
+    // 'exp': '\\exp({fe})', // 필요 없는 듯
     // 'abs': '\\abs({fe})',
-    // 'floor': '\\floor({fe})',
-    // 'ceil': '\\ceil({fe})',
-    // 'cot': '\\cot({fe})',
 };
 
 export const FUNC_PLACE = '{fe}';
