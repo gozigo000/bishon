@@ -13,7 +13,7 @@ export class OomlConverter {
     public static convert(xmlStr: string): string {
         try {
             const dom = new JSDOM(xmlStr, { contentType: 'text/xml' });
-            let ooml = dom.window.document.documentElement;;
+            let ooml = dom.window.document.documentElement.getElementsByTagName('m:oMath')[0];
             if (ooml.tagName === 'm:oMathPara') {
                 ooml = ooml.children[0] as HTMLElement;
             }

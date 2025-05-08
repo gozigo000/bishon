@@ -158,8 +158,8 @@ export async function printDiffLikeGit(kXmlStr: KXml, word: FileOrBuffer | Html)
         } else {
             // 남은 부분 처리
             if (i < lenN && j < lenO) {
-                const { oneStr: allStr } = highlightDiff(ols[j], nls[i]);
-                output.push(color.yellow(`~ ${allStr}`));
+                const { oneStr } = highlightDiff(ols[j], nls[i]);
+                output.push(color.yellow(`~ ${oneStr}`));
                 i++; j++;
             } else if (i < lenN) {
                 output.push(color.green(`+ ${nls[i]}`));
