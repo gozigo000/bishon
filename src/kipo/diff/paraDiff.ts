@@ -1,8 +1,7 @@
-import fs from 'fs';
 import { DiffMatchPatch } from 'diff-match-patch-ts';
 import { getKipoParas } from './kipoParas';
 import { getHtmlParas } from './htmlParas';
-import { color } from '../utils';
+import { color } from "@/_utils/color";
 
 type Pair = {
     old: number;

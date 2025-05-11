@@ -1,38 +1,40 @@
 export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
-import { makeHlz } from '@/hlz/hlzMaker';
-import { makeFin } from '@/hlz/finMaker';
+import { makeHlz } from '@/kipo/hlzMaker';
+import { makeFin } from '@/kipo/finMaker';
 import JSZip from 'jszip';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
+        // 배송요청 확인
         const formData = await req.formData();
         const file = formData.get('file') as File;
         if (!file) {
             return new NextResponse('No file uploaded', { status: 400 });
         }
 
-        // hlz 파일 생성
-        const { file: hlzFile, report: diffReport } = await makeHlz({ wordFile: file, fileName: file.name });
-        // fin 파일 생성
-        const finFile = await makeFin({ hlzFile: hlzFile, fileName: file.name });
-        // ZIP 파일 생성
+        // 배송물품 생성
+        const [hlzFile, countingReport, inspectionReport, diffReport] = await makeHlz(file);
+        const finFile = await makeFin(hlzFile);
+
         const zip = new JSZip();
         zip.file(hlzFile.name, await hlzFile.arrayBuffer());
         zip.file(finFile.name, await finFile.arrayBuffer());
         const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+        const userDownloadFile = zipBuffer.toString('base64'); // base64 문자열로 인코딩
 
-        const report = {
+        const report: FinalReport = {
             status: 'success' as const,
-            convertedFiles: [hlzFile.name, finFile.name],
-            message: JSON.stringify(diffReport)
+            generatedFiles: [hlzFile.name, finFile.name],
+            countingReport: JSON.stringify(countingReport),
+            inspectionReport: JSON.stringify(inspectionReport),
+            diffReport: JSON.stringify(diffReport),
         };
-        
-        // 파일과 보고 내용을 함께 전송
-        return NextResponse.json({
-            zip: zipBuffer.toString('base64'), // base64 인코딩
-            report: report
-        });
+
+        // 배송
+        const deliveryBox: deliveryBox = { userDownloadFile, report };
+        return NextResponse.json(deliveryBox);
+
     } catch (error) {
         console.error('Error:', error);
         return NextResponse.json({ 

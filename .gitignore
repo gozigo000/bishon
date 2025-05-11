@@ -19,6 +19,9 @@ test/**/*
 !test/**/*.test.ts
 !test/**/*.ps1
 
+# 참고자료
+참고자료/**/*
+
 # next.js
 /.next/
 /out/

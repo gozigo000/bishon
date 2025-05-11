@@ -90,7 +90,7 @@ class KipoParas {
             this.addPara({ content: `【도 ${figure.getAttribute('num')}】` });
             const [imgW, imgH] = this.getImgSizePt(figure.getElementsByTagName('img')[0]);
             // this.addLine({ content: `<이미지 w=${imgW} h=${imgH}/>` });
-            this.addPara({ content: `<이미지>` });
+            this.addPara({ content: `[이미지]` });
         }
     }
 
@@ -105,7 +105,7 @@ class KipoParas {
                     this.addPara({ content: `【수학식 ${ele.getAttribute('num')}】` });
                     const [imgW, imgH] = this.getImgSizePt(ele.getElementsByTagName('img')[0]);
                     // this.addLine({ content: `<이미지 w=${imgW} h=${imgH}/>` });
-                    this.addPara({ content: `<이미지>` });
+                    this.addPara({ content: `[이미지]` });
                     break;
                 }
                 if (nodeName === 'table') {
@@ -117,7 +117,7 @@ class KipoParas {
                 else if (nodeName === 'img') {
                     const [imgW, imgH] = this.getImgSizePt(child as Element);
                     // content += `<이미지 w=${imgW} h=${imgH}"/>`;
-                    content += `<이미지>`;
+                    content += `[이미지]`;
                 }
                 else if (nodeName === 'sub' || nodeName === 'sup' ||
                     nodeName === 'i' || nodeName === 'b' || nodeName === 'u'

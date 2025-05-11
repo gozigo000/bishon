@@ -1,18 +1,19 @@
 'use client';
 import { useState } from 'react';
 import FileDropZone from './FileDropZone';
+import { getBaseName } from '../../_utils/file';
 import Reporter from './Reporter';
 
 export default function FileUploader() {
     const [isLoading, setIsLoading] = useState(false);
-    const [report, setReport] = useState<ConversionReport | null>(null);
+    const [report, setReport] = useState<FinalReport | null>(null);
     
     // word 파일 업로드 및 hlz 다운로드
     const handleFileSelect = async (file: File) => {
         setIsLoading(true);
         setReport(null);
         try {
-            // word 파일 업로드
+            // 파일 업로드
             const formData = new FormData();
             formData.append('file', file);
             const res = await fetch('/api/make-hlz', {
@@ -20,15 +21,14 @@ export default function FileUploader() {
                 body: formData,
             });
             if (!res.ok) {
-                throw new Error('변환 실패');
+                throw new Error('- 변환 실패 -'); // TODO: 변환 실패 메시지 상세히 구현하기
             }
             
-            const data = await res.json();
+            const data: deliveryBox = await res.json();
             // 결과 보고
             setReport(data.report);
-            // ZIP 파일 다운로드
-            // base64를 Blob으로 변환
-            const byteChars = atob(data.zip);
+            // 파일 다운로드
+            const byteChars = atob(data.userDownloadFile);
             const byteNums = new Array(byteChars.length);
             for (let i = 0; i < byteChars.length; i++) {
                 byteNums[i] = byteChars.charCodeAt(i);
@@ -37,7 +37,7 @@ export default function FileUploader() {
             const blob = new Blob([byteArray], { type: 'application/zip' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = file.name.replace('.docx', '.zip'); // 다운 받을 파일 이름
+            link.download = `비숑-${getBaseName(file)}.zip`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -45,10 +45,12 @@ export default function FileUploader() {
 
         } catch (error) {
             setReport({
-                fileName: file.name,
-                convertedFiles: [],
+                errorMsg: error instanceof Error ? error.message : '알 수 없는 오류',
                 status: 'error',
-                message: error instanceof Error ? error.message : '알 수 없는 오류'
+                generatedFiles: [],
+                countingReport: '',
+                inspectionReport: '',
+                diffReport: ''
             });
         } finally {
             setIsLoading(false);
@@ -61,6 +63,11 @@ export default function FileUploader() {
                 onFileSelect={handleFileSelect}
                 isLoading={isLoading}
             />
+            {report?.errorMsg && (
+                <div className="text-red-500 text-sm mt-2">
+                    {report.errorMsg}
+                </div>
+            )}
             {report && (
                 <Reporter report={report} />
             )}

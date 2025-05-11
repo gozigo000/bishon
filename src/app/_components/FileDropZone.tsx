@@ -17,13 +17,11 @@ export default function FileDropZone({ onFileSelect, isLoading = false }: FileDr
     const handleDragLeave = useCallback((e: React.DragEvent) => {
         e.preventDefault();
 
-        // 드래그가 드랍존을 바깥으로 벗어났는지 확인
-        const rect = e.currentTarget.getBoundingClientRect();
+        const dropZone = e.currentTarget.getBoundingClientRect();
         const x = e.clientX;
         const y = e.clientY;
         
-        // 드랍존 바깥으로 벗어났을 때만 isDragging 상태 변경
-        if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+        if (x < dropZone.left || x >= dropZone.right || y < dropZone.top || y >= dropZone.bottom) {
             setIsDragging(false);
         }
     }, []);
@@ -36,7 +34,7 @@ export default function FileDropZone({ onFileSelect, isLoading = false }: FileDr
         const docxFile = files.find(file => file.name.endsWith('.docx'));
         if (docxFile) {
             setFileName(docxFile.name);
-            onFileSelect?.(docxFile);
+            onFileSelect(docxFile);
         } else {
             alert('.docx 파일을 업로드 해주세요.');
         }
@@ -44,22 +42,20 @@ export default function FileDropZone({ onFileSelect, isLoading = false }: FileDr
 
 
     return (
-        <div
-            className={`
+        <div className={`
                 border-2 border-dashed rounded-lg 
-                px-12 py-12 
+                px-12 py-12
                 flex flex-col items-center justify-center 
                 transition-colors
                 ${isLoading ? 'drag-glow-more' : 'drag-glow'}
                 ${isDragging || isLoading ? 'border-blue-300 bg-blue-50' : 
                     'border-gray-500 bg-transparent'}
-                `}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                >
-            <img
-                className={`
+            `}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            <img className={`
                     w-[100px] h-[100px] 
                     md:w-[200px] md:h-[200px] 
                     lg:w-[220px] lg:h-[220px] 
@@ -72,7 +68,7 @@ export default function FileDropZone({ onFileSelect, isLoading = false }: FileDr
                 alt="React Logo"
             />
             {fileName ? (
-                <p className=" text-cyan-100 text-base sm:text-lg md:text-xl font-semibold  select-none">
+                <p className=" text-cyan-100 text-base sm:text-lg md:text-xl font-semibold select-none">
                     {fileName}
                 </p>
             ) : (
