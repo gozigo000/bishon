@@ -153,12 +153,17 @@ class KipoParas {
                 if (name === 'tables') {
                     const ele = child as Element;
                     this.addPara({ content: `【표 ${ele.getAttribute('num')}】` });
-                    this.addPara({ 
-                        // content: `[table]`,
-                        content: ele.outerHTML,
-                        fullContent: ele.outerHTML,
-                        hasTable: true
-                    });
+                    const cells = ele.outerHTML.
+                        replace(/<.*?>/g, '<>').
+                        split('<>').
+                        filter(Boolean);
+                    for (const cell of cells) {
+                        this.addPara({ 
+                            content: cell,
+                            fullContent: cell,
+                            hasTable: true
+                        });
+                    }
                     break;
                 }
                 if (name === 'img') {

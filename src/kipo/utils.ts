@@ -28,8 +28,8 @@ export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
         }
         const result = await mammoth.convertToHtml({ buffer: buffer }, options);
         let html = result.value;
-        html = html.replace(/<h[0-9]+>([\s\S]*?)<\/h[0-9]+>/g, `<p>$1</p>`);
-        html = html.replace(/<a id=".*?">/g, '');
+        // 여기선 Mammoth 모듈에서 제공하는 그대로 반환하고,
+        // 전부 <p> 태그로 바꾸는 건 getHtmlParas()에서 하기로 함.
         return html;
 
     } catch (error) {

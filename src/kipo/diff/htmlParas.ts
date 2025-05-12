@@ -5,6 +5,14 @@ import { getMammothHtml } from "../utils";
 export async function getHtmlParas(input: FileOrBuffer | Html): Promise<Paragraph[]> {
     try {
         let html = (typeof input === 'string') ? input : await getMammothHtml(input);
+        html = html.replace(/<h[0-9]+>([\s\S]*?)<\/h[0-9]+>/g, `<p>$1</p>`);
+        html = html.replace(/<a.*?>([\s\S]*?)<\/a>/g, `$1`); // 이것 때문에 괄호 안 내용이 사라졌던 것
+        html = html.replace(/<table>([\s\S]*?)<\/table>/g, `$1`);
+        html = html.replace(/<tr>([\s\S]*?)<\/tr>/g, `$1`);
+        html = html.replace(/<td>([\s\S]*?)<\/td>/g, `$1`);
+        html = html.replace(/<ol>([\s\S]*?)<\/ol>/g, `$1`);
+        html = html.replace(/<ul>([\s\S]*?)<\/ul>/g, `$1`);
+        html = html.replace(/<li>([\s\S]*?)<\/li>/g, `<p>$1</p>`);
         
         const dom = new JSDOM(html);
         // <html><head></head><body>
