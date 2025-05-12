@@ -5,16 +5,22 @@ import { toArrayBuffer } from "@/_utils/dataType";
 import { generateSpecInspectionResult } from './kipoInspection/kipoInspector';
 import { generateDiffLines } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
-import { log } from '@/_utils/env';
+import { dlog } from '@/_utils/env';
 
 export type Img = {
     name: string;
     buffer: ArrayBuffer;
 }
 
-export async function makeHlz(wordFile: File): Promise<[File, CountingReport, InspectionReport, DiffReport]> {
+export async function makeHlz(wordFile: File)
+: Promise<[
+    File | null, 
+    CountingReport, 
+    InspectionReport, 
+    DiffReport
+]> {
     try {
-        log('\n=== hlz 생성 시작 ===');
+        dlog('\n=== hlz 생성 시작 ===');
 
         const wordBuffer = await toArrayBuffer(wordFile);
 
@@ -41,8 +47,17 @@ export async function makeHlz(wordFile: File): Promise<[File, CountingReport, In
         // hlz 구성물 생성
         const ooxmlConverter = new OoxmlConverter(ooxml, oImgs, tables); // TODO: helper 함수로 빼기
         const { hlzXml, hImgs } = await ooxmlConverter.convert();
-
+        
         const [finalXml, inspectionReport, countingReport] = generateSpecInspectionResult(hlzXml);
+
+        if (inspectionReport.find(r => r.process === 'STOP')) {
+            return [
+                null, 
+                countingReport,
+                inspectionReport,
+                [],
+            ];
+        }
         const diffReport = await generateDiffLines(finalXml, html);
 
         // hlz 생성
@@ -52,7 +67,7 @@ export async function makeHlz(wordFile: File): Promise<[File, CountingReport, In
         hImgs.forEach(hImg => hlzZip.file(hImg.name, hImg.buffer));
         const hlzFile = await generateKipoFile(`${baseName}.hlz`, hlzZip);
         
-        log(`=== hlz 생성 완료 ===`);
+        dlog(`=== hlz 생성 완료 ===`);
         
         return [
             hlzFile, 

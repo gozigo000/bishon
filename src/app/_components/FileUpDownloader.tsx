@@ -28,20 +28,22 @@ export default function FileUploader() {
             // 결과 보고
             setReport(data.report);
             // 파일 다운로드
-            const byteChars = atob(data.userDownloadFile);
-            const byteNums = new Array(byteChars.length);
-            for (let i = 0; i < byteChars.length; i++) {
-                byteNums[i] = byteChars.charCodeAt(i);
+            if (data.userDownloadFile) {
+                const byteChars = atob(data.userDownloadFile);
+                const byteNums = new Array(byteChars.length);
+                for (let i = 0; i < byteChars.length; i++) {
+                    byteNums[i] = byteChars.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNums);
+                const blob = new Blob([byteArray], { type: 'application/zip' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `짜잔-${getBaseName(file)}.zip`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
             }
-            const byteArray = new Uint8Array(byteNums);
-            const blob = new Blob([byteArray], { type: 'application/zip' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `비숑-${getBaseName(file)}.zip`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
 
         } catch (error) {
             setReport({
@@ -64,9 +66,7 @@ export default function FileUploader() {
                 isLoading={isLoading}
             />
             {report?.errorMsg && (
-                <div className="text-red-500 text-sm mt-2">
-                    {report.errorMsg}
-                </div>
+                <div className="text-red-500 text-sm mt-2"> {report.errorMsg} </div>
             )}
             {report && (
                 <Reporter report={report} />

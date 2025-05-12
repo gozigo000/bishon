@@ -15,6 +15,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
         // 배송물품 생성
         const [hlzFile, countingReport, inspectionReport, diffReport] = await makeHlz(file);
+        if (!hlzFile) {
+             const report: FinalReport = {
+                status: 'fail' as const,
+                generatedFiles: [],
+                countingReport: JSON.stringify(countingReport),
+                inspectionReport: JSON.stringify(inspectionReport),
+                diffReport: '',
+            };
+            // 배송
+            const box: deliveryBox = { userDownloadFile: null, report };
+            return NextResponse.json(box);
+        }
+
         const finFile = await makeFin(hlzFile);
 
         const zip = new JSZip();
@@ -32,8 +45,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         };
 
         // 배송
-        const deliveryBox: deliveryBox = { userDownloadFile, report };
-        return NextResponse.json(deliveryBox);
+        const box: deliveryBox = { userDownloadFile, report };
+        return NextResponse.json(box);
 
     } catch (error) {
         console.error('Error:', error);

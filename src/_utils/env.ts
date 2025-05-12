@@ -14,15 +14,17 @@ export function runInDev<T, Args extends any[]>(
     return undefined;
 }
 
-export let logOff = false;
-// logOff = true;
-export function log(arg: any, showCallStack: boolean = false) {
-    if (logOff) return;
+export let devLogOff = false;
+// devLogOff = true;
+export function dlog(arg1: any, arg2?: any, showCallStack: boolean = false) {
+    if (devLogOff) return;
 
     if (isDev() || isTest()) {
         let out: string[] = [];
 
-        out.push(color.brBlue(arg.toString()));
+        const a = color.brBlue(arg1.toString());
+        const b = arg2 ? color.brYellow(arg2.toString()) : '';
+        out.push(a + ' ' + b);
 
         if (showCallStack) {
         // 호출된 라인 정보 추출
@@ -40,6 +42,8 @@ export function log(arg: any, showCallStack: boolean = false) {
             out.push(color.brMagenta(`${n++}.`) + color.yellow(` ${info}`));
             });
         }
+
+        out.push(color.brMagenta('--------------------------------'));
         console.log(out.join('\n'));
     }
 }

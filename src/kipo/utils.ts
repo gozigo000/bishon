@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom';
 import { toBuffer } from "../_utils/dataType";
 import JSZip from "jszip";
 import iconv from "iconv-lite";
+import { kipoTagName } from "./data";
 
 export async function generateKipoFile(fileName: string, zip: JSZip): Promise<File> {
     // HACK: jszip 모듈에서 수정하지 말고 jszip 모듈을 src 폴더로 옮기기
@@ -59,3 +60,12 @@ export function toOneLine(ml: string): string {
     return ml.replace(/>\s+</g, '><').replace(/[\r\n]+/g, '');
 }
 
+export function getKipoTagName(kTag: string): string {
+    try {
+        if (kipoTagName.hasOwnProperty(kTag)) return kipoTagName[kTag];
+        else throw new Error(`한글 태그 이름이 잘못 입력되었습니다. (kTag: ${kTag})\n`);
+    } catch (e) {
+        console.error(e);
+        return '';
+    }
+}

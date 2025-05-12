@@ -5,7 +5,7 @@ import DOMPurify from 'dompurify';
 export default function RenderHTML({ html, className }: { html: string, className?: string }) {
     const sanitizedHTML = useMemo(() => {
         return DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: ['sub', 'sup', 'b', 'i', 'em', 'strong', 'span', 'p', 'br', 'tbody', 'tr', 'td'],
+            ALLOWED_TAGS: ['sub', 'sup', 'b', 'i', 'em', 'strong', 'span', 'p', 'br', 'tbody', 'tr', 'td', 'table'],
             ALLOWED_ATTR: ['class', 'rowspan', 'colspan']
         });
     }, [html]);

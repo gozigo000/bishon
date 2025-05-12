@@ -4,7 +4,7 @@ declare type KXml = string;
 declare type OXml = string;
 
 declare type deliveryBox = {
-    userDownloadFile: string;
+    userDownloadFile: string | null;
     report: FinalReport;
 }; 
 
@@ -27,6 +27,7 @@ declare type CountInfo = {
 declare type InspectionReport = InspectionMsg[];
 declare type InspectionMsg = {
     kind: '개발' | '에러' | '경고';
+    process: 'GO' | 'STOP';
     pos?: string;
     msg: string;
     from?: string;
@@ -45,9 +46,25 @@ declare type DiffLine = {
 declare type Diff = [DiffOp, string];
 declare enum DiffOp { Delete = -1, Equal = 0, Insert = 1 }
 
-declare type Paragraph = {
+declare interface Paragraph {
     content: string;
-    img?: string;
-    table?: string;
-    math?: string;
+    fullContent?: string;
+    lines?: Line[];
+    hasImg?: boolean;
+    hasTable?: boolean;
+    hasMath?: boolean;
+    hasSubSup?: boolean;
+    hasRtf?: boolean;
+    hasBr?: boolean;
+    W?: number;
+    H?: number;
 }
+declare interface Line {
+    fullContent: string;
+    hasImg?: boolean;
+    hasTable?: boolean;
+    hasMath?: boolean;
+    W: number;
+    H: number;
+}
+declare enum CttType { plain = 0, Img = 1, Table = 2, Math = 4 }

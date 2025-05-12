@@ -22,36 +22,38 @@ export default function Reporter({ report }: ReporterProps) {
 
     const countingReport: CountingReport = useMemo(() => {
         if (!report.countingReport) return [];
-        try { return JSON.parse(report.countingReport); } 
+        try { return JSON.parse(report.countingReport); }
         catch { return []; }
     }, [report]);
 
     const inspectionReport: InspectionReport = useMemo(() => {
         if (!report.inspectionReport) return [];
-        try { return JSON.parse(report.inspectionReport); } 
+        try { return JSON.parse(report.inspectionReport); }
         catch { return []; }
     }, [report]);
 
     const diffLines: DiffLine[] = useMemo(() => {
         if (!report.diffReport) return [];
-        try { return JSON.parse(report.diffReport); } 
+        try { return JSON.parse(report.diffReport); }
         catch { return []; }
     }, [report]);
 
 
     return (
         <div className="flex flex-col w-full h-auto pb-10">
-            <Notice status={report.status}/>
+            {(report.status === 'success' || report.status === 'fail') && (
+                <Notice status={report.status} />
+            )}
             <div className={`
-                    bg-white/10 rounded-lg p-6
+                    bg-white/10 rounded-lg p-6 mt-10 mb-50
                     w-full max-w-2xl min-w-[32rem] mx-auto space-y-4
                     transition-all duration-700
-                    ${showContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+                    ${showContent || true ? 'opacity-100' : 'opacity-0 pointer-events-none'}
                 `}
             >
                 <div>
                     <span className="font-semibold text-white">
-                        변환된 파일:
+                        변환된 파일: {report.generatedFiles.length > 0 ? '' : '❌'}
                     </span>
                     <ul className="ml-2 text-white list-disc list-inside">
                         {report.generatedFiles.map((file, idx) => (

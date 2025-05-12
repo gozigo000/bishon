@@ -76,6 +76,8 @@ export const titleTag: Record<string, string> = {
     '<//도면의 간단한 설명>': '</description-of-drawings>',
     '<발실구내>': '<description-of-embodiments>',
     '<//발실구내>': '</description-of-embodiments>',
+    '<부호의 설명>': '<reference-signs-list>',
+    '<//부호의 설명>': '</reference-signs-list>',
     '<발명을 실시하기 위한 구체적인 내용>': '<description-of-embodiments>',
     '<//발명을 실시하기 위한 구체적인 내용>': '</description-of-embodiments>',
     '<청구범위>': '<claims>',
@@ -96,7 +98,6 @@ export const titleTag: Record<string, string> = {
     '<//표>': '</tables>',
     '<수학식 #>': '<maths num="\\w\*">',
     '<//수학식>': '</maths>',
-    // TODO: <부호의 설명> 추가
 }
 
 export class KXmlPouch {
