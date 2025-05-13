@@ -1,13 +1,13 @@
 
-export async function toFile(input: FileOrBuffer): Promise<File> {
+export async function toFile(input: FileOrBuffer, name: string = 'file.bin'): Promise<File> {
     if (input instanceof File) {
         return input;
     }
     if (input instanceof Buffer) {
-        return new File([input], 'file.bin');
+        return new File([input], name);
     }
     if (input instanceof ArrayBuffer) {
-        return new File([input], 'file.bin');
+        return new File([input], name);
     }
     throw new Error('지원하지 않는 타입입니다.');
 }

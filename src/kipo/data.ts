@@ -6,7 +6,6 @@ export const sTitlesLv1 = new Set([
     '[도면]'
 ]);
 // 레벨 1, 2 제목
-
 export const sTitlesLv12 = new Set([
     ...sTitlesLv1,
     '[발명의 명칭]',
@@ -22,7 +21,6 @@ export const sTitlesLv12 = new Set([
     '[대표도]',
 ]);
 // 레벨 1, 2, 3 제목
-
 export const sTitlesLv123 = new Set([
     ...sTitlesLv12,
     '[특허문헌]',

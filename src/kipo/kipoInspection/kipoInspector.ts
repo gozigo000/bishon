@@ -504,7 +504,7 @@ class KipoInspector {
 
         return [
             titleTag['<요약서>'],
-            summary.getOuterXml('\n', '\n'), // TODO: <br/> 줄바꿈 여부 확인하기 .replaceAll('<br/>', '<br/>\n'),
+            summary.getOuterXml('\n', '\n').replaceAll('<br/>', '<br/>\n'),
             absFig.isInSpec ? absFig.getOuterXml('\n', '\n').replaceAll('><', '>\n<') : '',
             titleTag['<//요약서>']
         ].filter(Boolean).join('\n');

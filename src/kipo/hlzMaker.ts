@@ -5,7 +5,7 @@ import { toArrayBuffer } from "@/_utils/dataType";
 import { generateSpecInspectionResult } from './kipoInspection/kipoInspector';
 import { generateDiffLines } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
-import { dlog } from '@/_utils/env';
+import { isProd, dlog } from '@/_utils/env';
 
 export type Img = {
     name: string;
@@ -50,7 +50,7 @@ export async function makeHlz(wordFile: File)
         
         const [finalXml, inspectionReport, countingReport] = generateSpecInspectionResult(hlzXml);
 
-        if (inspectionReport.find(r => r.process === 'STOP')) {
+        if (isProd() && inspectionReport.find(r => r.process === 'STOP')) {
             return [
                 null, 
                 countingReport,

@@ -16,17 +16,35 @@ export function runInDev<T, Args extends any[]>(
 
 export let devLogOff = false;
 // devLogOff = true;
-export function dlog(arg1: any, arg2?: any, showCallStack: boolean = false) {
+export function dlog(...args: any[]) {
     if (devLogOff) return;
 
     if (isDev() || isTest()) {
         let out: string[] = [];
 
-        const a = color.brBlue(arg1.toString());
-        const b = arg2 ? color.brYellow(arg2.toString()) : '';
-        out.push(a + ' ' + b);
+        const a = color.brBlue(args[0].toString());
+        const b = args.length > 1 ? `, ${color.brYellow(args[1].toString())}` : '';
+        const c = args.length > 2 ? `, ${color.brGreen(args[2].toString())}` : '';
+        const d = args.length > 3 ? `, ${args.slice(3).map(arg => arg.toString()).join(', ')}` : '';
+        out.push(a + b + c + d);
 
-        if (showCallStack) {
+        out.push(color.brMagenta('--------------------------------'));
+        console.log(out.join('\n'));
+    }
+}
+
+export function dclog(...args: any[]) {
+    if (devLogOff) return;
+
+    if (isDev() || isTest()) {
+        let out: string[] = [];
+
+        const a = color.brBlue(args[0].toString());
+        const b = args.length > 1 ? `, ${color.brYellow(args[1].toString())}` : '';
+        const c = args.length > 2 ? `, ${color.brGreen(args[2].toString())}` : '';
+        const d = args.length > 3 ? `, ${args.slice(3).map(arg => arg.toString()).join(', ')}` : '';
+        out.push(a + b + c + d);
+
         // 호출된 라인 정보 추출
         const stack = new Error().stack;
         if (!stack) return;
@@ -40,8 +58,7 @@ export function dlog(arg1: any, arg2?: any, showCallStack: boolean = false) {
 
             const info = match[1].replace(':', ' (');
             out.push(color.brMagenta(`${n++}.`) + color.yellow(` ${info}`));
-            });
-        }
+        });
 
         out.push(color.brMagenta('--------------------------------'));
         console.log(out.join('\n'));
