@@ -7,7 +7,14 @@ import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
 
 const adaptor = liteAdaptor();
 RegisterHTMLHandler(adaptor);
-const tex = new TeX();
+// const tex = new TeX();
+const tex = new TeX({
+    packages: ['base', 'ams', 'noerrors', 'noundefined'],
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+});
 const svg = new SVG({ fontCache: 'none' });
 const html = mathjax.document('', { InputJax: tex, OutputJax: svg });
 

@@ -2,13 +2,13 @@
 export const OMML_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math';
 
 /** LaTeX에서 이스케이프가 필요한 문자들 */
-export const CHARS = ['{', '}', '_', '^', '#', '&', '$', '%', '~'];
+export const ESCAPING_CHARS = ['{', '}', '_', '^', '#', '&', '$', '%', '~'];
 
 /** 정렬 문자 */
-export const ALN = '&';
+export const ALIGN = '&';
 
 /** 줄바꿈 문자 */
-export const BRK = '\\\\';
+export const BREAK = '\\\\';
 
 /** 백슬래시 문자 */
 export const BACKSLASH = '\\';
@@ -67,7 +67,7 @@ export const CHR: Record<string, string> = {
 };
 
 /** Mapping of Big Operators to LaTeX representations */
-export const CHR_BO: Record<string, string> = {
+export const BIG_OPERATORS: Record<string, string> = {
     '2140': '\\Bbbsum',
     '220f': '\\prod',
     '2210': '\\coprod',
@@ -88,7 +88,7 @@ export const CHR_BO: Record<string, string> = {
 };
 
 /** Mapping of Greek letters and various symbols to LaTeX representations */
-export const T: Record<string, string> = {
+export const LATEX_SYMBOLS: Record<string, string> = {
     // (참고) 유니코드 블록/검색: https://www.fileformat.info/info/unicode/block/index.htm
     // (참고) unicode_math.md 파일에 모든 수학식 관련 유니코드 정리해 놓음
     // HACK: 볼드 이텔릭 문자를 글자스타일 대신 사용해볼까?
@@ -399,52 +399,27 @@ export const FUNC: Record<string, string> = {
 
     'log': '\\log({fe})',
     'ln': '\\ln({fe})',
+    'min': '\\min{fe}',
+    'max': '\\max{fe}',
     // 이 함수들은 필요 없는 듯...
     // 'exp': '\\exp({fe})',
     // 'abs': '\\abs({fe})',
 };
 
-export const FUNC_PLACE = '{fe}';
-
-export const CHR_DEFAULT: Record<string, string> = {
-    'ACC_VAL': '\\hat{{0}}'
-};
-
-export const ch2Latex: Record<string, string> = {
+export const BAR_DEFAULT = '\\overline{{0}}';
+export const BAR: Record<string, string> = {
     'top': '\\overline{{0}}', // Not sure about this
     'bot': '\\underline{{0}}'
 };
 
-export const POS_DEFAULT: Record<string, string> = {
-    'BAR_VAL': '\\overline{{0}}'
-};
-
-export const SUB = '_{{0}}';
-export const SUP = '^{{0}}';
-
 /** Mapping of fraction types to LaTeX representations */
-export const F: Record<string, string> = {
+export const FRACTION_DEFAULT = '\\frac{{0}}{{1}}';
+export const FRACTION_TYPES: Record<string, string> = {
     'bar': '\\frac{{0}}{{1}}',
     'skw': '^{{0}}/_{{1}}',
     'noBar': '\\genfrac{}{}{0pt}{}{{0}}{{1}}',
     'lin': '{{0}}/{{1}}'
 };
-export const F_DEFAULT = '\\frac{{0}}{{1}}';
-
-/** Mapping of delimiter to LaTeX representations */
-export const D = '\\left{0}{1}\\right{2}';
-export const D_DEFAULT: Record<string, string> = {
-    'left': '(',
-    'right': ')',
-    'null': '.'
-};
-
-/** Mapping of radical to LaTeX representations */
-export const RAD = '\\sqrt[{0}]{{1}}';
-export const RAD_DEFAULT = '\\sqrt{{0}}';
-
-/** Mapping of array to LaTeX representations */
-export const ARR = '\\begin{array}{c}{0}\\end{array}';
 
 /** Mapping of limit functions to LaTeX representations */
 export const LIM_FUNC: Record<string, string> = {
@@ -452,8 +427,4 @@ export const LIM_FUNC: Record<string, string> = {
     'max': '\\max_{{0}}',
     'min': '\\min_{{0}}'
 };
-export const LIM_TO = ['\\rightarrow', '\\to'];
 export const LIM_UPP = '\\overset{{0}}{{1}}';
-
-/** Mapping of matrix to LaTeX representations */
-export const M = '\\begin{matrix}{0}\\end{matrix}';

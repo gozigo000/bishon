@@ -1,5 +1,5 @@
 import { escapeLatex, format, getUnicodeString, getValue, isComplexEquation } from "./utils";
-import { POS_DEFAULT, ALN, BRK, ch2Latex, CHR, CHR_DEFAULT, F, F_DEFAULT, FUNC, FUNC_PLACE, LIM_FUNC, LIM_TO, LIM_UPP, M, OMML_NS, RAD, RAD_DEFAULT, D_DEFAULT, T, D, SUP, SUB, ARR, CHR_BO } from "./data";
+import { BAR_DEFAULT, ALIGN, BREAK, BAR, ACCENTS, ACCENT_DEFAULT, FRACTION_TYPES, FRACTION_DEFAULT, FUNC, LIM_FUNC, LIM_UPP, OMML_NS, LATEX_SYMBOLS, BIG_OPERATORS } from "./data";
 import { XmlPropNode } from "./XmlPropNode";
 
 export interface NodeInfo {
@@ -139,7 +139,7 @@ function doAcc(xmlNode: Element): string {
     const children = processChildrenForDict(xmlNode.children);
     const pr = children['m:accPr'];
     if (typeof pr === 'string') return '';
-    const latexStr = getValue(pr.getAttributeValue('m:chr'), CHR_DEFAULT['ACC_VAL'], CHR);
+    const latexStr = getValue(pr.getAttributeValue('m:chr'), ACCENT_DEFAULT, ACCENTS);
     return format(latexStr, children['m:e']);
 }
 
@@ -159,7 +159,7 @@ function doR(xmlNode: Element): string {
             return '\\ ';
         }
         const uni = getUnicodeString(ch);
-        return T[uni] || ch;
+        return LATEX_SYMBOLS[uni] || ch;
     }).join('');
 
     // 볼드체, 이텔릭체 처리
@@ -186,7 +186,7 @@ function doBar(xmlNode: Element): string {
     const children = processChildrenForDict(xmlNode.children);
     const pr = children['m:barPr'];
     if (typeof pr === 'string') return '';
-    const latexStr = getValue(pr.getAttributeValue('m:pos'), POS_DEFAULT['BAR_VAL'], ch2Latex);
+    const latexStr = getValue(pr.getAttributeValue('m:pos'), BAR_DEFAULT, BAR);
     return pr + format(latexStr, children['m:e']);
 }
 
@@ -205,15 +205,14 @@ function doD(xmlNode: Element): string {
     const dPr = children['m:dPr'];
     if (typeof dPr === 'string') return '';
 
-    const nullVal = D_DEFAULT['null'];
-    const begChr = getValue(dPr.getAttributeValue('m:begChr'), D_DEFAULT['left'], T);
-    const endChr = getValue(dPr.getAttributeValue('m:endChr'), D_DEFAULT['right'], T);
+    const nullVal = '.';
+    const begChr = getValue(dPr.getAttributeValue('m:begChr'), '(', LATEX_SYMBOLS);
+    const endChr = getValue(dPr.getAttributeValue('m:endChr'), ')', LATEX_SYMBOLS);
     const left = begChr ? escapeLatex(begChr) : nullVal;
     const right = endChr ? escapeLatex(endChr) : nullVal;
     const text = children['m:e'];
-    // HACK: 아래와 같은 형태로 보기 쉽게 바꿀까?
-    // return pr + `\\left${left}${text}\\right${right}`;
-    return (dPr ? dPr : '') + format(D, left, text, right);
+
+    return (dPr ? dPr : '') + `\\left${left}${text}\\right${right}`;
 }
 
 /**
@@ -223,7 +222,7 @@ function doD(xmlNode: Element): string {
  */
 function doSub(xmlNode: Element): string {
     const val = processChildren(xmlNode.children);
-    return val ? format(SUB, val) : '';
+    return val ? `_{${val}}` : '';
 }
 
 /**
@@ -233,7 +232,7 @@ function doSub(xmlNode: Element): string {
  */
 function doSup(xmlNode: Element): string {
     const val = processChildren(xmlNode.children);
-    return val ? format(SUP, val) : '';
+    return val ? `^{${val}}` : '';
 }
 
 /**
@@ -251,7 +250,7 @@ function doF(xmlNode: Element): string {
     // - OOXML 문서: 22.1.2.38 fPr (Fraction Properties)
     const pr = children['m:fPr'];
     if (typeof pr === 'string') return '';
-    const frac = getValue(pr.getAttributeValue('m:type'), F_DEFAULT, F);
+    const frac = getValue(pr.getAttributeValue('m:type'), FRACTION_DEFAULT, FRACTION_TYPES);
     return (pr ? pr : '') + format(frac, children['m:num'], children['m:den']);
 }
 
@@ -265,7 +264,7 @@ function doFunc(xmlNode: Element): string {
     const funcName = children['m:fName'];
     const e = children['m:e'];
     if (typeof funcName !== 'string' || typeof e !== 'string') return '';
-    return funcName.replace(FUNC_PLACE, e);
+    return funcName.replace('{fe}', e);
 }
 
 /**
@@ -289,7 +288,7 @@ function doFName(xmlNode: Element): string {
         }
     }
     const funcNames = latexFuncNames.join('');
-    return funcNames.includes(FUNC_PLACE) ? funcNames : funcNames + FUNC_PLACE;
+    return funcNames.includes('{fe}') ? funcNames : funcNames + '{fe}';
 }
 
 /**
@@ -313,9 +312,9 @@ function doGroupChr(xmlNode: Element): string {
 function doRad(xmlNode: Element): string {
     const children = processChildrenForDict(xmlNode.children);
     if (children['m:deg'] && typeof children['m:deg'] === 'string' && children['m:deg'].length > 0) {
-        return format(RAD, children['m:deg'], children['m:e']);
+        return `\\sqrt[${children['m:deg']}]{${children['m:e']}}`;
     }
-    return format(RAD_DEFAULT, children['m:e']);
+    return `\\sqrt{${children['m:e']}}`;
 }
 
 /**
@@ -327,8 +326,8 @@ function doEqArr(xmlNode: Element): string {
     const include = new Set(['m:e']);
     const text = generateNodesInfo(xmlNode.children, include)
         .map(t => t.result)
-        .join(BRK);
-    return format(ARR, text);
+        .join(BREAK);
+    return `\\begin{array}{c}${text}\\end{array}`;
 }
 
 /**
@@ -364,7 +363,7 @@ function doLimUpp(xmlNode: Element): string {
  * @returns LaTeX 문자열
  */
 function doLim(xmlNode: Element): string {
-    return processChildren(xmlNode.children).replace(LIM_TO[0], LIM_TO[1]);
+    return processChildren(xmlNode.children).replace('\\rightarrow', '\\to');
 }
 
 /**
@@ -376,7 +375,7 @@ function doM(xmlNode: Element): string {
     const rows = generateNodesInfo(xmlNode.children)
         .filter(info => info.tag === 'm:mr')
         .map(info => info.result);
-    return format(M, rows.join(BRK));
+    return `\\begin{matrix}${rows.join(BREAK)}\\end{matrix}`;
 }
 
 /**
@@ -388,7 +387,7 @@ function doMr(xmlNode: Element): string {
     const include = new Set(['m:e']);
     return generateNodesInfo(xmlNode.children, include)
         .map(t => t.result)
-        .join(ALN);
+        .join(ALIGN);
 }
 
 /**
@@ -398,14 +397,14 @@ function doMr(xmlNode: Element): string {
  */
 function doNary(xmlNode: Element): string {
     const res: string[] = [];
-    let bo = '';
+    let bigOper = '';
 
     for (const info of generateNodesInfo(xmlNode.children)) {
         if (info.tag === 'm:naryPr') {
             if (typeof info.result === 'string') continue;
-            bo = getValue(info.result.getAttributeValue('m:chr'), null, CHR_BO);
-            if (!bo) {
-                bo = '\\int';
+            bigOper = getValue(info.result.getAttributeValue('m:chr'), null, BIG_OPERATORS);
+            if (!bigOper) {
+                bigOper = '\\int';
             }
         } else if (info.tag === 'm:e' && typeof info.result === 'string' && isComplexEquation(info.result)) {
             res.push(`{${info.result}}`);
@@ -416,8 +415,8 @@ function doNary(xmlNode: Element): string {
 
     const val = res.join('');
     if (!val.startsWith('_') && !val.startsWith('^')) {
-        bo += ' ';
+        bigOper += ' ';
     }
 
-    return bo + val;
+    return bigOper + val;
 }
