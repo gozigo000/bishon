@@ -1,5 +1,5 @@
-import { BRK, OMML_NS } from "./data";
-import { NodeInfo } from "./TagConverter";
+import { BREAK, OMML_NS } from "./data";
+import { NodeInfo } from "./OomlConverter";
 
 
 export class XmlPropNode {
@@ -9,12 +9,12 @@ export class XmlPropNode {
     /**
      * - 자식 태그 목록
      */
-    private readonly innerList: string[] = [];
-    /** (my)
+    private readonly innerTags: string[] = [];
+    /**
      * - `key`: 자식 태그 이름
      * - `val`: 자식 태그의 `m:val` 속성 값
      */
-    private readonly innerDict: Record<string, string | null> = {};
+    private readonly innerTagVals: Record<string, string | null> = {};
 
 
     constructor(xmlTag: Element) {
@@ -26,8 +26,8 @@ export class XmlPropNode {
         this.text = this.processChildren(xmlTag.children);
     }
 
-    private processChildren(xmlNodes: HTMLCollection, include?: Set<string>): string {
-        const list: NodeInfo[] = this.generateNodesInfo(xmlNodes, include);
+    private processChildren(xmlNodes: HTMLCollection): string {
+        const list: NodeInfo[] = this.generateNodesInfo(xmlNodes);
         if (list.length === 0) return '';
         let xmlStr = '';
         for (const t of list) {
@@ -44,17 +44,14 @@ export class XmlPropNode {
      * @param include - 포함할 태그 목록 (선택적)
      * @returns `NodeInfo[]`
     */
-    private generateNodesInfo(xmlNodes: HTMLCollection, include?: Set<string>): NodeInfo[] {
-        const result: NodeInfo[] = [];
+    private generateNodesInfo(xmlNodes: HTMLCollection): NodeInfo[] {
+        if (!xmlNodes) return [];
         
-        if (!xmlNodes) return result;
-
+        const result: NodeInfo[] = [];
         for (const xmlNode of xmlNodes) {
             if (!xmlNode.namespaceURI?.includes(OMML_NS)) continue;
             
             const tagName = xmlNode.tagName || '';
-            if (include && !include.has(tagName)) continue;
-            
             const tagElm = this.processTag(xmlNode);
             if (!tagElm) continue;
 
@@ -67,8 +64,9 @@ export class XmlPropNode {
         switch (xmlNode.tagName) {
             case 'w:b': 
             case 'w:i': 
-            case 'w:bi': {
-                this.innerList.push(xmlNode.tagName);
+            case 'w:bi': 
+            case 'm:aln': {
+                this.innerTags.push(xmlNode.tagName);
                 return '';
             }
             case 'm:brk': return this.doBrk();
@@ -89,14 +87,14 @@ export class XmlPropNode {
      * @returns 줄바꿈 문자
      */
     private doBrk(): string {
-        this.innerDict['m:brk'] = BRK;
-        return BRK;
+        this.innerTagVals['m:brk'] = BREAK;
+        return BREAK;
     }
 
     private doCommon(xmlNode: Element): string {
         const tagName = xmlNode.tagName;
         if (XmlPropNode.valTags.has(tagName)) {
-            this.innerDict[tagName] = xmlNode.getAttribute('m:val');
+            this.innerTagVals[tagName] = xmlNode.getAttribute('m:val');
         }
         return '';
     }
@@ -105,6 +103,10 @@ export class XmlPropNode {
         return this.text;
     }
 
+    public hasInnerTag(name: string): boolean {
+        return this.innerTags.includes(name);
+    }
+    
     /**
      * 속성 값 가져오기
      * @param xmlNode - 속성 값을 가져올 노드
@@ -123,8 +125,8 @@ export class XmlPropNode {
     public getAttributeValue(
         name: string
     ): string | null {
-        if (name in this.innerDict) {
-            return this.innerDict[name];
+        if (name in this.innerTagVals) {
+            return this.innerTagVals[name];
         }
         // return this.getAttributeValue(xmlNode, name);
         return null;

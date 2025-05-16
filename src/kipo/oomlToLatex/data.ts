@@ -14,21 +14,67 @@ export const BREAK = '\\\\';
 export const BACKSLASH = '\\';
 
 /** Mapping of accents and symbols to LaTeX representations */
-export const CHR: Record<string, string> = {
-    // Unicode : Latex Math Symbols
-    // Top accents
-    '0300': '\\grave{{0}}',
+export const ACCENT_DEFAULT = '\\hat{{0}}';
+export const ACCENTS: Record<string, string> = {
+    // NOTE: MathJax 지원 목록 https://docs.mathjax.org/en/latest/input/tex/macros/index.html
+    // NOTE: KaTeX 지원 목록 https://katex.org/docs/supported
+    
+    // 'Unicode': 'Latex Math Symbol'
+    // Accents
+    // a′: a'
+    // a′′: a''
+    // a′: a^{\prime}
     '0301': '\\acute{{0}}',
-    '0302': '\\hat{{0}}',
-    '0303': '\\tilde{{0}}',
     '0304': '\\bar{{0}}',
-    '0305': '\\overbar{{0}}',
     '0306': '\\breve{{0}}',
+    '030c': '\\check{{0}}',
     '0307': '\\dot{{0}}',
     '0308': '\\ddot{{0}}',
+    '20db': '\\dddot{{0}}',
+    '20dc': '\\ddddot{{0}}',
+    '0300': '\\grave{{0}}',
+    '0302': '\\hat{{0}}',
+
+    '0303': '\\tilde{{0}}',
+    '0330': '\\widetilde{{0}}',
+    // \\utilde{AB}
+    '20d7': '\\vec{{0}}',
+    '20d6': '\\overleftarrow{{0}}',
+    '20ee': '\\underleftarrow{{0}}',
+    // \\overleftharpoon{ac}
+    '20e1': '\\overleftrightarrow{{0}}',
+    // \\underleftrightarrow{AB}
+    // \\overline{AB} // 따로 구현됨
+    // \\underline{AB} // 따로 구현됨
+    // \\widecheck{ac}
+    // \\widehat{ac}
+    
+    // \\mathring{g}
+    // \\overgroup{AB}
+    // \\undergroup{AB}
+    // \\Overrightarrow{AB}
+    // \\overrightarrow{AB}
+    '20ef': '\\underrightarrow{{0}}',
+    // \\overrightharpoon{ac}
+    '23de': '\\overbrace{{0}}',
+    '23df': '\\underbrace{{0}}',
+    // \\overlinesegment{AB}
+    // \\underlinesegment{AB}
+    '0331': '\\underbar{{0}}',
+    
+    // 처음부터 있던 것들
+    '20e8': '\\threeunderdot{{0}}',
+    '20ec': '\\underrightharpoondown{{0}}',
+    '20ed': '\\underleftharpoondown{{0}}',
+
+    '23b4': '\\overbracket{{0}}',
+    '23dc': '\\overparen{{0}}',
+    '23b5': '\\underbracket{{0}}',
+    '23dd': '\\underparen{{0}}',
+
+    '0305': '\\overbar{{0}}',
     '0309': '\\ovhook{{0}}',
     '030a': '\\ocirc{{0}}',
-    '030c': '\\check{{0}}',
     '0310': '\\candra{{0}}',
     '0312': '\\oturnedcomma{{0}}',
     '0315': '\\ocommatopright{{0}}',
@@ -37,54 +83,32 @@ export const CHR: Record<string, string> = {
     '20d0': '\\leftharpoonaccent{{0}}',
     '20d1': '\\rightharpoonaccent{{0}}',
     '20d2': '\\vertoverlay{{0}}',
-    '20d6': '\\overleftarrow{{0}}',
-    '20d7': '\\vec{{0}}',
-    '20db': '\\dddot{{0}}',
-    '20dc': '\\ddddot{{0}}',
-    '20e1': '\\overleftrightarrow{{0}}',
     '20e7': '\\annuity{{0}}',
     '20e9': '\\widebridgeabove{{0}}',
     '20f0': '\\asteraccent{{0}}',
-
-    // Bottom accents
-    '0330': '\\wideutilde{{0}}',
-    '0331': '\\underbar{{0}}',
-    '20e8': '\\threeunderdot{{0}}',
-    '20ec': '\\underrightharpoondown{{0}}',
-    '20ed': '\\underleftharpoondown{{0}}',
-    '20ee': '\\underledtarrow{{0}}',
-    '20ef': '\\underrightarrow{{0}}',
-
-    // Over | group
-    '23b4': '\\overbracket{{0}}',
-    '23dc': '\\overparen{{0}}',
-    '23de': '\\overbrace{{0}}',
-
-    // Under| group
-    '23b5': '\\underbracket{{0}}',
-    '23dd': '\\underparen{{0}}',
-    '23df': '\\underbrace{{0}}',
 };
 
 /** Mapping of Big Operators to LaTeX representations */
 export const BIG_OPERATORS: Record<string, string> = {
-    '2140': '\\Bbbsum',
-    '220f': '\\prod',
-    '2210': '\\coprod',
-    '2211': '\\sum',
-    '222b': '\\int',
-    '222c': '\\iint',		//mxd. Double integral
-    '222d': '\\iiint',	    //mxd. Triple integral
-    '222e': '\\oint',		//mxd. Contour integral
-    '222f': '\\oiint',		//mxd. Double Contour integral
-    '2230': '\\oiiint',		//mxd. Triple Contour integral
-    '22c0': '\\bigwedge',
-    '22c1': '\\bigvee',
-    '22c2': '\\bigcap',
-    '22c3': '\\bigcup',
-    '2a00': '\\bigodot',
-    '2a01': '\\bigoplus',
-    '2a02': '\\bigotimes'
+    '2140': '\\sum', // ⅀
+    '220f': '\\prod', // ∏
+    '2210': '\\coprod', // ∐
+    '2211': '\\sum', // ∑
+    '222b': '\\int', // ∫
+    '222c': '\\iint', // ∬
+    '222d': '\\iiint', // ∭
+    '222e': '\\oint', // ∮
+    '222f': '\\oiint', // ∯
+    '2230': '\\oiiint', // ∰
+    '22c0': '\\bigwedge', // ⋀
+    '22c1': '\\bigvee', // ⋁
+    '22c2': '\\bigcap', // ⋂
+    '22c3': '\\bigcup', // ⋃
+    '2a00': '\\bigodot', // ⨀
+    '2a01': '\\bigoplus', // ⨁
+    '2a02': '\\bigotimes', // ⨂
+    '2a04': '\\biguplus', // ⨄
+    '2a06': '\\bigsqcup', // ⨆
 };
 
 /** Mapping of Greek letters and various symbols to LaTeX representations */
@@ -116,7 +140,7 @@ export const LATEX_SYMBOLS: Record<string, string> = {
     "0001D6F5": "\\Tau ",       // 𝛵
     "0001D6F6": "\\Upsilon ",   // 𝛶
     "0001D6F7": "\\Phi ",       // 𝛷
-    "0001D6F8": "\\Chi ",       // 𝛸
+    "0001D6F8": "X",            // 𝛸 : mathjax에서 대문자 오미크론(\Chi)은 지원을 안함
     "0001D6F9": "\\Psi ",       // 𝛹
     "0001D6FA": "\\Omega ",     // 𝛺
 
@@ -176,7 +200,7 @@ export const LATEX_SYMBOLS: Record<string, string> = {
     "03a4": "\\Tau ",      // Τ
     "03a5": "\\Upsilon ",  // Υ
     "03a6": "\\Phi ",      // Φ
-    "03a7": "\\Chi ",      // Χ
+    "03a7": "X",           // Χ : mathjax에서 대문자 오미크론(\Chi)은 지원을 안함
     "03a8": "\\Psi ",      // Ψ
     "03a9": "\\Omega ",    // Ω
     
@@ -284,6 +308,7 @@ export const LATEX_SYMBOLS: Record<string, string> = {
     "0027": "\\prime ",
 
     //mxd. Moodle math operators
+    "∙": "\\cdot ", // 이 점은 너무 크게 나와서 '\cdot'으로 바꿔줌
     "22c5": "\\cdot ",
     "00d7": "\\times ",
     "002a": "\\ast ",
@@ -326,15 +351,15 @@ export const LATEX_SYMBOLS: Record<string, string> = {
 
     // Relation symbols
     "2190": "\\leftarrow ",
-    "2191": "\\uparrow ",
-    "2192": "\\rightarrow ",
-    "2193": "\\downright ",
-    "2194": "\\leftrightarrow ",
-    "2195": "\\updownarrow ",
-    "2196": "\\nwarrow ",
-    "2197": "\\nearrow ",
-    "2198": "\\searrow ",
-    "2199": "\\swarrow ",
+    "2191": "\\uparrow ", // ↑
+    "2192": "\\rightarrow ", // →
+    "2193": "\\downright ", // ↘
+    "2194": "\\leftrightarrow ", // ↔
+    "2195": "\\updownarrow ", // ↕
+    "2196": "\\nwarrow ", // ↖
+    "2197": "\\nearrow ", // ↗
+    "2198": "\\searrow ", // ↘
+    "2199": "\\swarrow ", // ↙
     "22ee": "\\vdots ",
     "22ef": "\\cdots ",
     "22f0": "\\adots ",
@@ -353,18 +378,13 @@ export const LATEX_SYMBOLS: Record<string, string> = {
     "220b": "\\ni ",
     "220c": "\\nni ",
 
-    // 괄호 좌/우
-    "230a": "\\lceil ",
-    "230b": "\\rceil ",
-    "2308": "\\lfloor ",
-    "2309": "\\rfloor ",
-
     //mxd. Double arrows
-    "21d0": "\\Leftarrow ",
-    "21d1": "\\Uparrow ",
-    "21d2": "\\Rightarrow ",
-    "21d3": "\\Downarrow ",
-    "21d4": "\\Leftrightarrow ",
+    "21d0": "\\Leftarrow ", // ⇐
+    "21d1": "\\Uparrow ", // ⇑
+    "21d2": "\\Rightarrow ", // ⇒
+    "21d3": "\\Downarrow ", // ⇓
+    "21d4": "\\Leftrightarrow ", // ⇔
+    // "21d5": "\\Updownarrow ", // ⇕
 
     //mxd. Long double arrows
     "27f8": "\\Longleftarrow ",
@@ -378,32 +398,59 @@ export const LATEX_SYMBOLS: Record<string, string> = {
     "00b1": "\\pm ",
     "2213": "\\mp ",
 
+    // 괄호 좌/우
+    "⌈": "\\lceil ", // ⌈
+    "⌉": "\\rceil ", // ⌉
+    "⌊": "\\lfloor ", // ⌊
+    "⌋": "\\rfloor ", // ⌋
+    "⎰": "\\lmoustache ", // ⎰
+    "⎱": "\\rmoustache ", // ⎱
+    "⟨": "\\langle ", // ⟨
+    "⟩": "\\rangle ", // ⟩
+    "⟮": "\\lgroup ", // ⟮
+    "⟯": "\\rgroup ", // ⟯
+    "│": "\\vert ", // │
+    "∥": "\\Vert ", // ∥
+    "‖": "\\Vert ", // ∥
+    "┌": "\\ulcorner ", // ┌
+    "┐": "\\urcorner ", // ┐
+    "└": "\\llcorner ", // └
+    "┘": "\\lrcorner ", // ┘
+    "⟦": "\\llbracket ", // ⟦
+    "⟧": "\\rrbracket ", // ⟧
+    "⦃": "\\lBrace ", // ⦃
+    "⦄": "\\rBrace ", // ⦄
+    "<": "\\lt ", // <
+    ">": "\\gt ", // >	
+    "≥": "\\geq ", // ≥
+    "≤": "\\leq ", // ≤
+    "\\": "\\backslash ", // \
 };
 
 /** Mapping of functions to their LaTeX representations */
 export const FUNC: Record<string, string> = {
-    'sin': '\\sin({fe})',
-    'cos': '\\cos({fe})',
-    'tan': '\\tan({fe})',
-    'arcsin': '\\arcsin({fe})',
-    'arccos': '\\arccos({fe})',
-    'arctan': '\\arctan({fe})',
-    'arccot': '\\arccot({fe})',
-    'sinh': '\\sinh({fe})',
-    'cosh': '\\cosh({fe})',
-    'tanh': '\\tanh({fe})',
-    'coth': '\\coth({fe})',
-    'sec': '\\sec({fe})',
-    'csc': '\\csc({fe})',
-    'cot': '\\cot({fe})',
+    'sin': '\\sin ',
+    'cos': '\\cos ',
+    'tan': '\\tan ',
+    'arcsin': '\\arcsin ',
+    'arccos': '\\arccos ',
+    'arctan': '\\arctan ',
+    'arccot': '\\arccot ',
+    'sinh': '\\sinh ',
+    'cosh': '\\cosh ',
+    'tanh': '\\tanh ',
+    'coth': '\\coth ',
+    'sec': '\\sec ',
+    'csc': '\\csc ',
+    'cot': '\\cot ',
 
-    'log': '\\log({fe})',
-    'ln': '\\ln({fe})',
-    'min': '\\min{fe}',
-    'max': '\\max{fe}',
+    'log': '\\log ',
+    'ln': '\\ln ',
+    'min': '\\min ',
+    'max': '\\max ',
     // 이 함수들은 필요 없는 듯...
-    // 'exp': '\\exp({fe})',
-    // 'abs': '\\abs({fe})',
+    // 'exp': '\\exp ',
+    // 'abs': '\\abs ',
 };
 
 export const BAR_DEFAULT = '\\overline{{0}}';
