@@ -18,7 +18,8 @@
     "test:ttf": "cls && npx jest test/ttfParser.test.ts",
     "test:kipoTester": "cls && npx jest test/kipoTester.test.ts",
     "test:elemExtractor": "cls && npx jest test/elemExtractor.test.ts",
-    "test:rejection": "cls && npx jest test/rejection.test.ts --detectOpenHandles"
+    "test:passFail": "cls && npx jest test/passFail.test.ts --detectOpenHandles",
+    "test:mathjax": "cls && npx jest test/mathjax.test.ts"
   },
   "dependencies": {
     "chalk": "^5.4.1",
@@ -28,7 +29,7 @@
     "jsdom": "^26.1.0",
     "jszip": "^3.10.1",
     "mammoth": "^1.9.0",
-    "mathjax-full": "^3.2.2",
+    "mathjax": "^3.2.2",
     "next": "15.3.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

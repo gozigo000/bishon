@@ -104,7 +104,9 @@ class KipoInspector {
         });
         
         // inspect_bracket - E201, E204, E211 에러 수정
-        this.roughXml = this.roughXml.replaceAll('【', '[').replaceAll('】', ']');
+        this.roughXml = this.roughXml
+            .replaceAll('【', '[').replaceAll('】', ']')
+            .replaceAll('　', ' '); // 全角 스페이스 제거
 
         const headTags = this.roughXml.match(/^[\s\S]*documentID="\d{10}">/)?.[0];
         if (!headTags) return this.report.record({ 

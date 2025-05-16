@@ -1,4 +1,4 @@
-import { CHARS, BACKSLASH, CHR } from "./data";
+import { ESCAPING_CHARS, BACKSLASH, ACCENTS } from "./data";
 
 /**
  * 문자를 유니코드 문자열로 변환
@@ -29,7 +29,7 @@ export function escapeLatex(str: string): string {
     str = str.replace(/\\\\/g, '\\');
     
     for (const c of str) {
-        if (CHARS.includes(c) && last !== BACKSLASH[0]) {
+        if (ESCAPING_CHARS.includes(c) && last !== BACKSLASH[0]) {
             sb.push(BACKSLASH + c);
         } else {
             sb.push(c);
@@ -71,7 +71,7 @@ export function isComplexEquation(e: string): boolean {
 export function getValue(
     key: string | null, 
     defaultValue: string | null = null, 
-    values: Record<string, string> = CHR
+    values: Record<string, string> = ACCENTS
 ): string {
     if (key === null) return defaultValue || '';
     if (key in values) return values[key];
