@@ -29,8 +29,6 @@ export function makeLatexFromOoml(oomlStr: string): string | null {
                 return latexStrs[0].trim();
             }
             if (latexStrs.length > 1) {
-                dlog(latexStrs);
-                dlog(`\\begin{align}${latexStrs.join(BREAK)}\\end{align}`);
                 return `\\begin{align}${latexStrs.join(BREAK)}\\end{align}`;
             }
         }

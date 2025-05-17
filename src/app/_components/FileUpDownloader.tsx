@@ -52,7 +52,8 @@ export default function FileUploader() {
                 generatedFiles: [],
                 countingReport: '',
                 inspectionReport: '',
-                diffReport: ''
+                diffReport: '',
+                jpgImgs: '',
             });
         } finally {
             setIsLoading(false);

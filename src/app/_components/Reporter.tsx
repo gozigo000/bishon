@@ -32,12 +32,29 @@ export default function Reporter({ report }: ReporterProps) {
         catch { return []; }
     }, [report]);
 
-    const diffLines: DiffLine[] = useMemo(() => {
+    const diffReport: DiffReport = useMemo(() => {
         if (!report.diffReport) return [];
         try { return JSON.parse(report.diffReport); }
         catch { return []; }
     }, [report]);
 
+    const imgBuffs: Record<string, ArrayBuffer> = useMemo(() => {
+        if (!report.jpgImgs) return {};
+        try { 
+            const buffs: Record<string, ArrayBuffer> = {};
+            const jpgImgsBase64: Record<string, string> = JSON.parse(report.jpgImgs);
+            for (const [name, base64Str] of Object.entries(jpgImgsBase64)) {
+                const byteChars = atob(base64Str);
+                const byteArray = new Uint8Array(byteChars.length);
+                for (let i = 0; i < byteChars.length; i++) {
+                    byteArray[i] = byteChars.charCodeAt(i);
+                }
+                buffs[name] = byteArray.buffer;
+            }
+            return buffs;
+        }
+        catch { return {}; }
+    }, [report]);
 
     return (
         <div className="flex flex-col w-full h-auto pb-10">
@@ -45,7 +62,7 @@ export default function Reporter({ report }: ReporterProps) {
                 <Notice status={report.status} />
             )}
             <div className={`
-                    bg-white/10 rounded-lg p-6 mt-10 mb-50
+                    bg-white/10 rounded-lg p-6 mt-10
                     w-full max-w-2xl min-w-[32rem] mx-auto space-y-4
                     transition-all duration-700
                     ${showContent || true ? 'opacity-100' : 'opacity-0 pointer-events-none'}
@@ -62,9 +79,11 @@ export default function Reporter({ report }: ReporterProps) {
                     </ul>
                 </div>
                 <CountingReporter countingReport={countingReport} />
-                <InspectionReporter inspectionReport={inspectionReport} />
-                {diffLines.length > 0 && (
-                    <DiffReporter diffReport={diffLines} />
+                {inspectionReport.length > 0 && (
+                    <InspectionReporter inspectionReport={inspectionReport} />
+                )}
+                {diffReport.length > 0 && (
+                    <DiffReporter diffReport={diffReport} imgBuffs={imgBuffs} />
                 )}
             </div>
         </div>

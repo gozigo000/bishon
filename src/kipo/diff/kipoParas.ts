@@ -106,10 +106,9 @@ class KipoParas {
                 this.addPara({ content: `【도 ${figure.getAttribute('num')}】` });
                 const imgs = figure.querySelectorAll('img')
                 for (const img of imgs) {
-                    const [imgW, imgH] = this.getImgSizePt(img);
                     this.addPara({ 
-                        content: `[img]`, 
-                        fullContent: `<img w=${imgW} h=${imgH}/>`
+                        content: img.outerHTML, 
+                        fullContent: img.outerHTML
                     });
                 }
             }
@@ -140,10 +139,9 @@ class KipoParas {
                     this.addPara({ content: `【수학식 ${ele.getAttribute('num')}】` });
                     const imgs = ele.querySelectorAll('img')
                     for (const img of imgs) {
-                        const [imgW, imgH] = this.getImgSizePt(img);
                         this.addPara({ 
-                            content: `[img]`, 
-                            fullContent: `<img w=${imgW} h=${imgH}/>`,
+                            content: img.outerHTML, 
+                            fullContent: img.outerHTML,
                             hasMath: true,
                             hasImg: true
                         });
@@ -167,10 +165,9 @@ class KipoParas {
                     break;
                 }
                 if (name === 'img') {
-                    const ele = child as Element;
-                    const [imgW, imgH] = this.getImgSizePt(ele);
-                    content += `[img]`;
-                    fullContent += `<img w=${imgW} h=${imgH}/>`;
+                    const img = child as Element;
+                    content += img.outerHTML;
+                    fullContent += img.outerHTML;
                     hasImg = true;
                 }
                 else if (name === 'sub' || name === 'sup') {
@@ -217,11 +214,12 @@ class KipoParas {
     }
 
     // 이미지 너비/높이 얻기
-    public getImgSizePt(element: Element): [number, number] {
+    public getImgInfo(element: Element): [number, number, string] {
         const imgW_mm = Number(element.getAttribute('wi')) || 0;
         const imgH_mm = Number(element.getAttribute('he')) || 0;
-        const imgW_pt = Math.floor(imgW_mm * IMG_WIDTH_TO_PT);
-        const imgH_pt = Math.floor(imgH_mm * IMG_HEIGHT_TO_PT);
-        return [imgW_pt, imgH_pt];
+        // const imgW_pt = Math.floor(imgW_mm * IMG_WIDTH_TO_PT);
+        // const imgH_pt = Math.floor(imgH_mm * IMG_HEIGHT_TO_PT);
+        const file = element.getAttribute('file') || '';
+        return [imgW_mm, imgH_mm, file];
     }
 } 

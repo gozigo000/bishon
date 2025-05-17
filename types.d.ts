@@ -6,6 +6,7 @@ declare type OXml = string;
 declare type deliveryBox = {
     userDownloadFile: string | null;
     report: FinalReport;
+    images?: Record<string, string>;
 }; 
 
 declare type FinalReport = {
@@ -14,6 +15,8 @@ declare type FinalReport = {
     countingReport: string;
     inspectionReport: string;
     diffReport: string;
+    jpgImgs?: string;
+    latexes?: string;
     errorMsg?: string;
 }; 
 
@@ -45,6 +48,19 @@ declare type DiffLine = {
 
 declare type Diff = [DiffOp, string];
 declare enum DiffOp { Delete = -1, Equal = 0, Insert = 1 }
+
+declare interface Img {
+    name: string;
+    buffer: ArrayBuffer;
+    W?: number;
+    H?: number;
+}
+
+declare interface Latex {
+    name: string;
+    latex: string;
+    svgImg?: ArrayBuffer;
+}
 
 declare interface Paragraph {
     content: string;

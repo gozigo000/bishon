@@ -14,7 +14,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
 
         // 배송물품 생성
-        const [hlzFile, countingReport, inspectionReport, diffReport] = await makeHlz(file);
+        const [
+            hlzFile, 
+            countingReport, 
+            inspectionReport, 
+            diffReport, 
+            hImgs, 
+            latexEqs,
+        ] = await makeHlz(file);
+       
         if (!hlzFile) {
              const report: FinalReport = {
                 status: 'fail' as const,
@@ -22,6 +30,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 countingReport: JSON.stringify(countingReport),
                 inspectionReport: JSON.stringify(inspectionReport),
                 diffReport: '',
+                jpgImgs: '',
+                latexes: '',
             };
             // 배송
             const box: deliveryBox = { userDownloadFile: null, report };
@@ -34,7 +44,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         zip.file(hlzFile.name, await hlzFile.arrayBuffer());
         zip.file(finFile.name, await finFile.arrayBuffer());
         const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
-        const userDownloadFile = zipBuffer.toString('base64'); // base64 문자열로 인코딩
+        const userDownloadFile = zipBuffer.toString('base64');
+
+        const jpgImgsBase64: Record<string, string> = {};
+        for (const hImg of hImgs) {
+            const base64Str = Buffer.from(hImg.buffer).toString('base64');
+            jpgImgsBase64[hImg.name] = base64Str;
+        }
+
+        const latexes: Record<string, string> = {};
+        for (const latexEq of latexEqs) {
+            latexes[latexEq.name] = latexEq.latex;
+        }
 
         const report: FinalReport = {
             status: 'success' as const,
@@ -42,6 +63,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             countingReport: JSON.stringify(countingReport),
             inspectionReport: JSON.stringify(inspectionReport),
             diffReport: JSON.stringify(diffReport),
+            jpgImgs: JSON.stringify(jpgImgsBase64),
+            latexes: JSON.stringify(latexes),
         };
 
         // 배송
