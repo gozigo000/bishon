@@ -14,6 +14,7 @@ export async function getHtmlParas(input: FileOrBuffer | Html): Promise<Paragrap
         html = html.replace(/<ul>([\s\S]*?)<\/ul>/g, `$1`);
         html = html.replace(/<li>([\s\S]*?)<\/li>/g, `<p>$1</p>`);
         html = html.replace(/<img [\s\S]*?\/>/g, ``); // 이미지 태그 전부 제거
+        html = html.replace(/<strong>([\s\S]*?)<\/strong>/g, `<b>$1</b>`);
         
         const dom = new JSDOM(html);
         // <html><head></head><body>

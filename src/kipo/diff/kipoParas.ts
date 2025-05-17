@@ -151,16 +151,18 @@ class KipoParas {
                 if (name === 'tables') {
                     const ele = child as Element;
                     this.addPara({ content: `【표 ${ele.getAttribute('num')}】` });
-                    const cells = ele.outerHTML.
-                        replace(/<.*?>/g, '<>').
-                        split('<>').
-                        filter(Boolean);
+                    const cells = ele.querySelectorAll('entry');
                     for (const cell of cells) {
-                        this.addPara({ 
-                            content: cell,
-                            fullContent: cell,
-                            hasTable: true
-                        });
+                        const paras = cell.innerHTML
+                            .replaceAll(/ xmlns="[^"]*"/g, '')
+                            .split(/<br ?\/>/);
+                        for (const para of paras) {
+                            this.addPara({
+                                content: para,
+                                fullContent: para,
+                                hasTable: true
+                            });
+                        }
                     }
                     break;
                 }
