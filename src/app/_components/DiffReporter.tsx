@@ -17,15 +17,18 @@ export default function DiffReporter({ diffReport, imgBuffs }: ReporterProps) {
         if (!imgBuffs) return {};
         const urls: Record<string, string> = {};
         for (const [fileName, buffer] of Object.entries(imgBuffs)) {
-            try {
-                const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-                urls[fileName] = `data:image/jpeg;base64,${base64}`;
-            } catch (error) {
-                console.error('Failed to convert buffer to base64 for:', fileName, error);
-            }
+            const blob = new Blob([buffer], { type: 'image/jpeg' });
+            urls[fileName] = URL.createObjectURL(blob);
         }
         return urls;
     }, [imgBuffs]);
+
+    // 컴포넌트 언마운트 시 URL 해제
+    useEffect(() => {
+        return () => {
+            Object.values(imgUrls).forEach(url => URL.revokeObjectURL(url));
+        };
+    }, [imgUrls]);
 
     const indicators = useMemo(() =>
         diffReport.map((l, i) =>
