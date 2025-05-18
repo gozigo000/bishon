@@ -1,7 +1,7 @@
 /**
  * 바탕체 문자들의 advanceWidth 종류
  */
-export const batangche_width_kind_FUnit = [
+export const BATANGCHE_WIDTH_KIND_FUnit: number[] = [
     512,
     1024,
     0
@@ -10,7 +10,7 @@ export const batangche_width_kind_FUnit = [
 /**
  * 바탕체의 모든 문자들의 advanceWidth 매핑
  */
-export const batangche_width_FUnit = {
+export const BATANGCHE_WIDTH_FUnit: Record<string, number> = {
     "0": 512,
     "1": 512,
     "2": 512,

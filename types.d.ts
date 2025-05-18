@@ -64,23 +64,12 @@ declare interface Latex {
 
 declare interface Paragraph {
     content: string;
-    fullContent?: string;
+    paraHtml?: string;
     lines?: Line[];
-    hasImg?: boolean;
-    hasTable?: boolean;
-    hasMath?: boolean;
-    hasSubSup?: boolean;
-    hasRtf?: boolean;
-    hasBr?: boolean;
-    W?: number;
-    H?: number;
 }
+
 declare interface Line {
-    fullContent: string;
-    hasImg?: boolean;
-    hasTable?: boolean;
-    hasMath?: boolean;
+    lineText: string;
     W: number;
     H: number;
 }
-declare enum CttType { plain = 0, Img = 1, Table = 2, Math = 4 }

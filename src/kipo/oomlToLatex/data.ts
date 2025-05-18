@@ -140,7 +140,7 @@ export const LATEX_SYMBOLS: Record<string, string> = {
     "0001D6F5": "\\Tau ",       // 𝛵
     "0001D6F6": "\\Upsilon ",   // 𝛶
     "0001D6F7": "\\Phi ",       // 𝛷
-    "0001D6F8": "X",            // 𝛸 : mathjax에서 대문자 오미크론(\Chi)은 지원을 안함
+    "0001D6F8": "X ",            // 𝛸 : mathjax에서 대문자 오미크론(\Chi)은 지원을 안함
     "0001D6F9": "\\Psi ",       // 𝛹
     "0001D6FA": "\\Omega ",     // 𝛺
 
@@ -200,7 +200,7 @@ export const LATEX_SYMBOLS: Record<string, string> = {
     "03a4": "\\Tau ",      // Τ
     "03a5": "\\Upsilon ",  // Υ
     "03a6": "\\Phi ",      // Φ
-    "03a7": "X",           // Χ : mathjax에서 대문자 오미크론(\Chi)은 지원을 안함
+    "03a7": "X ",           // Χ : mathjax에서 대문자 오미크론(\Chi)은 지원을 안함
     "03a8": "\\Psi ",      // Ψ
     "03a9": "\\Omega ",    // Ω
     

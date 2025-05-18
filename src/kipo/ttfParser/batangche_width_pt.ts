@@ -1,7 +1,7 @@
 /**
  * 바탕체 문자들의 advanceWidth 종류
  */
-export const batangche_width_kind_pt = [
+export const BATANGCHE_WIDTH_KIND_PT: number[] = [
     6,
     12,
     0
@@ -10,7 +10,7 @@ export const batangche_width_kind_pt = [
 /**
  * 바탕체의 모든 문자들의 advanceWidth 매핑
  */
-export const batangche_width_pt ={
+export const BATANGCHE_WIDTH_PT: Record<string, number> = {
     "0": 6,
     "1": 6,
     "2": 6,

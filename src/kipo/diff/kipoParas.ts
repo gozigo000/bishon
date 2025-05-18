@@ -3,9 +3,6 @@ import { toOneLine } from '../utils';
 import { getKipoTagName as tag } from '../utils';
 import { dlog } from '../../_utils/env';
 
-const IMG_WIDTH_TO_PT = 3 // 720 / 254 = 2.83464566929; // 미정
-const IMG_HEIGHT_TO_PT = 3 // 720 / 254 = 2.83464566929; // 미정
-
 
 export async function getKipoParas(kXmlStr: KXml): Promise<Paragraph[]> {
     const kipoParas = new KipoParas(kXmlStr);
@@ -18,13 +15,13 @@ export async function getKipoParas(kXmlStr: KXml): Promise<Paragraph[]> {
  */
 class KipoParas {
     private PatentCAFDOC: Element;
-    private Paras: Paragraph[] = [];
+    private paras: Paragraph[] = [];
 
     constructor(kXmlStr: string) {
         kXmlStr = toOneLine(kXmlStr);
         
         const dom = new JSDOM(kXmlStr, { contentType: 'text/xml' });
-        const xml = dom.window.document.documentElement; // <KIPO>, <PatentCAFDOC>
+        const xml = dom.window.document.documentElement;
         this.PatentCAFDOC = xml.querySelector('PatentCAFDOC') as Element;
     }
 
@@ -35,11 +32,11 @@ class KipoParas {
         const drawings = this.PatentCAFDOC.querySelector(tag('도면'));
         
         if (desc) {
-            this.addPara({ content: '【발명의 설명】' });
+            this.paras.push({ content: '【발명의 설명】' });
             
             const invTitle = desc.querySelector(tag('발명의 명칭'))
             if (invTitle) {
-                this.addPara({ content: `【발명의 명칭】` });
+                this.paras.push({ content: `【발명의 명칭】` });
                 this.processParas(desc, tag('발명의 명칭'));
             }
 
@@ -50,7 +47,7 @@ class KipoParas {
 
             const citation = desc.querySelector(tag('선행기술문헌'))
             if (citation) {
-                this.addPara({ content: '【선행기술문헌】' });
+                this.paras.push({ content: '【선행기술문헌】' });
                 const patCit = citation.querySelector(tag('특허문헌'))
                 this.addTitleAndParas('【특허문헌】', patCit);
                 const nonPatCit = citation.querySelector(tag('비특허문헌'))
@@ -59,7 +56,7 @@ class KipoParas {
 
             const invSummary = desc.querySelector(tag('발명의 내용'))
             if (invSummary) {
-                this.addPara({ content: '【발명의 내용】' });
+                this.paras.push({ content: '【발명의 내용】' });
                 this.processParas(invSummary);
                 
                 const problem = invSummary.querySelector(tag('과제'))
@@ -79,47 +76,47 @@ class KipoParas {
         }
         
         if (claims) {
-            this.addPara({ content: '【청구범위】' });
+            this.paras.push({ content: '【청구범위】' });
 
             for (const claim of claims.querySelectorAll(tag('청구항'))) {
-                this.addPara({ content: `【청구항 ${claim.getAttribute('num')}】` });
+                this.paras.push({ content: `【청구항 ${claim.getAttribute('num')}】` });
                 this.processParas(claim, 'claim-text');
             }
         }
         
         if (abstract) {
-            this.addPara({ content: '【요약서】' });
+            this.paras.push({ content: '【요약서】' });
 
             const summary = abstract.querySelector(tag('요약'))
             this.addTitleAndParas('【요약】', summary);
             
             const absFig = abstract.querySelector(tag('대표도'))
             if (absFig) {
-                this.addPara({ content: '【대표도】' });
-                this.addPara({ content: `도 ${absFig.querySelector('figref')?.getAttribute('num')}` });
+                this.paras.push({ content: '【대표도】' });
+                this.paras.push({ content: `도 ${absFig.querySelector('figref')?.getAttribute('num')}` });
             }
         }
 
         if (drawings) {
-            this.addPara({ content: '【도면】' });
+            this.paras.push({ content: '【도면】' });
             for (const figure of drawings.querySelectorAll(tag('도'))) {
-                this.addPara({ content: `【도 ${figure.getAttribute('num')}】` });
+                this.paras.push({ content: `【도 ${figure.getAttribute('num')}】` });
                 const imgs = figure.querySelectorAll('img')
                 for (const img of imgs) {
-                    this.addPara({ 
+                    this.paras.push({ 
                         content: img.outerHTML, 
-                        fullContent: img.outerHTML
+                        paraHtml: img.outerHTML
                     });
                 }
             }
         }
 
-        return this.Paras;
+        return this.paras;
     }
 
     public addTitleAndParas(title: string, element: Element | null): void{
         if (element) {
-            this.addPara({ content: title });
+            this.paras.push({ content: title });
             this.processParas(element);
         }
     }
@@ -127,40 +124,34 @@ class KipoParas {
     public processParas(kTitleNode: Element, tagName: string = ':scope > p') {
         for (const kParaNode of kTitleNode.querySelectorAll(tagName)) {
             let content = '';
-            let fullContent = '';
-            let hasImg = false;
-            let hasSubSup = false;
-            let hasRtf = false;
+            let paraHtml = '';
             for (const child of kParaNode.childNodes) {
                 const name = child.nodeName;
                 // ELEMENT_NODES
                 if (name === 'maths') {
                     const ele = child as Element;
-                    this.addPara({ content: `【수학식 ${ele.getAttribute('num')}】` });
+                    this.paras.push({ content: `【수학식 ${ele.getAttribute('num')}】` });
                     const imgs = ele.querySelectorAll('img')
                     for (const img of imgs) {
-                        this.addPara({ 
+                        this.paras.push({ 
                             content: img.outerHTML, 
-                            fullContent: img.outerHTML,
-                            hasMath: true,
-                            hasImg: true
+                            paraHtml: img.outerHTML,
                         });
                     }
                     break;
                 }
                 if (name === 'tables') {
                     const ele = child as Element;
-                    this.addPara({ content: `【표 ${ele.getAttribute('num')}】` });
+                    this.paras.push({ content: `【표 ${ele.getAttribute('num')}】` });
                     const cells = ele.querySelectorAll('entry');
                     for (const cell of cells) {
                         const paras = cell.innerHTML
                             .replaceAll(/ xmlns="[^"]*"/g, '')
                             .split(/<br ?\/>/);
                         for (const para of paras) {
-                            this.addPara({
+                            this.paras.push({
                                 content: para,
-                                fullContent: para,
-                                hasTable: true
+                                paraHtml: para,
                             });
                         }
                     }
@@ -169,59 +160,29 @@ class KipoParas {
                 if (name === 'img') {
                     const img = child as Element;
                     content += img.outerHTML;
-                    fullContent += img.outerHTML;
-                    hasImg = true;
+                    paraHtml += img.outerHTML;
                 }
-                else if (name === 'sub' || name === 'sup') {
+                else if (name === 'sub' || name === 'sup' || name === 'i' || name === 'b' || name === 'u') {
                     const text = (child as Element).innerHTML || '';
                     content += `<${name}>${text}</${name}>`;
-                    fullContent += `<${name}>${text}</${name}>`;
-                    hasSubSup = true;
-                }
-                else if (name === 'i' || name === 'b' || name === 'u') {
-                    const text = (child as Element).innerHTML || '';
-                    content += `<${name}>${text}</${name}>`;
-                    fullContent += `<${name}>${text}</${name}>`;
-                    hasRtf = true;
+                    paraHtml += `<${name}>${text}</${name}>`;
                 }
                 else if (child.nodeType === 3) { // TEXT_NODE
                     const text = child.textContent || '';
                     if (!text) continue;
                     content += text;
-                    fullContent += text;
+                    paraHtml += text;
                 }
                 else if (name === 'br' || name === 'patcit' || name === 'nplcit') {
-                    this.addPara({ 
+                    this.paras.push({ 
                         content, 
-                        fullContent, 
-                        hasImg,
-                        hasSubSup,
-                        hasRtf,
-                        hasBr: (name === 'br') ? true : false
+                        paraHtml, 
                     });
                     content = '';
-                    fullContent = '';
-                    hasImg = false;
-                    hasSubSup = false;
-                    hasRtf = false;
+                    paraHtml = '';
                 }
             }
-            this.addPara({ content, fullContent });
+            this.paras.push({ content, paraHtml });
         }
-    }
-
-    // 한 줄 추가
-    public addPara(line: Paragraph) {
-        this.Paras.push(line);
-    }
-
-    // 이미지 너비/높이 얻기
-    public getImgInfo(element: Element): [number, number, string] {
-        const imgW_mm = Number(element.getAttribute('wi')) || 0;
-        const imgH_mm = Number(element.getAttribute('he')) || 0;
-        // const imgW_pt = Math.floor(imgW_mm * IMG_WIDTH_TO_PT);
-        // const imgH_pt = Math.floor(imgH_mm * IMG_HEIGHT_TO_PT);
-        const file = element.getAttribute('file') || '';
-        return [imgW_mm, imgH_mm, file];
     }
 } 
