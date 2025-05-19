@@ -14,6 +14,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
 
         // 배송물품 생성
+        const hlzFileEtc = await makeHlz(file);
+        if (!hlzFileEtc) {
+            return new NextResponse('HLZ 파일 생성 중 오류가 발생했습니다.', { status: 500 });
+        }
         const [
             hlzFile, 
             countingReport, 
@@ -21,7 +25,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             diffReport, 
             hImgs, 
             latexEqs,
-        ] = await makeHlz(file);
+        ] = hlzFileEtc;
        
         if (!hlzFile) {
              const report: FinalReport = {
@@ -39,6 +43,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         }
 
         const finFile = await makeFin(hlzFile);
+        if (!finFile) {
+            return new NextResponse('FIN 파일 생성 중 오류가 발생했습니다.', { status: 500 });
+        }
 
         const zip = new JSZip();
         zip.file(hlzFile.name, await hlzFile.arrayBuffer());

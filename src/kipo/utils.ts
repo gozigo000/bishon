@@ -4,6 +4,7 @@ import { toBuffer } from "../_utils/dataType";
 import JSZip from "jszip";
 import iconv from "iconv-lite";
 import { kipoTagName } from "./data";
+import { collectError } from "./errorCollector";
 
 export async function generateKipoFile(fileName: string, zip: JSZip): Promise<File> {
     // HACK: jszip 모듈에서 수정하지 말고 jszip 모듈을 src 폴더로 옮기기
@@ -17,6 +18,11 @@ export async function generateKipoFile(fileName: string, zip: JSZip): Promise<Fi
 
     const file = new File([zipBuffer], fileName);
     return file;
+}
+
+export function makeEmptyElement(): Element {
+    return new JSDOM('<empty></empty>', { contentType: 'text/xml' })
+        .window.document.documentElement;
 }
 
 export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
@@ -33,8 +39,8 @@ export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
         return html;
 
     } catch (error) {
-        console.error("html 변환 실패:", error);
-        throw error;
+        collectError('Mammoth html 변환 실패', error as Error);
+        return '';
     }
 }
 
@@ -49,15 +55,40 @@ export async function getHtmlTables(input: FileOrBuffer | Html): Promise<HTMLTab
         return tableArray;
      
     } catch (error) {
-        console.error("html 테이블 추출 실패:", error);
-        throw error;
+        collectError('Html 테이블 추출 실패', error as Error);
+        return [];
     }
 }
 
-// TODO: pageCounter에도 적용하기
 export function toOneLine(ml: string): string {
-    // TODO: <b>사과</b> <i>나무</i> 이런 경우에는 붙으면 안되는데...
-    return ml.replace(/>\s+</g, '><').replace(/[\r\n]+/g, '');
+    ml = ml.replace(/<(b|i|u|sub|sup)>\s+<\/(b|i|u|sub|sup)>/g, '<$1>#M#A#R#K#</$2>');
+    ml = ml.replace(/>\s+</g, '><').replace(/[\r\n]+/g, '');
+    ml = ml.replace(/>#M#A#R#K#</g, '> <');
+    return ml;
+}
+
+export function integrateRtfTags(ml: string): string {
+    ml = ml.replaceAll('</b><b>', '');
+    ml = ml.replaceAll('</i><i>', '');
+    ml = ml.replaceAll('</u><u>', '');
+    ml = ml.replaceAll('</sub><sub>', '');
+    ml = ml.replaceAll('</sup><sup>', '');
+    return ml;
+}
+
+/**
+ * hlz 문자열 이스케이프 처리
+ * @param str - 처리할 문자열
+ * @returns 이스케이프된 문자열
+ */
+export function escapeCharacters(str: string): string {
+    // hlz에서 이스케이프가 필요한 문자들
+    const CHARS: Record<string, string> = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '&': '&amp;'
+    };
+    return str.split('').map(c => CHARS[c] || c).join('');
 }
 
 export function getKipoTagName(kTag: string): string {

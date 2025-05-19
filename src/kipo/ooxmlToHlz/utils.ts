@@ -14,18 +14,3 @@ export function getUnicodeString(ch: string): string {
         return `${unicode.toString(16).padStart(8, '0')}`;
     }
 }
-
-/**
- * hlz 문자열 이스케이프 처리
- * @param str - 처리할 문자열
- * @returns 이스케이프된 문자열
- */
-export function escapeCharacters(str: string): string {
-    // hlz에서 이스케이프가 필요한 문자들
-    const CHARS: Record<string, string> = { 
-        '<': '&lt;', 
-        '>': '&gt;', 
-        '&': '&amp;' 
-    };
-    return str.split('').map(c => CHARS[c] || c).join('');
-}

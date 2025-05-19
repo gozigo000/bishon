@@ -1,8 +1,9 @@
 import { JSDOM } from 'jsdom';
-import { toOneLine } from '../utils';
+import { integrateRtfTags, makeEmptyElement, toOneLine } from '../utils';
 import { getKipoTagName as tag } from '../utils';
 import { dlog } from '../../_utils/env';
-
+import { collectError } from '../errorCollector';
+import { escapeCharacters } from "../utils";
 
 export async function getKipoParas(kXmlStr: KXml): Promise<Paragraph[]> {
     const kipoParas = new KipoParas(kXmlStr);
@@ -19,10 +20,14 @@ class KipoParas {
 
     constructor(kXmlStr: string) {
         kXmlStr = toOneLine(kXmlStr);
+        kXmlStr = integrateRtfTags(kXmlStr);
         
-        const dom = new JSDOM(kXmlStr, { contentType: 'text/xml' });
-        const xml = dom.window.document.documentElement;
-        this.PatentCAFDOC = xml.querySelector('PatentCAFDOC') as Element;
+        const doc = new JSDOM(kXmlStr, { contentType: 'text/xml' }).window.document;
+        this.PatentCAFDOC = doc.querySelector('PatentCAFDOC') as Element;
+        if (!this.PatentCAFDOC) {
+            collectError('PatentCAFDOC 태그를 찾을 수 없습니다.');
+            this.PatentCAFDOC = makeEmptyElement();
+        }
     }
 
     public async getParas(): Promise<Paragraph[]> {
@@ -168,7 +173,7 @@ class KipoParas {
                     paraHtml += `<${name}>${text}</${name}>`;
                 }
                 else if (child.nodeType === 3) { // TEXT_NODE
-                    const text = child.textContent || '';
+                    const text = escapeCharacters(child.textContent || '');
                     if (!text) continue;
                     content += text;
                     paraHtml += text;

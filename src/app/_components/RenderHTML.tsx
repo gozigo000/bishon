@@ -19,7 +19,7 @@ function insertImgUrlInHtml(html: string, imgUrls?: Record<string, string>) {
         const url = imgUrls[fileName];
         if (!url) continue;
         html = html.replace(imgTag, `<img 
-            style="width: ${Number(width) * 4}px; height: auto; max-width: 100%; display: inline-block; vertical-align: middle;"
+            style="width: ${Number(width) * 4}px; height: auto; max-width: 93%; display: inline-block; vertical-align: middle;"
             src="${url}" 
             alt="이미지" 
             onerror="console.error('이미지 로드 실패:', this.src)"

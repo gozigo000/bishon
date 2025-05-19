@@ -2,7 +2,8 @@ import { JSDOM } from 'jsdom';
 import { OMML_NS, ACCENT_DEFAULT, ACCENTS, LATEX_SYMBOLS, BAR_DEFAULT, BAR, FRACTION_DEFAULT, FRACTION_TYPES, FUNC, BREAK, LIM_FUNC, LIM_UPP, ALIGN, BIG_OPERATORS } from './data';
 import { getValue, format, getUnicodeString, escapeLatex, isComplexEquation } from './utils';
 import { XmlPropNode } from './XmlPropNode';
-import { dlog } from '@/_utils/env';
+import { collectError, collectWarning } from '../errorCollector';
+import { dlog } from '../../_utils/env';
 
 /**
  * OMML XML 문자열을 LaTeX 문자열로 변환
@@ -41,10 +42,10 @@ export function makeLatexFromOoml(oomlStr: string): string | null {
             return latexStr.trim();
         }
 
-        console.warn('oMath -> LaTeX 변환 실패: <m:oMath> 또는 <m:oMathPara> 노드가 없습니다.');
+        collectError('<m:oMath> 또는 <m:oMathPara> 노드가 없습니다.');
         return null;
     } catch (error) {
-        console.warn('oMath -> LaTeX 변환 실패:', error);
+        collectError('OOML -> LaTeX 변환 실패', error as Error);
         return null;
     }
 } 
@@ -116,10 +117,9 @@ function processChildrenForDict(xmlNodes: HTMLCollection, include?: Set<string>)
  * @returns `{태그명: 처리결과}[]`
  */
 function generateNodesInfo(xmlNodes: HTMLCollection, include?: Set<string>): NodeInfo[] {
+    if (!xmlNodes) return [];
+
     const nodesInfo: NodeInfo[] = [];
-
-    if (!xmlNodes) return nodesInfo;
-
     for (const xmlNode of xmlNodes) {
         if (!xmlNode.namespaceURI?.includes(OMML_NS)) continue;
 
@@ -323,7 +323,6 @@ function doFunc(xmlNode: Element): string {
  * 함수 이름 처리
  * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
- * @throws Error - 지원하지 않는 함수인 경우
  */
 function doFName(xmlNode: Element): string {
     let fnName: string = '';
@@ -338,10 +337,11 @@ function doFName(xmlNode: Element): string {
     const cleanFnName = fnName.split('^{')[0].split('_{')[0];
     const fnSymbol = FUNC[cleanFnName];
     if (isR && !fnSymbol) {
-        console.warn(`함수목록(FUNC)에 없는 함수입니다: '${fnName}'`);
+        collectWarning(`함수목록(FUNC)에 없는 함수입니다: '${fnName}'`);
     }
     return fnSymbol ? fnName.replace(cleanFnName, fnSymbol) : fnName;
 }
+
 /**
  * 그룹 문자 처리
  * @param xmlNode - XML 노드
@@ -385,14 +385,14 @@ function doEqArr(xmlNode: Element): string {
  * 하한 처리
  * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
- * @throws Error - 지원하지 않는 함수인 경우
  */
 function doLimLow(xmlNode: Element): string {
     const include = new Set(['m:e', 'm:lim']);
     const children = processChildrenForDict(xmlNode.children, include);
     const funcName = children['m:e'];
     if (typeof funcName !== 'string' || !LIM_FUNC[funcName]) {
-        throw new Error(`지원되지 않는 극한함수(limit function)입니다: '${funcName}'!`);
+        collectError(`지원되지 않는 극한함수(limit function)입니다: '${funcName}'!`);
+        return `${funcName}_{${children['m:lim']}}`;
     }
     return format(LIM_FUNC[funcName], children['m:lim']);
 }
@@ -425,8 +425,9 @@ function doLim(xmlNode: Element): string {
 function doM(xmlNode: Element): string {
     const rows = generateNodesInfo(xmlNode.children)
         .filter(info => info.tag === 'm:mr')
-        .map(info => info.result);
-    return `\\begin{matrix}${rows.join(BREAK)}\\end{matrix}`;
+        .map(info => info.result)
+        .join(BREAK);
+    return `\\begin{matrix}${rows}\\end{matrix}`;
 }
 
 /**

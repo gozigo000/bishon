@@ -62,6 +62,12 @@ declare interface Latex {
     svgImg?: ArrayBuffer;
 }
 
+declare interface Page {
+    pageNum: number;
+    firstLine?: Line;
+    lines: Line[];
+}
+
 declare interface Paragraph {
     content: string;
     paraHtml?: string;
@@ -72,4 +78,5 @@ declare interface Line {
     lineText: string;
     W: number;
     H: number;
+    pageNum?: number;
 }

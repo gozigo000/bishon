@@ -1,4 +1,4 @@
-import { toOneLine } from '../utils';
+import { integrateRtfTags, toOneLine } from '../utils';
 import { titleTag, KXmlPouch } from './kXmlPouch';
 import { dlog } from '../../_utils/env';
 
@@ -98,6 +98,7 @@ class KipoInspector {
 
     private startPreInspection() {
         this.roughXml = toOneLine(this.inputkXml);
+        this.roughXml = integrateRtfTags(this.roughXml);
         if (/>\s+</.test(this.roughXml)) this.report.record({ 
             kind: '개발', pos: '<KipoXml>', process: 'GO',
             msg: '<태그> 사이에 공백이 있습니다.'

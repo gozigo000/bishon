@@ -1,13 +1,10 @@
 import { JSDOM } from 'jsdom';
 import { BATANGCHE_WIDTH_PT } from '../ttfParser/batangche_width_pt';
 import { getKipoParas } from '../diff/kipoParas';
+import { collectLine } from '../dataCollector';
 import { dlog, isTest } from '../../_utils/env';
 
-
 export async function getTotalPages(hXml: string): Promise<number> {
-    if (!hXml.includes('PatentCAFDOC')) {
-        hXml = `<PatentCAFDOC>${hXml}</PatentCAFDOC>`;
-    }
     const paras = await getKipoParas(hXml);
     const pageCounter = new PageCounter(paras);
     return pageCounter.specPages;
@@ -48,10 +45,6 @@ export class PageCounter {
     private abstractParas: Paragraph[] = [];
     private drawingParas: Paragraph[] = [];
     public specPages = 0;
-
-    // 테스트용
-    public outputLines: Line[] = [];
-    public firstLineInPages: { page: number, line: Line }[] = [];
 
     constructor(paras: Paragraph[]) {
         let discIdx = 0;
@@ -100,8 +93,6 @@ export class PageCounter {
                 });
             }
         }
-
-        if (isTest()) this.outputLines.push(...totalLines);
 
         return this.countPages(totalLines);
     }
@@ -159,6 +150,12 @@ export class PageCounter {
         let currStickyCubes: Cube[] = [];
         let isPrevCharSticky = false;
         let prevCube: Cube | null = null;
+
+        if (cubes.length === 1) {
+            // 이미지 하나만 있는 경우 이미지가 크면 줄바꿈으로 처리할 수 있어서 바로 처리
+            lines.push({ W: cubes[0].W, H: cubes[0].H, lineText: cubes[0].ch });
+            return lines;
+        }
 
         const clearStickyCubes = (cubes: Cube[]) => {
             const word = cubes.reduce((acc, c) => acc + c.ch, '');
@@ -246,16 +243,14 @@ export class PageCounter {
 
     public countPages(lines: Line[]): number {
         this.specPages += 1;
-        if (isTest()) this.firstLineInPages.push({ page: this.specPages, line: lines[0] });
-
         let currH = 0;
         for (const ln of lines) {
             currH += ln.H;
             if (currH > PAGE_HEIGHT) {
                 this.specPages += 1;
                 currH = ln.H;
-                if (isTest()) this.firstLineInPages.push({ page: this.specPages, line: ln });
             }
+            collectLine({...ln, pageNum: this.specPages});
         }
 
         return this.specPages;

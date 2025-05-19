@@ -5,6 +5,7 @@ import { toArrayBuffer } from "@/_utils/dataType";
 import { generateSpecInspectionResult } from './kipoInspection/kipoInspector';
 import { generateDiffLines } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
+import { collectError, GlobalErrorCollector } from './errorCollector';
 import { isProd, dlog } from '@/_utils/env';
 
 export async function makeHlz(wordFile: File)
@@ -15,14 +16,14 @@ export async function makeHlz(wordFile: File)
     DiffReport,
     Img[],
     Latex[],
-]> {
+] | null> {
     try {
         dlog('=== hlz 생성 시작 ===');
 
         const wordBuffer = await toArrayBuffer(wordFile);
+        if (!wordBuffer) throw new Error('wordFile이 올바르지 않습니다.');
 
         const wordZip = new JSZip();
-        if (!wordBuffer) throw new Error('wordFile이 올바르지 않습니다.');
         const zipContent = await wordZip.loadAsync(wordBuffer);
 
         // document.xml 파일 찾기
@@ -47,16 +48,14 @@ export async function makeHlz(wordFile: File)
         
         const [finalXml, inspectionReport, countingReport] = generateSpecInspectionResult(hlzXml);
 
-        if (isProd() && inspectionReport.find(r => r.process === 'STOP')) {
-            return [
-                null, 
-                countingReport,
-                inspectionReport,
-                [],
-                [],
-                [],
-            ];
-        }
+        // if (isProd() && inspectionReport.find(r => r.process === 'STOP')) {
+        //     return [
+        //         null, 
+        //         countingReport,
+        //         inspectionReport,
+        //         [], [], [],
+        //     ];
+        // }
         
         // hlz 생성
         const hlzZip = new JSZip();
@@ -69,6 +68,8 @@ export async function makeHlz(wordFile: File)
 
         const diffReport = await generateDiffLines(finalXml, html);
 
+        GlobalErrorCollector.getInstance().logErrors();
+
         return [
             hlzFile, 
             countingReport,
@@ -79,7 +80,7 @@ export async function makeHlz(wordFile: File)
         ];
 
     } catch (error) {
-        console.error('[makeHlz] 파일 처리 중 오류 발생:', error);
-        throw error;
+        collectError('Hlz 파일 생성 중 오류 발생', error as Error);
+        return null;
     }
 };
