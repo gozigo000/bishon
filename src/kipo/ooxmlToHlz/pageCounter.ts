@@ -1,7 +1,7 @@
 import { JSDOM } from 'jsdom';
 import { BATANGCHE_WIDTH_PT } from '../ttfParser/batangche_width_pt';
 import { getKipoParas } from '../diff/kipoParas';
-import { dlog } from '../../_utils/env';
+import { dlog, isTest } from '../../_utils/env';
 
 
 export async function getTotalPages(hXml: string): Promise<number> {
@@ -10,8 +10,7 @@ export async function getTotalPages(hXml: string): Promise<number> {
     }
     const paras = await getKipoParas(hXml);
     const pageCounter = new PageCounter(paras);
-    const totalPages = await pageCounter.getTotalPages();
-    return totalPages;
+    return pageCounter.specPages;
 }
 
 // NOTE: 폰트 사이즈
@@ -48,11 +47,11 @@ export class PageCounter {
     private claimParas: Paragraph[] = [];
     private abstractParas: Paragraph[] = [];
     private drawingParas: Paragraph[] = [];
-    public pages = 0;
+    public specPages = 0;
 
-    // 디버깅용
+    // 테스트용
     public outputLines: Line[] = [];
-    public pageNumInSpec = { desc: 0, claims: 0, abstract: 0, drawings: 0 };
+    public firstLineInPages: { page: number, line: Line }[] = [];
 
     constructor(paras: Paragraph[]) {
         let discIdx = 0;
@@ -69,18 +68,18 @@ export class PageCounter {
         this.claimParas = claimIdx ? paras.slice(claimIdx, abstractIdx ?? drawingIdx) : [];
         this.abstractParas = paras.slice(abstractIdx, drawingIdx);
         this.drawingParas = drawingIdx ? paras.slice(drawingIdx) : [];
+
+        this.calculateSpecPages();
     }
 
-    public async getTotalPages(): Promise<number> {
-        this.pageNumInSpec.desc = this.precessSection(this.discParas);
-        this.pageNumInSpec.claims = this.precessSection(this.claimParas);
-        this.pageNumInSpec.abstract = this.precessSection(this.abstractParas);
-        this.pageNumInSpec.drawings = this.precessDrawings(this.drawingParas);
-
-        return this.pages;
+    public calculateSpecPages() {
+        this.precessSection(this.discParas);
+        this.precessSection(this.claimParas);
+        this.precessSection(this.abstractParas);
+        this.precessSection(this.drawingParas, true);
     }
 
-    public precessSection(paras: Paragraph[]): number {
+    public precessSection(paras: Paragraph[], isDrawings: boolean = false): number {
         const totalLines: Line[] = [];
         for (const para of paras) {
             const elem = new JSDOM(`<div>${para.content}</div>`).window.document
@@ -90,32 +89,21 @@ export class PageCounter {
             const lines = this.makeLineList(cubes);
             totalLines.push(...lines);
         };
-        this.outputLines.push(...totalLines)
-        return this.countPages(totalLines);
-    }
 
-    public precessDrawings(paras: Paragraph[]): number {
-        const totalLines: Line[] = [];
-        for (const para of paras) {
-            const elem = new JSDOM(`<div>${para.content}</div>`).window.document
-                .querySelector('div');
-            if (!elem) continue;
-            const cubes = this.makeCubeList(elem);
-            const lines = this.makeLineList(cubes);
-            totalLines.push(...lines);
-        };
-        const combinedLines: Line[] = [totalLines.shift()!];
-        const oddLines = totalLines.filter((_, i) => i % 2 === 0);
-        const evenLines = totalLines.filter((_, i) => i % 2 === 1);
-        for (let i = 0; i < oddLines.length; i++) {
-            combinedLines.push({ 
-                W: evenLines[i].W, 
-                H: oddLines[i].H + evenLines[i].H, 
-                lineText: `${oddLines[i].lineText} ${evenLines[i].lineText}` 
-            });
+        if (isDrawings && totalLines.length > 0) {
+            const lines: Line[] = totalLines.splice(1);
+            for (let i = 0; i < lines.length; i += 2) {
+                totalLines.push({
+                    W: lines[i].W,
+                    H: lines[i].H + lines[i + 1].H,
+                    lineText: `${lines[i].lineText} ${lines[i + 1].lineText}`
+                });
+            }
         }
-        this.outputLines.push(...combinedLines);
-        return this.countPages(combinedLines);
+
+        if (isTest()) this.outputLines.push(...totalLines);
+
+        return this.countPages(totalLines);
     }
 
     public makeCubeList(hParaNode: Element) {
@@ -237,7 +225,7 @@ export class PageCounter {
             } else {
                 // Sticky는 모아서 처리
                 currStickyCubes.push(cube);
-            } 
+            }
 
             prevCube = cube;
             isPrevCharSticky = isCurrCharSticky;
@@ -257,16 +245,19 @@ export class PageCounter {
     }
 
     public countPages(lines: Line[]): number {
-        this.pages += 1;
+        this.specPages += 1;
+        if (isTest()) this.firstLineInPages.push({ page: this.specPages, line: lines[0] });
+
         let currH = 0;
         for (const ln of lines) {
             currH += ln.H;
             if (currH > PAGE_HEIGHT) {
-                this.pages += 1;
+                this.specPages += 1;
                 currH = ln.H;
-                // dlog(`페이지: ${pages}, 첫줄: ${ln.lineText}`);
+                if (isTest()) this.firstLineInPages.push({ page: this.specPages, line: ln });
             }
         }
-        return this.pages;
+
+        return this.specPages;
     }
 } 
