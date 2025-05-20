@@ -5,6 +5,7 @@ import JSZip from "jszip";
 import iconv from "iconv-lite";
 import { kipoTagName } from "./data";
 import { collectError } from "./errorCollector";
+import { collectRefs } from "./dataCollector";
 
 export async function generateKipoFile(fileName: string, zip: JSZip): Promise<File> {
     // HACK: jszip 모듈에서 수정하지 말고 jszip 모듈을 src 폴더로 옮기기
@@ -33,10 +34,12 @@ export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
             convertImage: mammoth.images.imgElement(async (image) =>  { return { src: image.contentType } }),
         }
         const result = await mammoth.convertToHtml({ buffer: buffer }, options);
-        let html = result.value;
+
+        collectRefs({ 'Html_맘모스.html': result.value });
+
         // 여기선 Mammoth 모듈에서 제공하는 그대로 반환하고,
         // 전부 <p> 태그로 바꾸는 건 getHtmlParas()에서 하기로 함.
-        return html;
+        return result.value;
 
     } catch (error) {
         collectError('Mammoth html 변환 실패', error as Error);

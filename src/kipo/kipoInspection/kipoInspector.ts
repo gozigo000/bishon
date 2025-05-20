@@ -1,5 +1,6 @@
 import { integrateRtfTags, toOneLine } from '../utils';
 import { titleTag, KXmlPouch } from './kXmlPouch';
+import { collectRefs } from '../dataCollector';
 import { dlog } from '../../_utils/env';
 
 export function generateSpecInspectionResult(kXmlStr: KXml): [
@@ -54,22 +55,6 @@ class InspectionReporter {
         this.inspectionReport.push(msg);
         return '';
     }
-
-//     public toString(): string {
-//         return `
-// 표: ${this.tblCnt} (${this.tblNums.join(', ')})
-// 도면: ${this.figCnt} (${this.figNums.join(', ')})
-// 수학식: ${this.equCnt} (${this.equNums.join(', ')})
-// 청구항: ${this.clmCnt} (${this.clmNums.join(', ')})
-
-// 개발 메시지: 
-// ${this.msgs.filter(m => m.kind === '개발').map(m => `- ${m.msg}: ${m.pos ?? ''} - ${m.from ?? ''}`).join('\n')}
-// 에러 메시지: 
-// ${this.msgs.filter(m => m.kind === '에러').map(m => `- ${m.msg}: ${m.pos ?? ''}`).join('\n')}
-// 경고 메시지:    
-// ${this.msgs.filter(m => m.kind === '경고').map(m => `- ${m.msg}: ${m.pos ?? ''}`).join('\n')}
-//         `;
-//     }
 }
 
 class KipoInspector {
@@ -89,6 +74,13 @@ class KipoInspector {
     public getResult(): [KXml, InspectionReport, CountingReport] {
         this.startPreInspection();
         this.startMainInspection();
+
+        collectRefs({
+            'Xml_2차.xml': this.safeXml,
+            'Rpt_inspectionReport.json': this.report.inspectionReport,
+            'Rpt_countingReport.json': this.counter.countingReport,
+        });
+        
         return [
             this.safeXml, 
             this.report.inspectionReport, 

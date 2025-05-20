@@ -2,7 +2,7 @@ import { JSDOM } from 'jsdom';
 import { BATANGCHE_WIDTH_PT } from '../ttfParser/batangche_width_pt';
 import { getKipoParas } from '../diff/kipoParas';
 import { collectLine } from '../dataCollector';
-import { dlog, isTest } from '../../_utils/env';
+import { dlog } from '../../_utils/env';
 
 export async function getTotalPages(hXml: string): Promise<number> {
     const paras = await getKipoParas(hXml);

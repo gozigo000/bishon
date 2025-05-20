@@ -79,7 +79,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         return NextResponse.json(box);
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('make-hlz API 에러:', error);
         return NextResponse.json({ 
             error: '파일 변환 중 오류가 발생했습니다.',
             report: {

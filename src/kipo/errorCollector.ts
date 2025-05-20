@@ -1,4 +1,5 @@
-import { dlog, isDev, isProd, isTest } from '../_utils/env';
+import { dlog } from '../_utils/env';
+import { OnDev, OnDevTest } from './decorators/devHandler';
 
 type ErrorInfo = {
     severity: 'ARROR' | 'WARNING' | 'INFO';
@@ -16,18 +17,19 @@ type ErrorInfo = {
  * 전역 에러 수집기 클래스
  * 싱글톤 패턴으로 구현되어 애플리케이션 전체에서 하나의 인스턴스만 사용
  */
-export class GlobalErrorCollector {
-    private static instance: GlobalErrorCollector;
+export class ErrorCollector {
+    private static instance: ErrorCollector;
     private errors: ErrorInfo[] = [];
     
     private constructor() {}
     
     /** GlobalErrorCollector의 인스턴스 반환 */
-    public static getInstance(): GlobalErrorCollector {
-        if (!GlobalErrorCollector.instance) {
-            GlobalErrorCollector.instance = new GlobalErrorCollector();
+    public static get $(): ErrorCollector { return ErrorCollector.getInstance(); }
+    public static getInstance(): ErrorCollector {
+        if (!ErrorCollector.instance) {
+            ErrorCollector.instance = new ErrorCollector();
         }
-        return GlobalErrorCollector.instance;
+        return ErrorCollector.instance;
     }
     
     /** 새로운 에러 정보 추가 */
@@ -48,8 +50,8 @@ export class GlobalErrorCollector {
     }
     
     /** 수집한 에러를 콘솔에 출력 */
+    @OnDevTest()
     public logErrors(): void {
-        if (isProd()) return;
         console.log(this.formatErrors());
     }
 
@@ -89,7 +91,7 @@ export class GlobalErrorCollector {
  * @param reference 참고 정보
  */
 export function collectError(message: string, error?: Error, reference?: string): void {
-    const errorCollector = GlobalErrorCollector.getInstance();
+    const errorCollector = ErrorCollector.getInstance();
 
     errorCollector.addError({
         severity: 'ARROR',
@@ -98,7 +100,8 @@ export function collectError(message: string, error?: Error, reference?: string)
         location: getCallerPos(),
         errCode: error?.name,
         errMsg: error?.message,
-        errStack: error?.stack?.replace(/.*?(?=\n)/, '-'.repeat(50)),
+        // 번들된 주소가 출력돼서 우선 지움
+        // errStack: error?.stack?.replace(/.*?(?=\n)/, '-'.repeat(50)), 
         reference,
     });
 }
@@ -109,7 +112,7 @@ export function collectError(message: string, error?: Error, reference?: string)
  * @param reference 참고 정보
  */
 export function collectWarning(message: string, reference?: any): void {
-    const errorCollector = GlobalErrorCollector.getInstance();
+    const errorCollector = ErrorCollector.getInstance();
     
     errorCollector.addError({
         severity: 'WARNING',
@@ -126,7 +129,7 @@ export function collectWarning(message: string, reference?: any): void {
  * @param reference 참고 정보
  */
 export function collectInfo(message: string, reference?: any): void {
-    const errorCollector = GlobalErrorCollector.getInstance();
+    const errorCollector = ErrorCollector.getInstance();
     
     errorCollector.addError({
         severity: 'INFO',

@@ -5,8 +5,9 @@ import { toArrayBuffer } from "@/_utils/dataType";
 import { generateSpecInspectionResult } from './kipoInspection/kipoInspector';
 import { generateDiffLines } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
-import { collectError, GlobalErrorCollector } from './errorCollector';
-import { isProd, dlog } from '@/_utils/env';
+import { collectError, ErrorCollector } from './errorCollector';
+import { collectRefs, collectFile, DataCollector } from './dataCollector';
+import { dlog } from '@/_utils/env';
 
 export async function makeHlz(wordFile: File)
 : Promise<[
@@ -30,6 +31,10 @@ export async function makeHlz(wordFile: File)
         const documentXml = zipContent.file('word/document.xml');
         if (!documentXml) throw new Error('document.xml을 찾을 수 없습니다.');
         const ooxml = await documentXml.async('text');
+        
+        collectRefs({
+            'Xml_document.xml': ooxml,
+        });
         
         // 워드 이미지 파일 찾기
         const oImgs: Img[] = [];
@@ -64,12 +69,20 @@ export async function makeHlz(wordFile: File)
         hImgs.forEach(hImg => hlzZip.file(hImg.name, hImg.buffer));
         const hlzFile = await generateKipoFile(`${baseName}.hlz`, hlzZip);
         
+        collectFile({
+            [`${baseName}.hlz`]: hlzFile,
+        });
+        
         dlog(`=== hlz 생성 완료 ===`);
 
         const diffReport = await generateDiffLines(finalXml, html);
 
-        GlobalErrorCollector.getInstance().logErrors();
-
+        // 테스트 관련
+        DataCollector.$.savePages(baseName);
+        DataCollector.$.saveRefs(baseName);
+        DataCollector.$.saveFiles(baseName);
+        ErrorCollector.$.logErrors();
+        
         return [
             hlzFile, 
             countingReport,

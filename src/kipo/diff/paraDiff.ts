@@ -1,6 +1,7 @@
 import { DiffMatchPatch } from 'diff-match-patch-ts';
 import { getKipoParas } from './kipoParas';
 import { getHtmlParas } from './htmlParas';
+import { collectRefs } from '../dataCollector';
 import { color } from "@/_utils/color";
 
 type Pair = {
@@ -89,6 +90,10 @@ export async function generateDiffLines(kXmlStr: KXml, word: FileOrBuffer | Html
             }
         }
     }
+
+    collectRefs({
+        'Rpt_diffReport.json': diffLines,
+    });
 
     return diffLines;
 }

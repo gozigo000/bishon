@@ -28,7 +28,6 @@ export function dlog(...args: any[]) {
         const d = args.length > 3 ? `, ${args.slice(3).map(arg => arg.toString()).join(', ')}` : '';
         out.push(a + b + c + d);
 
-        out.push(color.brMagenta('--------------------------------'));
         console.log(out.join('\n'));
     }
 }

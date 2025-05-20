@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom";
 import { getMammothHtml } from "../utils";
-
+import { collectRefs } from "../dataCollector";
 
 export async function getHtmlParas(input: FileOrBuffer | Html): Promise<Paragraph[]> {
     try {
@@ -15,6 +15,8 @@ export async function getHtmlParas(input: FileOrBuffer | Html): Promise<Paragrap
         html = html.replace(/<li>([\s\S]*?)<\/li>/g, `<p>$1</p>`);
         html = html.replace(/<img [\s\S]*?\/>/g, ``); // 이미지 태그 전부 제거
         html = html.replace(/<strong>([\s\S]*?)<\/strong>/g, `<b>$1</b>`);
+
+        collectRefs({ 'Html_심플맘모스.html': html });
         
         const dom = new JSDOM(html);
         // <html><head></head><body>
