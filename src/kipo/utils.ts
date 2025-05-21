@@ -70,11 +70,11 @@ export function toOneLine(ml: string): string {
 }
 
 export function integrateRtfTags(ml: string): string {
-    ml = ml.replaceAll('</b><b>', '');
-    ml = ml.replaceAll('</i><i>', '');
-    ml = ml.replaceAll('</u><u>', '');
-    ml = ml.replaceAll('</sub><sub>', '');
-    ml = ml.replaceAll('</sup><sup>', '');
+    ml = ml.replace(/<\/b>(\s*)<b>/g, '$1');
+    ml = ml.replace(/<\/i>(\s*)<i>/g, '$1');
+    ml = ml.replace(/<\/u>(\s*)<u>/g, '$1');
+    ml = ml.replace(/<\/sub>(\s*)<sub>/g, '$1');
+    ml = ml.replace(/<\/sup>(\s*)<sup>/g, '$1');
     return ml;
 }
 
