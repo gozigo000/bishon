@@ -16,7 +16,6 @@ export async function makeHlz(wordFile: File)
     InspectionReport, 
     DiffReport,
     Img[],
-    Latex[],
 ] | null> {
     try {
         dlog('=== hlz 생성 시작 ===');
@@ -49,7 +48,7 @@ export async function makeHlz(wordFile: File)
 
         // hlz 구성물 생성
         const ooxmlConverter = new OoxmlConverter(ooxml, oImgs, tables); // TODO: helper 함수로 빼기
-        const { hlzXml, hImgs, latexEqs } = await ooxmlConverter.convert();
+        const { hlzXml, hImgs } = await ooxmlConverter.convert();
         
         const [finalXml, inspectionReport, countingReport] = generateSpecInspectionResult(hlzXml);
 
@@ -81,6 +80,7 @@ export async function makeHlz(wordFile: File)
         DataCollector.$.savePages(baseName);
         DataCollector.$.saveRefs(baseName);
         DataCollector.$.saveFiles(baseName);
+        DataCollector.$.saveLatex(baseName);
         ErrorCollector.$.logErrors();
         
         return [
@@ -89,7 +89,6 @@ export async function makeHlz(wordFile: File)
             inspectionReport,
             diffReport,
             hImgs,
-            latexEqs,
         ];
 
     } catch (error) {

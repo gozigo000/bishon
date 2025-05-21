@@ -3,21 +3,22 @@ import { OMML_NS, ACCENT_DEFAULT, ACCENTS, LATEX_SYMBOLS, BAR_DEFAULT, BAR, FRAC
 import { getValue, format, getUnicodeString, escapeLatex, isComplexEquation } from './utils';
 import { XmlPropNode } from './XmlPropNode';
 import { collectError, collectWarning } from '../errorCollector';
+import { collectLatex } from '../dataCollector';
 import { dlog } from '../../_utils/env';
 
 /**
- * OMML XML 문자열을 LaTeX 문자열로 변환
- * @param oomlStr - 변환할 OOML XML 문자열
+ * OMML 문자열을 LaTeX 문자열로 변환
+ * @param omml - 변환할 OMML 문자열
  * @returns 변환된 LaTeX 문자열
  */
-export function makeLatexFromOoml(oomlStr: string): string | null {
+export function makeLatexFromOmml(omml: string): string | null {
     try {
-        const dom = new JSDOM(oomlStr, { contentType: 'text/xml' });
-        const ooml = dom.window.document.documentElement;
+        const dom = new JSDOM(omml, { contentType: 'text/xml' });
+        const elem = dom.window.document.documentElement;
 
         // oMathPara 처리
-        const oMathPara = (ooml.tagName === 'm:oMathPara') ? ooml 
-            : ooml.getElementsByTagName('m:oMathPara')[0];
+        const oMathPara = (elem.tagName === 'm:oMathPara') ? elem 
+            : elem.getElementsByTagName('m:oMathPara')[0];
         if (oMathPara) {
             const latexStrs: string[] = [];
             for (const oMath of oMathPara.getElementsByTagName('m:oMath')) {
@@ -27,25 +28,31 @@ export function makeLatexFromOoml(oomlStr: string): string | null {
             }
             
             if (latexStrs.length === 1) {
-                return latexStrs[0].trim();
+                const latex = latexStrs[0].trim();
+                collectLatex({ latex, omml });
+                return latex;
             }
             if (latexStrs.length > 1) {
-                return `\\begin{align}${latexStrs.join(BREAK)}\\end{align}`;
+                const latex = `\\begin{align}${latexStrs.join(BREAK)}\\end{align}`;
+                collectLatex({ latex, omml });
+                return latex;
             }
         }
 
         // oMath 처리
-        const oMath = (ooml.tagName === 'm:oMath') ? ooml
-            : ooml.getElementsByTagName('m:oMath')[0];
+        const oMath = (elem.tagName === 'm:oMath') ? elem
+            : elem.getElementsByTagName('m:oMath')[0];
         if (oMath) {
             const latexStr = convertMoMath(oMath);
-            return latexStr.trim();
+            const latex = latexStr.trim();
+            collectLatex({ latex, omml });
+            return latex;
         }
 
         collectError('<m:oMath> 또는 <m:oMathPara> 노드가 없습니다.');
         return null;
     } catch (error) {
-        collectError('OOML -> LaTeX 변환 실패', error as Error);
+        collectError('OMML > LaTeX 변환 실패', error as Error);
         return null;
     }
 } 
@@ -65,7 +72,7 @@ export interface NodeInfo {
  * @returns LaTeX 문자열
  */
 function convertMoMath(oMath: Element): string {
-    // oomlStr = oomlStr
+    // ommlStr = ommlStr
     //     .replaceAll(' ', ' ')
     //     .replaceAll('＝', '=')
     let latexStr = processChildren(oMath.children)

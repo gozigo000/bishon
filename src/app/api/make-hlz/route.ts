@@ -24,7 +24,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             inspectionReport, 
             diffReport, 
             hImgs, 
-            latexEqs,
         ] = hlzFileEtc;
        
         if (!hlzFile) {
@@ -35,7 +34,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 inspectionReport: JSON.stringify(inspectionReport),
                 diffReport: '',
                 jpgImgs: '',
-                latexes: '',
             };
             // 배송
             const box: deliveryBox = { userDownloadFile: null, report };
@@ -59,11 +57,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             jpgImgsBase64[hImg.name] = base64Str;
         }
 
-        const latexes: Record<string, string> = {};
-        for (const latexEq of latexEqs) {
-            latexes[latexEq.name] = latexEq.latex;
-        }
-
         const report: FinalReport = {
             status: 'success' as const,
             generatedFiles: [hlzFile.name, finFile.name],
@@ -71,7 +64,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             inspectionReport: JSON.stringify(inspectionReport),
             diffReport: JSON.stringify(diffReport),
             jpgImgs: JSON.stringify(jpgImgsBase64),
-            latexes: JSON.stringify(latexes),
         };
 
         // 배송

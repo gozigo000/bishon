@@ -3,7 +3,6 @@ import { JSDOM } from 'jsdom';
 import { toBuffer } from "../_utils/dataType";
 import JSZip from "jszip";
 import iconv from "iconv-lite";
-import { kipoTagName } from "./data";
 import { collectError } from "./errorCollector";
 import { collectRefs } from "./dataCollector";
 
@@ -92,14 +91,4 @@ export function escapeCharacters(str: string): string {
         '&': '&amp;'
     };
     return str.split('').map(c => CHARS[c] || c).join('');
-}
-
-export function getKipoTagName(kTag: string): string {
-    try {
-        if (kipoTagName.hasOwnProperty(kTag)) return kipoTagName[kTag];
-        else throw new Error(`한글 태그 이름이 잘못 입력되었습니다. (kTag: ${kTag})\n`);
-    } catch (e) {
-        console.error(e);
-        return '';
-    }
 }

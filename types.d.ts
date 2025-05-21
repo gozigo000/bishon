@@ -16,7 +16,6 @@ declare type FinalReport = {
     inspectionReport: string;
     diffReport: string;
     jpgImgs?: string;
-    latexes?: string;
     errorMsg?: string;
 }; 
 
@@ -57,9 +56,10 @@ declare interface Img {
 }
 
 declare interface Latex {
-    name: string;
+    name?: string;
     latex: string;
-    svgImg?: ArrayBuffer;
+    omml?: string;
+    svg?: string;
 }
 
 declare interface Page {
