@@ -1,5 +1,5 @@
 import { BREAK, OMML_NS } from "./data";
-import { NodeInfo } from "./OomlConverter";
+import { NodeInfo } from "./OmmlConverter";
 
 
 export class XmlPropNode {

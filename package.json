@@ -10,7 +10,7 @@
     "test": "npx jest",
     "test:simple": "cls && npx jest test/simple.test.ts",
     "test:ooxml": "cls && npx jest test/index.test.ts",
-    "test:ooml": "cls && npx jest test/oomlToLatex.test.ts",
+    "test:omml": "cls && npx jest test/ommlToLatex.test.ts",
     "test:xmlDom": "cls && npx jest test/xmlDomComparison.test.ts --detectOpenHandles",
     "test:xmlLine": "cls && npx jest test/xmlLineComparison.test.ts",
     "test:xml_Dom_Line": "cls && npx jest test/xmlDomComparison.test.ts test/xmlLineComparison.test.ts --detectOpenHandles",
