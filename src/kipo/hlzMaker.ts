@@ -3,7 +3,7 @@ import { OoxmlConverter } from './ooxmlToHlz/OoxmlConverter';
 import { getHtmlTables, getMammothHtml, generateKipoFile } from './utils';
 import { toArrayBuffer } from "@/_utils/dataType";
 import { generateSpecInspectionResult } from './kipoInspection/kipoInspector';
-import { generateDiffLines } from './diff/paraDiff';
+import { generateDiffAfterInspection, generateDiffReport } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
 import { collectError, ErrorCollector } from './errorCollector';
 import { collectRefs, collectFile, DataCollector } from './dataCollector';
@@ -51,6 +51,7 @@ export async function makeHlz(wordFile: File)
         const { hlzXml, hImgs } = await ooxmlConverter.convert();
         
         const [finalXml, inspectionReport, countingReport] = generateSpecInspectionResult(hlzXml);
+        await generateDiffAfterInspection(finalXml, hlzXml);
 
         // if (isProd() && inspectionReport.find(r => r.process === 'STOP')) {
         //     return [
@@ -74,7 +75,7 @@ export async function makeHlz(wordFile: File)
         
         dlog(`=== hlz 생성 완료 ===`);
 
-        const diffReport = await generateDiffLines(finalXml, html);
+        const diffReport = await generateDiffReport(finalXml, html);
 
         // 테스트 관련
         DataCollector.$.savePages(baseName);

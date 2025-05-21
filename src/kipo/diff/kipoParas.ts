@@ -5,6 +5,7 @@ import { dlog } from '../../_utils/env';
 import { collectError } from '../errorCollector';
 import { escapeCharacters } from "../utils";
 
+// TODO: 동일한 kXmlStr으로 중복 호출하므로 캐시 사용하기
 export async function getKipoParas(kXmlStr: KXml): Promise<Paragraph[]> {
     const kipoParas = new KipoParas(kXmlStr);
     const paras = await kipoParas.getParas();
