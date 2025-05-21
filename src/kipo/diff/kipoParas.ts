@@ -5,21 +5,28 @@ import { dlog } from '../../_utils/env';
 import { collectError } from '../errorCollector';
 import { escapeCharacters } from "../utils";
 
-// TODO: 동일한 kXmlStr으로 중복 호출하므로 캐시 사용하기
-export async function getKipoParas(kXmlStr: KXml): Promise<Paragraph[]> {
-    const kipoParas = new KipoParas(kXmlStr);
-    const paras = await kipoParas.getParas();
-    return paras;
-}
-
 /**
  * Kipo XML에서 Paragraphs를 추출하는 클래스
  */
-class KipoParas {
+export class KipoParas {
     private PatentCAFDOC: Element;
     private paras: Paragraph[] = [];
+    private static instances: Map<KipoXml, KipoParas> = new Map();
 
-    constructor(kXmlStr: string) {
+    public static async getParas(kxml: KipoXml): Promise<Paragraph[]> {
+        if (!KipoParas.instances.has(kxml)) {
+            const kipoParas = new KipoParas(kxml);
+            KipoParas.instances.set(kxml, kipoParas);
+            return await kipoParas.getParas();
+        }
+        const kipoParas = KipoParas.instances.get(kxml)!;
+        if (kipoParas.paras.length === 0) {
+            return await kipoParas.getParas();
+        }
+        return kipoParas.paras;
+    }
+
+    private constructor(kXmlStr: string) {
         kXmlStr = toOneLine(kXmlStr);
         kXmlStr = integrateRtfTags(kXmlStr);
         
