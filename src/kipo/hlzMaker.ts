@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import { OoxmlConverter } from './ooxmlToHlz/OoxmlConverter';
 import { getHtmlTables, getMammothHtml, generateKipoFile } from './utils';
 import { toArrayBuffer } from "@/_utils/dataType";
-import { generateSpecInspectionResult } from './kipoInspection/kipoInspector';
+import { KipoInspector } from './kipoInspection/kipoInspector';
 import { generateDiffAfterInspection, generateDiffReport } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
 import { collectError, ErrorCollector } from './errorCollector';
@@ -47,10 +47,9 @@ export async function makeHlz(wordFile: File)
         const tables = await getHtmlTables(html);
 
         // hlz 구성물 생성
-        const ooxmlConverter = new OoxmlConverter(ooxml, oImgs, tables); // TODO: helper 함수로 빼기
-        const { hlzXml, hImgs } = await ooxmlConverter.convert();
+        const { hlzXml, hImgs } = await OoxmlConverter.generateHlzXml(ooxml, oImgs, tables);
         
-        const [finalXml, inspectionReport, countingReport] = generateSpecInspectionResult(hlzXml);
+        const [finalXml, inspectionReport, countingReport] = KipoInspector.generateInspectionReport(hlzXml);
         await generateDiffAfterInspection(finalXml, hlzXml);
 
         // if (isProd() && inspectionReport.find(r => r.process === 'STOP')) {

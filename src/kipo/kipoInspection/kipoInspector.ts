@@ -3,15 +3,6 @@ import { titleTag, KXmlPouch } from './kXmlPouch';
 import { collectRefs } from '../dataCollector';
 import { dlog } from '../../_utils/env';
 
-export function generateSpecInspectionResult(kXmlStr: KXml): [
-    KXml, 
-    InspectionReport, 
-    CountingReport
-] {
-    const inspector = new KipoInspector(kXmlStr);
-    return inspector.getResult();
-}
-
 class ElementCounter {
     public equ: CountInfo = {kind: '수학식', cnt: 0, nums: []};
     public tbl: CountInfo = {kind: '표', cnt: 0, nums: []};
@@ -57,7 +48,8 @@ class InspectionReporter {
     }
 }
 
-class KipoInspector {
+export class KipoInspector {
+    private static instances: Map<KipoXml, KipoInspector> = new Map();
     private inputkXml: KXml;
     private roughXml: KXml = '';
     private safeXml: KXml = '';
@@ -66,8 +58,17 @@ class KipoInspector {
 
     private counter: ElementCounter = new ElementCounter();
     private report: InspectionReporter = new InspectionReporter();
+    
+    public static generateInspectionReport(kXmlStr: KXml): [
+        KXml, InspectionReport, CountingReport
+    ] {
+        if (!KipoInspector.instances.has(kXmlStr)) {
+            KipoInspector.instances.set(kXmlStr, new KipoInspector(kXmlStr));
+        }
+        return KipoInspector.instances.get(kXmlStr)!.getResult();
+    }
 
-    constructor(kXmlStr: KXml) {
+    private constructor(kXmlStr: KXml) {
         this.inputkXml = kXmlStr;
     }
 
@@ -120,8 +121,6 @@ class KipoInspector {
                 msg: `공백이 있는 <p> 태그가 존재합니다.`
             });
         };
-
-        // TODO: 검사 시작 전후 문단/청구항/도면 등 개수 기록해서 비교하기
     }
 
     private startMainInspection() {

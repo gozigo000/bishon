@@ -1,7 +1,9 @@
 declare type FileOrBuffer = File | Buffer | ArrayBuffer;
 declare type Html = string;
 declare type KXml = string;
+declare type KipoXml = string; // 나중에 KipoXml | KXml 중에 하나로 정하기
 declare type OXml = string;
+declare type Ooxml = string; // 나중에 Ooxml | OXml 중에 하나로 정하기
 
 declare type deliveryBox = {
     userDownloadFile: string | null;

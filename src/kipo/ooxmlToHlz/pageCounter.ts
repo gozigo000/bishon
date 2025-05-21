@@ -4,12 +4,6 @@ import { KipoParas } from '../diff/kipoParas';
 import { collectLine } from '../dataCollector';
 import { dlog } from '../../_utils/env';
 
-export async function getTotalPages(hXml: string): Promise<number> {
-    const paras = await KipoParas.getParas(hXml);
-    const pageCounter = new PageCounter(paras);
-    return pageCounter.specPages;
-}
-
 // NOTE: 폰트 사이즈
 // 한글 문자 너비: 12 pt
 // 영어 문자 너비: 6 pt
@@ -40,13 +34,22 @@ declare type Cube = {
  * hlz 파일의 페이지 수를 계산하는 클래스
  */
 export class PageCounter {
+    private static instances: Map<KipoXml, PageCounter> = new Map();
     private discParas: Paragraph[] = [];
     private claimParas: Paragraph[] = [];
     private abstractParas: Paragraph[] = [];
     private drawingParas: Paragraph[] = [];
     public specPages = 0;
 
-    constructor(paras: Paragraph[]) {
+    public static async getPages(hXml: string): Promise<number> {
+        if (!PageCounter.instances.has(hXml)) {
+            const paras = await KipoParas.getParas(hXml);
+            PageCounter.instances.set(hXml, new PageCounter(paras));
+        }
+        return PageCounter.instances.get(hXml)!.specPages;
+    }
+
+    private constructor(paras: Paragraph[]) {
         let discIdx = 0;
         let claimIdx;
         let abstractIdx;
@@ -76,8 +79,7 @@ export class PageCounter {
         const totalLines: Line[] = [];
         for (const para of paras) {
             const elem = new JSDOM(`<div>${para.content}</div>`).window.document
-                .querySelector('div');
-            if (!elem) continue;
+                .querySelector('div')!;
             const cubes = this.makeCubeList(elem);
             const lines = this.makeLineList(cubes);
             totalLines.push(...lines);
