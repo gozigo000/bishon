@@ -92,14 +92,14 @@ function convertRun(elem: DocRun): AstNode[] {
     if (elem.isStrikethrough) {
         paths.push(findHtmlPathForRunProperty("strikethrough", "strike"));
     }
-    if (elem.isBold) {
-        paths.push(findHtmlPathForRunProperty("bold", "b"));
-    }
     if (elem.isItalic) {
         paths.push(findHtmlPathForRunProperty("italic", "i"));
     }
     if (elem.isUnderline) {
         paths.push(findHtmlPathForRunProperty("underline", "u"));
+    }
+    if (elem.isBold) {
+        paths.push(findHtmlPathForRunProperty("bold", "b"));
     }
     if (elem.verticalAlignment === "subscript") {
         paths.push(new HtmlTag("sub") as any as HtmlPath);
