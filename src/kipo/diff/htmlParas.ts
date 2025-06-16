@@ -1,6 +1,7 @@
 import { JSDOM } from "jsdom";
 import { getMammothHtml } from "../utils";
 import { collectRefs } from "../dataCollector";
+import { collectWarning } from "../errorCollector";
 
 export async function getHtmlParas(input: FileOrBuffer | Html): Promise<Paragraph[]> {
     try {

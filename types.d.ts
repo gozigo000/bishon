@@ -9,7 +9,7 @@ declare type deliveryBox = {
     userDownloadFile: string | null;
     report: FinalReport;
     images?: Record<string, string>;
-}; 
+};
 
 declare type FinalReport = {
     status: 'success' | 'fail' | 'error';
@@ -19,12 +19,12 @@ declare type FinalReport = {
     diffReport: string;
     jpgImgs?: string;
     errorMsg?: string;
-}; 
+};
 
 declare type CountingReport = CountInfo[];
 declare type CountInfo = {
     kind: '수학식' | '표' | '청구항' | '도면' | '문단';
-    cnt: number, 
+    cnt: number,
     nums: string[]
 };
 
@@ -38,14 +38,14 @@ declare type InspectionMsg = {
 }
 
 declare type DiffReport = DiffLine[];
-declare type DiffLine = { 
-        type: '동일' | '삭제' | '추가'; 
-        content: string 
-    } | { 
-        type: '수정'; 
-        content: string 
-        diffs: Diff[] 
-    };
+declare type DiffLine = {
+    type: '동일' | '삭제' | '추가';
+    content: string
+} | {
+    type: '수정';
+    content: string
+    diffs: Diff[]
+};
 
 declare type Diff = [DiffOp, string];
 declare enum DiffOp { Delete = -1, Equal = 0, Insert = 1 }

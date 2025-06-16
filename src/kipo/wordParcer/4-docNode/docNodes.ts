@@ -1,4 +1,4 @@
-import { Msgs } from "../message.js";
+import { collectWarning } from "../../errorCollector.js";
 
 export type DocNode = 
     | DocDocument
@@ -139,7 +139,7 @@ export class DocTable {
             if (isTableRow(node)) {
                 this.children.push(node);
             } else {
-                Msgs.addWarning("예상치 못한 노드: 테이블 행 병합이 잘못될 수 있음");
+                collectWarning(`예상치 못한 노드: 테이블 행 병합이 잘못될 수 있음: ${node.type}`);
             }
         });
         this.styleId = properties.styleId || null;
@@ -161,7 +161,7 @@ export class DocTableRow {
             if (isTableCell(node)) {
                 this.children.push(node);
             } else {
-                Msgs.addWarning("예상치 못한 노드: 테이블 셀 병합이 잘못될 수 있음");
+                collectWarning(`예상치 못한 노드: 테이블 셀 병합이 잘못될 수 있음: ${node.type}`);
             }
             return isTableCell(node)
         });
@@ -215,7 +215,7 @@ export class DocMathPara {
             if (isMath(node)) {
                 this.children.push(node);
             } else {
-                Msgs.addWarning("예상치 못한 노드: 수식 병합이 잘못될 수 있음");
+                collectWarning(`예상치 못한 노드: 수식이 잘못될 수 있음: ${node.type}`);
             }
         });
     }

@@ -8,7 +8,7 @@ import {
     HtmlPath, HtmlTag, emptyHtmlPath,
     makeHtmlPath, ignoredHtmlPath
 } from "./html-paths.js";
-import { Msgs } from "../message.js";
+import { collectWarning } from "../../errorCollector.js";
 
 export type StyleMapping = {
     from: Matcher;
@@ -29,7 +29,7 @@ function parseString(rule: any, str: string): StyleMapping | null {
             return "Error was at character number " + error.characterNumber() + ": " +
                 "Expected " + error.expected + " but got " + error.actual;
         }
-        Msgs.addWarning(describeFailure(str, parseResult));
+        collectWarning(describeFailure(str, parseResult));
         return null;
     }
 }

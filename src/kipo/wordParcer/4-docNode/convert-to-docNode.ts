@@ -1,6 +1,5 @@
 import dingbatToUnicode from "dingbat-to-unicode";
 import { ONode, emptyONode } from "../2-xmlParser/nodes.js";
-import { ImgFiles } from "../3-docx/imgFiles.js";
 import { Relationships } from "../3-docx/read-relationships.js";
 import { Numberings } from "../3-docx/read-numbering.js";
 import { ContentTypes } from "../3-docx/read-content-types.js";
@@ -12,7 +11,6 @@ import {
 } from "./docNodes.js";
 import * as uris from "./uris.js";
 import { Result } from "./results.js";
-import { Msgs } from "../message.js";
 import { collectWarning } from "../../errorCollector.js";
 
 interface TableCellWithVMerge extends DocTableCell {
@@ -20,8 +18,6 @@ interface TableCellWithVMerge extends DocTableCell {
 }
 
 export type docOptions = {
-    docxFile: Zip;
-    imgFiles: ImgFiles;
     contentTypes: ContentTypes;
     styles: Styles;
     numbering: Numberings;
@@ -42,18 +38,14 @@ let currentInstrText: string[] = [];
 // ECMA-376 4th edition Part 1.
 let deletedParagraphContents: ONode[] = [];
 
-let docxFile: Zip;
 let styles: Styles;
 let numberings: Numberings;
-let imgFiles: ImgFiles;
 let contentTypes: ContentTypes;
 let relationships: Relationships;
 
 export function fromONodeToDocNode(bodyElem: ONode, options: docOptions) {
-    docxFile = options.docxFile;
     styles = options.styles;
     numberings = options.numbering;
-    imgFiles = options.imgFiles;
     contentTypes = options.contentTypes;
     relationships = options.relationships;
 
@@ -102,7 +94,7 @@ function readONode(elem: ONode): Result {
         case "m:oMathPara": return readOMathPara(elem);
         default: {
             if (ignoredElements.has(elem.name)) break;
-            Msgs.addWarning("An unrecognised element was ignored: " + elem.name);
+            collectWarning(`의도치 않게 무시된 요소가 있음: ${elem.name}`);
         }
     }
     return new Result();
@@ -290,7 +282,7 @@ function readBreak(elem: ONode): Result {
     if (breakType === "column") {
         return new Result(new DocBreak("column"));
     }
-    Msgs.addWarning("Unsupported break type: " + breakType);
+    collectWarning(`지원되지 않는 break 타입: ${breakType}`);
     return new Result();
 }
 
@@ -373,7 +365,7 @@ function readSymbol(element: ONode): Result {
     }
 
     if (unicodeChar == null) {
-        Msgs.addWarning(`A w:sym element with an unsupported character was ignored: char ${char} in font ${font}`);
+        collectWarning(`지원되지 않는 문자를 가진 w:sym 요소가 무시됨: char '${char}' in font '${font}'`);
         return new Result();
     } else {
         const value = unicodeChar.string;
@@ -532,7 +524,7 @@ function readShape(element: ONode): Result {
 function readImage(imageFilePath: string, w: string, h: string): Result {
     const contentType = contentTypes.findContentType(imageFilePath);
     if (!supportedImageTypes.has(contentType)) {
-        Msgs.addWarning(`웹 브라우저에서 표시되지 않을 수 있음 (이미지 타입: ${contentType})`);
+        collectWarning(`웹 브라우저에서 표시되지 않을 수 있음 (이미지 타입: ${contentType})`);
     }
     return new Result(new DocImage(w, h, contentType, imageFilePath));
 }
@@ -562,7 +554,7 @@ function readStyle(
         styleId = styleElement.attributes["w:val"] ?? '';
         if (styleId) {
             const style = findStyleById(styleId);
-            if (!style) Msgs.addWarning(`'${styleType}'의 스타일 ID '${styleId}'가 문서에 정의되어 있지 않음`);
+            if (!style) collectWarning(`'${styleType}'의 스타일 ID '${styleId}'가 문서에 정의되어 있지 않음`);
             name = style?.name ?? '';
         }
     }

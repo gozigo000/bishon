@@ -1,4 +1,6 @@
 declare type Input = {
+    file: File;
+} | {
     path: string;
 } | {
     buffer: Buffer; 
@@ -8,21 +10,8 @@ declare type Input = {
 
 declare type Options = {
     styleMap?: string[];
-    imgAttrsGetter?: (element: WordImage) => Promise<Record<string, string>>;
     ignoreEmptyParagraphs?: boolean;
     prettyPrint?: boolean;
-}
-
-declare type WordImage = {
-    w: string;
-    h: string;
-    contentType: string;
-    filePath: string;
-}
-
-type Output = {
-    html: string[];
-    messages: Message[];
 }
 
 declare type Message = {
@@ -34,13 +23,6 @@ declare type Message = {
 declare type MessageType = 'warning' | 'error';
 
 /**********************************************/
-
-declare interface Zip {
-    exists: (name: string) => boolean;
-    readFile: (name: string, encoding?: string) => Promise<Uint8Array | string>;
-    write: (name: string, contents: string | Uint8Array | ArrayBuffer) => void;
-    toArrayBuffer: () => Promise<ArrayBuffer>;
-}
 
 declare type Styles = {
     findParagraphStyleById: (id: string) => StyleInfo | undefined;

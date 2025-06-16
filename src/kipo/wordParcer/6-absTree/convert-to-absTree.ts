@@ -9,7 +9,7 @@ import { parseStyle, StyleMapping } from "./style-reader.js";
 import { emptyHtmlPath, HtmlTag, HtmlPath } from "./html-paths.js";
 import { AstNode } from "./astNode.js";
 import { simplify } from "./simplify.js";
-import { Msgs } from "../message.js";
+import { collectWarning } from "../../errorCollector.js";
 import { defaultStyleMap } from "../5-styles/default-style-map.js";
 
 type HtmlOptions = {
@@ -50,8 +50,10 @@ function convertNode(elem: DocNode): AstNode[] {
 
 function convertParagraph(elem: DocParagraph): AstNode[] {
     const style = findStyle(elem);
-    if (!style && elem.styleId) {
-        Msgs.addWarning(`Unrecognised paragraph style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
+    if (!style && elem.styleId && 
+        !['Normal (Web)', '바탕글'].includes(elem.styleName || '-')
+    ) {
+        collectWarning(`인식할 수 없는 paragraph style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
     }
     const htmlPath = (style) ?
         style.to :
@@ -98,7 +100,7 @@ function convertRun(elem: DocRun): AstNode[] {
     }
     const style = findStyle(elem);
     if (!style && elem.styleId) {
-        Msgs.addWarning(`Unrecognised run style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
+        collectWarning(`인식할 수 없는 run style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
     }
     const stylePath = style ? style.to : emptyHtmlPath;
     paths.push(stylePath);
@@ -140,7 +142,10 @@ function convertImage(node: DocImage): AstNode[] {
 
 function convertTable(elem: DocTable): AstNode[] {
     const gridWidths = elem.gridWidths.toString();
-    const tablePath = new HtmlPath([new HtmlTag("table", { gridWidths }, { fresh: true })]);
+    const tablePath = new HtmlPath([
+        new HtmlTag("p", {}, { fresh: true }), // <p> 태그로 <table> 태그 감싸기
+        new HtmlTag("table", { gridWidths }, { fresh: true })
+    ]);
     const withChildren = findHtmlPath(elem, tablePath)!
         .wrap(() => convertTableChildren(elem));
     return [new AstNode("forceWrite")].concat(withChildren);

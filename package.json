@@ -22,12 +22,15 @@
     "test:mathjax": "cls && npx jest test/mathjax.test.ts"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.9.8",
     "chalk": "^5.4.1",
     "diff-match-patch-ts": "^0.6.0",
+    "dingbat-to-unicode": "^1.0.1",
     "dompurify": "^3.2.5",
     "iconv-lite": "^0.6.3",
     "jsdom": "^26.1.0",
     "jszip": "^3.10.1",
+    "lop": "^0.4.2",
     "mammoth": "^1.9.0",
     "mathjax-full": "^3.2.2",
     "next": "15.3.1",

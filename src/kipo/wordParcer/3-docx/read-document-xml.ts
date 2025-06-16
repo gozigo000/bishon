@@ -1,14 +1,15 @@
 import { ONode } from "../2-xmlParser/nodes.js";
 import { generateONode } from "../2-xmlParser/parser.js";
+import { FileHandler } from "../../1-zip/zipFile.js";
 
-export async function readDocumentXml(docxZip: Zip, path: string): Promise<ONode> {
+export async function readDocumentXml(docxZip: FileHandler, path: string): Promise<ONode> {
     if (!docxZip.exists(path)) throw new Error("Could not find the document.xml");
 
-    const xml = await docxZip.readFile(path, "utf-8") as string;
+    const xml = await docxZip.readFile(path, "utf-8");
     const stripped = xml.replace(/^\uFEFF/g, ''); // 유니코드 바이트 순서 마커(Utf8Bom) 제거
 
     const oRoot = generateONode(stripped);
-    return collapseAlternateContent(oRoot)[0] as ONode;
+    return collapseAlternateContent(oRoot)[0];
 }
  
 function collapseAlternateContent(node: ONode): ONode[] {

@@ -1,14 +1,12 @@
-import { openZip } from "./1-zip/zip.js";
+import { FileHandler } from "../1-zip/zipFile.js";
 import { readXmls } from "./3-docx/convert-to-oNode.js";
 import { fromONodeToDocNode } from "./4-docNode/convert-to-docNode.js";
 import { fromDocNodeToAbsTree } from "./6-absTree/convert-to-absTree.js";
 import { getHtmlWriter } from "./7-html/html-writer.js";
-import { Msgs } from "./message.js";
 
-export async function convertToHtml(input: Input, options?: Options): Promise<Output> {
-    const docxFile = await openZip(input);
+export async function convertToHtml(docxFile: FileHandler, options?: Options): Promise<string[]> {
     // Xml -> ONode
-    const { oBodyNode, docOptions } = await readXmls(docxFile, input);
+    const { oBodyNode, docOptions } = await readXmls(docxFile);
     // ONode -> DocNode
     const docDoc = fromONodeToDocNode(oBodyNode, docOptions);
     // DocNode -> HtmlTag/AbsTree
@@ -16,8 +14,5 @@ export async function convertToHtml(input: Input, options?: Options): Promise<Ou
     // AbsTree -> Html
     const writer = getHtmlWriter(options?.prettyPrint).writeHtml(astNodes);
     // Done
-    return {
-        html: writer.getHtmlSegs(),
-        messages: Msgs.getCombinedMsgs()
-    };
+    return writer.getHtmlSegs();
 }
