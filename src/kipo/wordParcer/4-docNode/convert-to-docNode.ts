@@ -13,6 +13,7 @@ import {
 import * as uris from "./uris.js";
 import { Result } from "./results.js";
 import { Msgs } from "../message.js";
+import { collectWarning } from "../../errorCollector.js";
 
 interface TableCellWithVMerge extends DocTableCell {
     _vMerge?: boolean | null; // RowSpan 계산을 위해 사용
@@ -88,14 +89,13 @@ function readONode(elem: ONode): Result {
         case "w:object": return readONodes(elem.children);
         case "w:smartTag": return readONodes(elem.children);
         case "w:drawing": return readONodes(elem.children);
-        case "w:pict": return readONodes(elem.children).toExtra();
+        case "w:pict": return readONodes(elem.children);
         case "v:roundrect": return readONodes(elem.children);
-        case "v:shape": return readONodes(elem.children);
+        case "v:shape": return readShape(elem);
         case "v:textbox": return readONodes(elem.children);
         case "w:txbxContent": return readONodes(elem.children);
         case "wp:inline": return readDrawingElem(elem);
         case "wp:anchor": return readDrawingElem(elem);
-        case "v:imagedata": return readImageData(elem);
         case "v:group": return readONodes(elem.children);
         case "v:rect": return readONodes(elem.children);
         case "m:oMath": return readOMath(elem);
@@ -483,62 +483,58 @@ function readDrawingElem(elem: ONode): Result {
 
 function readBlip(element: ONode, blip: ONode): Result {
     const { cx, cy } = element.getFirst("wp:extent")!.attributes; // 이미지 사이즈 ★
-    const blipImageFile = findBlipImageFile(blip);
-    if (blipImageFile !== null) {
-        return readImage(blipImageFile, cx, cy);
-    } else {
-        Msgs.addWarning("a:blip 요소의 rId에 대응하는 이미지 파일을 찾을 수 없음");
-        return new Result();
+    const blipImageFilePath = findBlipImageFilePath(blip);
+    if (blipImageFilePath.length > 0) {
+        return readImage(blipImageFilePath, cx, cy);
     }
+    return new Result();
 }
 
-function findBlipImageFile(blip: ONode): { path: string; read: (path: string | undefined) => Promise<any> } | null {
+function findBlipImageFilePath(blip: ONode): string {
     const embeddedRelationshipId = blip.attributes["r:embed"];
     if (embeddedRelationshipId) {
-        return findEmbeddedImageFile(embeddedRelationshipId);
+        return uris.uriToZipEntryName(
+            "word", relationships.findTargetByRelationshipId(embeddedRelationshipId)
+        );
     }
     const linkRelationshipId = blip.attributes["r:link"];
     if (linkRelationshipId) {
         const imagePath = relationships.findTargetByRelationshipId(linkRelationshipId);
-        log(`체크 - 링크 이미지: ${imagePath}`)
-        return {
-            path: imagePath,
-            read: () => imgFiles.readImg(imagePath)
-        };
+        collectWarning(`외부 파일은 처리되지 않습니다: ${imagePath}`)
     }
-    return null;
+    collectWarning("a:blip 요소의 rId에 대응하는 이미지 파일을 찾을 수 없습니다");
+    return '';
 }
 
-function readImageData(element: ONode): Result {
-    // TODO: 이미지 사이즈 읽기
-    log(`체크 - element.attributes: ${element.attributes}`)
-    return new Result();
-    // const relationshipId = element.attributes['r:id'];
-    // if (relationshipId) {
-    //     return readImage(
-    //         findEmbeddedImageFile(relationshipId),
-    //         element.attributes["o:title"]
-    //     );
-    // } else {
-    //     Msgs.addWarning("v:imagedata 요소에 relationship ID가 없으므로 무시됨");
-    //     return new ReadResult();
-    // }
+function readShape(element: ONode): Result {
+    const style = element.attributes['style'].split(';'); // 이미지 사이즈 ★
+    const width = style.find(s => s.startsWith('width:'))?.replace('width:', '');
+    const height = style.find(s => s.startsWith('height:'))?.replace('height:', '');
+    if (!width || !height) {
+        collectWarning("이미지 사이즈를 읽을 수 없습니다");
+        return new Result();
+    }
+
+    const relationshipId = element.getFirstOrEmpty("v:imagedata").attributes['r:id'];
+    if (!relationshipId) {
+        collectWarning("v:imagedata 요소에 relationship ID가 없으므로 무시됨");
+        return new Result();
+    }
+    const shapeImageFilePath = uris.uriToZipEntryName(
+        "word", relationships.findTargetByRelationshipId(relationshipId)
+    );
+
+    return readImage(
+        shapeImageFilePath, width, height,
+    );
 }
 
-function findEmbeddedImageFile(relationshipId: string): { path: string; read: (path: string | undefined) => Promise<any> } {
-    const path = uris.uriToZipEntryName("word", relationships.findTargetByRelationshipId(relationshipId));
-    return {
-        path: path,
-        read: docxFile.readFile.bind(docxFile, path)
-    };
-}
-
-function readImage(imageFile: { path: string; read: (path: string | undefined) => Promise<any> }, w: string, h: string): Result {
-    const contentType = contentTypes.findContentType(imageFile.path);
+function readImage(imageFilePath: string, w: string, h: string): Result {
+    const contentType = contentTypes.findContentType(imageFilePath);
     if (!supportedImageTypes.has(contentType)) {
         Msgs.addWarning(`웹 브라우저에서 표시되지 않을 수 있음 (이미지 타입: ${contentType})`);
     }
-    return new Result(new DocImage(w, h, contentType, imageFile.read));
+    return new Result(new DocImage(w, h, contentType, imageFilePath));
 }
 
 function readOMath(elem: ONode): Result {

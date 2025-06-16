@@ -11,10 +11,6 @@ export class Result {
         this._result = { value: this.value, extra: this.extra };
     }
 
-    toExtra(): Result {
-        return new Result([], [...this.extra, ...this.value]);
-    };
-
     static combineResults(results: Result[]): Result {
         const result = results.map(r => r._result);
         return new Result(

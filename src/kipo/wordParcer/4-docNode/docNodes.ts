@@ -116,20 +116,12 @@ export class DocHyperlink {
 
 export class DocImage {
     public type: DocNodeType = "image";
-    public readAsArrayBuffer: (() => Promise<ArrayBuffer>);
-    public readAsBase64String: (() => Promise<string>);
-    public readAsBuffer: (() => Promise<Buffer>);
-
     constructor(
         public w: string,
         public h: string,
         public contentType: string = '',
-        public readImage: (format?: string) => Promise<any>
-    ) {
-        this.readAsArrayBuffer = () => readImage();
-        this.readAsBase64String = () => readImage("base64");
-        this.readAsBuffer = () => readImage().then((arrayBuffer: any) => Buffer.from(arrayBuffer));
-    }
+        public filePath: string = '',
+    ) {}
 }
 
 export class DocTable {

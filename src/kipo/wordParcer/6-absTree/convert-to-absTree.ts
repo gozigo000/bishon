@@ -14,18 +14,10 @@ import { defaultStyleMap } from "../5-styles/default-style-map.js";
 
 type HtmlOptions = {
     styleMap: StyleMapping[];
-    imgAttrsGetter?: (element: DocImage) => Promise<Record<string, string>>;
     ignoreEmptyParagraphs?: boolean;
 }
 
-type DeferredNode = {
-    type: "deferred";
-    id: number;
-    value: () => Promise<AstNode[]>;
-}
-
 let options: HtmlOptions = { styleMap: [] };
-let deferredId = 1;
 
 export async function fromDocNodeToAbsTree(docDoc: DocDocument, opts?: Options): Promise<AstNode[]> {
     const styleMap = (opts?.styleMap || defaultStyleMap);
@@ -33,14 +25,11 @@ export async function fromDocNodeToAbsTree(docDoc: DocDocument, opts?: Options):
 
     options = {
         styleMap: parsedStyleMap,
-        imgAttrsGetter: opts?.imgAttrsGetter,
         ignoreEmptyParagraphs: opts?.ignoreEmptyParagraphs
     };
-    deferredId = 1;
 
     const ast = convertNode(docDoc);
-    const replacedAst = await processDeferredNodes(ast);
-    const simplifiedAst = simplify(replacedAst);
+    const simplifiedAst = simplify(ast);
     return simplifiedAst;
 }
 
@@ -51,7 +40,7 @@ function convertNode(elem: DocNode): AstNode[] {
     if (isText(elem)) return [new AstNode("text", elem.value)];
     if (isTab(elem)) return [new AstNode("text", "\t")];
     if (isCheckbox(elem)) return convertCheckbox(elem);
-    if (isImage(elem)) return deferredConversion(elem);
+    if (isImage(elem)) return convertImage(elem);
     if (isTable(elem)) return convertTable(elem);
     if (isBreak(elem)) return convertBreak(elem);
     if (isMath(elem)) return convertMath(elem);
@@ -139,62 +128,14 @@ function convertCheckbox(elem: DocCheckbox): AstNode[] {
     return [new AstNode("element", new HtmlTag("input", attributes, { fresh: true }), [])];
 }
 
-function deferredConversion(node: DocImage): AstNode[] {
-    const getAttrs = options.imgAttrsGetter ?? async function (docImg) {
-        return {
-            wi: docImg.w, // 이미지 너비 속성 추가 ★
-            he: docImg.h, // 이미지 높이 속성 추가 ★
-            format: docImg.contentType,
-            base64: await docImg.readAsBase64String(),
-        };
+function convertImage(node: DocImage): AstNode[] {
+    const imgAttrs = {
+        w: node.w, // 이미지 너비 속성 추가
+        h: node.h, // 이미지 높이 속성 추가
+        format: node.contentType,
+        path: node.filePath // 이미지 경로 속성 추가
     };
-
-    async function convertImage(docImg: DocImage): Promise<AstNode[]> {
-        const imgAttrs = await getAttrs(docImg);
-        return [new AstNode("element", new HtmlTag("img", imgAttrs, { fresh: true }), [])];
-    };
-
-    const deferredNode: DeferredNode = {
-        type: "deferred",
-        id: deferredId++,
-        value: async (): Promise<AstNode[]> => {
-            try {
-                return await convertImage(node);
-            } catch (e) {
-                Msgs.addError(e as Error);
-                return [];
-            }
-        }
-    };
-    return [deferredNode as unknown as AstNode];
-}
-
-async function processDeferredNodes(astRootNode: AstNode[]): Promise<AstNode[]> {
-    const deferNodes: DeferredNode[] = [];
-    function collectDeffer(nodes: AstNode[]): void {
-        nodes.forEach((node) => {
-            const dNode = node as any as DeferredNode
-            if (dNode.type === "deferred") deferNodes.push(dNode);
-            if (node.children) collectDeffer(node.children);
-        });
-    }
-    collectDeffer(astRootNode);
-
-    const deferValues: Record<number, AstNode[]> = {};
-    for (const node of deferNodes) {
-        deferValues[node.id] = await node.value();
-    }
-
-    function replaceDefer(nodes: AstNode[]): AstNode[] {
-        const result = nodes.map(node => {
-            const dNode = node as any as DeferredNode
-            if (dNode.type === "deferred") return deferValues[dNode.id];
-            if (node.children) return { ...node, children: replaceDefer(node.children) };
-            return node;
-        })
-        return result.flat();
-    }
-    return replaceDefer(astRootNode);
+    return [new AstNode("element", new HtmlTag("img", imgAttrs, { fresh: true }), [])];
 }
 
 function convertTable(elem: DocTable): AstNode[] {
