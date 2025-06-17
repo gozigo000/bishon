@@ -1,4 +1,4 @@
-import { JSDOM } from 'jsdom';
+import * as cheerio from 'cheerio';
 import { BATANGCHE_WIDTH_PT } from '../ttfParser/batangche_width_pt';
 import { KipoParas } from '../diff/kipoParas';
 import { collectLine } from '../dataCollector';
@@ -78,9 +78,7 @@ export class PageCounter {
     public precessSection(paras: Paragraph[], isDrawings: boolean = false): number {
         const totalLines: Line[] = [];
         for (const para of paras) {
-            const elem = new JSDOM(`<div>${para.content}</div>`).window.document
-                .querySelector('div')!;
-            const cubes = this.makeCubeList(elem);
+            const cubes = this.makeCubeList(para);
             const lines = this.makeLineList(cubes);
             totalLines.push(...lines);
         };
@@ -99,40 +97,56 @@ export class PageCounter {
         return this.countPages(totalLines);
     }
 
-    public makeCubeList(hParaNode: Element) {
+    public makeCubeList(para: Paragraph) {
+        const content = `<div>${para.content}</div>`;
+        const $ = cheerio.load(content, {
+            xml: {
+                decodeEntities: false,
+                withStartIndices: true,
+                withEndIndices: true,
+            },
+        });
+        
         const cubes: Cube[] = [];
-        for (const child of hParaNode.childNodes) {
-            const nodeName = child.nodeName;
-            if (nodeName === '#text') {
-                const text = (child.textContent || '').split('');
+        for (const child of $('div').contents()) {
+            const type = child.type;
+            if (type === 'text') {
+                const text = child.data.split('');
                 for (const ch of text) {
                     const chW = BATANGCHE_WIDTH_PT[ch];
                     cubes.push({ ch: ch, H: BASE_LINE_HEIGHT, W: chW });
                 }
+                continue;
             }
-            else if (nodeName === 'IMG') {
-                const imgW_mm = Number((child as Element).getAttribute('wi'));
-                const imgH_mm = Number((child as Element).getAttribute('he'));
-                const imgW = imgW_mm * IMG_WIDTH_TO_PT;
-                const imgH = imgH_mm * IMG_HEIGHT_TO_PT;
-                cubes.push({ ch: `<img/>`, H: imgH + LINE_GAP, W: imgW });
-            }
-            else if (nodeName === 'SUB' || nodeName === 'SUP') {
-                const text = (child.textContent || '').split('');
-                for (const ch of text) {
-                    const chW = BATANGCHE_WIDTH_PT[ch];
-                    if (ch === ' ') {
-                        cubes.push({ ch: ch, H: BASE_LINE_HEIGHT, W: chW });
-                    }
-                    else {
-                        cubes.push({ ch: ch, H: BASE_LINE_HEIGHT, W: chW * SUB_WIDTH_RATIO });
-                    }
+            if (type === 'tag') {
+                const tagName = child.tagName;
+                if (tagName === 'img') {
+                    const imgW_mm = Number(child.attribs.wi);
+                    const imgH_mm = Number(child.attribs.he);
+                    const imgW = imgW_mm * IMG_WIDTH_TO_PT;
+                    const imgH = imgH_mm * IMG_HEIGHT_TO_PT;
+                    cubes.push({ ch: `<img/>`, H: imgH + LINE_GAP, W: imgW });
+                    continue;
                 }
-            }
-            else if (nodeName === 'TABLE') {
-                // TODO: [표] 처리하기
-                // row의 셀 중에서 가장 셀의 높이가 가장 높은 셀의 높이를 찾아서 추가
-                // row 당 width는 페이지 최대 폭으로 설정해서 한 줄에 하나만 들어가도록 하기
+                if (tagName === 'sub' || tagName === 'sup') {
+                    const text = content
+                        .slice(child.startIndex! + 5, child.endIndex! - 5)
+                        .split('');
+                    for (const ch of text) {
+                        const chW = BATANGCHE_WIDTH_PT[ch];
+                        if (ch === ' ') {
+                            cubes.push({ ch: ch, H: BASE_LINE_HEIGHT, W: chW });
+                        } else {
+                            cubes.push({ ch: ch, H: BASE_LINE_HEIGHT, W: chW * SUB_WIDTH_RATIO });
+                        }
+                    }
+                    continue;
+                }
+                if (tagName === 'table') {
+                    // TODO: [표] 처리하기
+                    // row의 셀 중에서 가장 셀의 높이가 가장 높은 셀의 높이를 찾아서 추가
+                    // row 당 width는 페이지 최대 폭으로 설정해서 한 줄에 하나만 들어가도록 하기
+                }
             }
         }
         return cubes;
