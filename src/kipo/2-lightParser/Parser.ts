@@ -1,6 +1,7 @@
 import { DomHandler } from "./Handler.js";
 import { fromCodePoint } from "./4-entities/decode-codepoint.js";
 import Tokenizer from "./Tokenizer.js";
+import { decodeXML } from "./4-entities/decode.js";
 
 const formTags = new Set([
     "input",
@@ -290,7 +291,7 @@ export class Parser {
 
     /** @internal */
     onAttrData(start: number, endIdx: number): void {
-        this.attrValue += this.getSlice(start, endIdx);
+        this.attrValue += decodeXML(this.getSlice(start, endIdx));
     }
 
     /** @internal */
