@@ -11,6 +11,7 @@
     "test:simple": "cls && npx jest test/simple.test.ts",
     "test:ooxml": "cls && npx jest test/index.test.ts",
     "test:omml": "cls && npx jest test/ommlToLatex.test.ts",
+    "test:lightParser": "cls && npx jest test/lightParser.test.ts",
     "test:xmlDom": "cls && npx jest test/xmlDomComparison.test.ts --detectOpenHandles",
     "test:xmlLine": "cls && npx jest test/xmlLineComparison.test.ts",
     "test:xml_Dom_Line": "cls && npx jest test/xmlDomComparison.test.ts test/xmlLineComparison.test.ts --detectOpenHandles",
@@ -23,7 +24,6 @@
   },
   "dependencies": {
     "@xmldom/xmldom": "^0.9.8",
-    "chalk": "^5.4.1",
     "diff-match-patch-ts": "^0.6.0",
     "dingbat-to-unicode": "^1.0.1",
     "dompurify": "^3.2.5",
