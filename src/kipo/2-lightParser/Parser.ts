@@ -138,7 +138,6 @@ export class Parser {
     private readonly domHandler: DomHandler;
     private readonly isLowerCaseTagName: boolean;
     private readonly isLowerCaseAttrName: boolean;
-    private readonly isRecognizeSelfClosing: boolean;
     private readonly isRecognizeCDATA: boolean;
     private readonly tokenizer: Tokenizer;
 
@@ -153,7 +152,6 @@ export class Parser {
         this.domHandler = domHandler;
         this.isLowerCaseTagName = options.isLowerCaseTagName ?? false;
         this.isLowerCaseAttrName = options.isLowerCaseAttributeName ?? false;
-        this.isRecognizeSelfClosing = options.recognizeSelfClosing ?? false;
         this.isRecognizeCDATA = options.recognizeCDATA ?? false
         this.tokenizer = new Tokenizer(this);
     }
@@ -251,14 +249,9 @@ export class Parser {
     /** @internal */
     onSelfClosingTag(endIdx: number): void {
         this.endIdx = endIdx;
-        if (this.isRecognizeSelfClosing) {
-            this.closeCurrentTag();
-            // Set `startIndex` for next node
-            this.startIdx = endIdx + 1;
-        } else {
-            // Ignore the fact that the tag is self-closing.
-            this.onOpenTagEnd(endIdx);
-        }
+        this.closeCurrentTag();
+        // Set `startIndex` for next node
+        this.startIdx = endIdx + 1;
     }
 
     private closeCurrentTag() {

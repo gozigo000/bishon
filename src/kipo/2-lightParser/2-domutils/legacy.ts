@@ -1,5 +1,6 @@
 import type { XNodeType } from "../1-node/nodeType.js";
-import { isXElement, isXText, XNode, XElement } from "../1-node/node.js";
+import { isXElem, isXText, XNode, XElement } from "../1-node/node.js";
+import { findAll, findOne } from "./search.js";
 
 type TestType = (node: XNode) => boolean;
 
@@ -34,7 +35,7 @@ export function testNode(node: XNode, options: TestNodeOptions): boolean {
  */
 export function getNodes(node: XNode, options: TestNodeOptions, isRecursive: boolean): XNode[] {
     const test = compileTest(options);
-    return test ? node.findAll(test, isRecursive) : [];
+    return test ? findAll(node, test, isRecursive) : [];
 }
 
 /**
@@ -58,11 +59,11 @@ function compileTest(options: TestNodeOptions): TestType | null {
 const Checks: Record<string, (value: string | undefined | ((str: string) => boolean)) => TestType> = {
     tag_name(name) {
         if (typeof name === "function") {
-            return (node: XNode) => isXElement(node) && name(node.tagName);
+            return (node: XNode) => isXElem(node) && name(node.tagName);
         } else if (name === "*") {
-            return isXElement;
+            return isXElem;
         }
-        return (node: XNode) => isXElement(node) && node.tagName === name;
+        return (node: XNode) => isXElem(node) && node.tagName === name;
     },
     tag_type(type) {
         if (typeof type === "function") {
@@ -99,7 +100,7 @@ export function getElementById(
     id: string | ((id: string) => boolean),
     isRecursive = true,
 ): XNode | null {
-    return nodes.findOne(getAttribCheck("id", id), isRecursive);
+    return findOne(nodes, getAttribCheck("id", id), isRecursive);
 }
 
 /**
@@ -113,12 +114,13 @@ export function getElementsByTagName(
     tagName: string | ((name: string) => boolean),
     isRecursive = true,
 ): XElement[] {
-    return node.findAll(
+    return findAll(
+        node,
         (typeof tagName === "function") ?
-            node => isXElement(node) && tagName(node.tagName) :
+            node => isXElem(node) && tagName(node.tagName) :
             (tagName === "*") ?
-                node => isXElement(node) :
-                node => isXElement(node) && node.tagName === tagName,
+                node => isXElem(node) :
+                node => isXElem(node) && node.tagName === tagName,
         isRecursive,
     ) as XElement[];
 }
@@ -134,10 +136,7 @@ export function getElementsByClassName(
     className: string | ((name: string) => boolean),
     isRecursive = true,
 ): XElement[] {
-    return node.findAll(
-        getAttribCheck("class", className),
-        isRecursive,
-    ) as XElement[];
+    return findAll(node, getAttribCheck("class", className), isRecursive) as XElement[];
 }
 
 /**
@@ -151,7 +150,7 @@ export function getElementsByType(
     type: XNodeType | ((type: XNodeType) => boolean),
     isRecursive = true,
 ): XNode[] {
-    return node.findAll(node => node.type === type, isRecursive);
+    return findAll(node, node => node.type === type, isRecursive);
 }
 
 /**
@@ -164,7 +163,7 @@ function getAttribCheck(
     value: string | ((value: string) => boolean) | undefined
 ): TestType {
     if (typeof value === "function") {
-        return (node: XNode) => isXElement(node) && value(node.attrs[attr]);
+        return (node: XNode) => isXElem(node) && value(node.attrs[attr]);
     }
-    return (node: XNode) => isXElement(node) && node.attrs[attr] === value;
+    return (node: XNode) => isXElem(node) && node.attrs[attr] === value;
 }

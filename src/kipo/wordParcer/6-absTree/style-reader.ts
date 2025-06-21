@@ -136,7 +136,7 @@ function documentMatcherRule(): any {
     function createMatcherSuffixesRule(rules: any[]): any {
         var matcherSuffix = lop.rules.firstOf.apply(
             lop.rules.firstOf,
-            ["matcher suffix"].concat(rules)
+            ["matcher suffix", ...rules]
         );
         var matcherSuffixes = lop.rules.zeroOrMore(matcherSuffix);
         return lop.rules.then(matcherSuffixes, (suffixes: any[]) => {

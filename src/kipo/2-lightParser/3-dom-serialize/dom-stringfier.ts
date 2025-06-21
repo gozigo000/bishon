@@ -24,7 +24,7 @@ export function renderNode(node: XNode, options?: SerializerOptions): string {
     switch (node.type) {
         case XNodeType.Root:
             return renderNodes(node.childNodes, options);
-        case XNodeType.Tag:
+        case XNodeType.Element:
             return renderTag(node, options);
         case XNodeType.Text:
             return renderText(node);
@@ -34,8 +34,6 @@ export function renderNode(node: XNode, options?: SerializerOptions): string {
             return `<${node.content}>`;
         case XNodeType.CDATA:
             return `<![CDATA[${node.childNodes[0].content}]]>`;
-        case XNodeType.Script:
-        case XNodeType.Style:
         case XNodeType.Comment:
             return '';
     }
@@ -69,7 +67,11 @@ function renderTag(elem: XElement, opts?: SerializerOptions) {
     if (attribs) tag += ` ${attribs}`;
 
     if (selfClosingTags.has(elem.tagName) && elem.childNodes.length === 0) {
-        tag += " />";
+        if (elem.tagName === 'br') {
+            tag += "/>";
+        } else {
+            tag += " />";
+        }
     } else {
         tag += ">"; // 추가
         if (elem.childNodes.length > 0) {

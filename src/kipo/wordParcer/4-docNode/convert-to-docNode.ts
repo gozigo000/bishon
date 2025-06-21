@@ -117,7 +117,7 @@ function readParagraph(elem: ONode): Result {
 
     let children = elem.children;
     if (deletedParagraphContents.length > 0) {
-        children = deletedParagraphContents.concat(children);
+        children = [...deletedParagraphContents, ...children];
         deletedParagraphContents = [];
     }
 
@@ -506,6 +506,8 @@ function readShape(element: ONode): Result {
         collectWarning("이미지 사이즈를 읽을 수 없습니다");
         return new Result();
     }
+    const w = Number(width.replace('pt', '')) * 12700; // 1pt = 12700 EMU
+    const h = Number(height.replace('pt', '')) * 12700; // 1pt = 12700 EMU
 
     const relationshipId = element.getFirstOrEmpty("v:imagedata").attributes['r:id'];
     if (!relationshipId) {
@@ -515,10 +517,7 @@ function readShape(element: ONode): Result {
     const shapeImageFilePath = uris.uriToZipEntryName(
         "word", relationships.findTargetByRelationshipId(relationshipId)
     );
-
-    return readImage(
-        shapeImageFilePath, width, height,
-    );
+    return readImage(shapeImageFilePath, w.toString(), h.toString());
 }
 
 function readImage(imageFilePath: string, w: string, h: string): Result {
@@ -592,5 +591,6 @@ const ignoredElements = new Set([
     "w:tblPr",
     "w:tblGrid",
     "w:trPr",
-    "w:tcPr"
+    "w:tcPr",
+    "w:tblPrEx"
 ]);

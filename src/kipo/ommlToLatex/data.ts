@@ -1,5 +1,5 @@
 /** OMML 네임스페이스 */
-export const OMML_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math';
+// export const OMML_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math';
 
 /** LaTeX에서 이스케이프가 필요한 문자들 */
 export const ESCAPING_CHARS = ['{', '}', '_', '^', '#', '&', '$', '%', '~'];

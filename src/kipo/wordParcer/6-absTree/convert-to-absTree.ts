@@ -64,7 +64,7 @@ function convertParagraph(elem: DocParagraph): AstNode[] {
         if (options.ignoreEmptyParagraphs) {
             return content;
         }
-        return [new AstNode("forceWrite")].concat(content);
+        return [new AstNode("forceWrite"), ...content];
     });
 }
 
@@ -146,9 +146,9 @@ function convertTable(elem: DocTable): AstNode[] {
         new HtmlTag("p", {}, { fresh: true }), // <p> 태그로 <table> 태그 감싸기
         new HtmlTag("table", { gridWidths }, { fresh: true })
     ]);
-    const withChildren = findHtmlPath(elem, tablePath)!
+    const withChildren = tablePath
         .wrap(() => convertTableChildren(elem));
-    return [new AstNode("forceWrite")].concat(withChildren);
+    return [new AstNode("forceWrite"), ...withChildren];
 }
 
 function convertTableChildren(elem: DocTable): AstNode[] {
@@ -176,7 +176,7 @@ function convertTableRow(elem: DocTableRow, isTableHeader: boolean): AstNode {
     return new AstNode(
         "element",
         new HtmlTag("tr", {}, { fresh: true }),
-        [new AstNode("forceWrite")].concat(children)
+        [new AstNode("forceWrite"), ...children]
     );
 }
 
@@ -193,7 +193,7 @@ function convertTableCell(elem: DocTableCell, isTableHeader: boolean): AstNode {
     return new AstNode(
         "element",
         new HtmlTag(tagName, attributes, { fresh: true }),
-        [new AstNode("forceWrite")].concat(children)
+        [new AstNode("forceWrite"), ...children]
     );
 }
 
@@ -214,7 +214,7 @@ function convertMathPara(elem: DocMathPara): AstNode[] {
     const mathPath = new HtmlPath([new HtmlTag("mathPara", { omml: elem.omml }, { fresh: true })]);
     const withChildren = mathPath
         .wrap(() => elem.children.map(elem => convertMath(elem)[0]));
-    return [new AstNode("forceWrite")].concat(withChildren);
+    return [new AstNode("forceWrite"), ...withChildren];
 }
 
 function findHtmlPath(elem: DocNode | any, defaultPath?: HtmlPath): HtmlPath | undefined {

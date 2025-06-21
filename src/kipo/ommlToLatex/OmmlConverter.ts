@@ -1,5 +1,6 @@
-import { JSDOM } from 'jsdom';
-import { OMML_NS, ACCENT_DEFAULT, ACCENTS, LATEX_SYMBOLS, BAR_DEFAULT, BAR, FRACTION_DEFAULT, FRACTION_TYPES, FUNC, BREAK, LIM_FUNC, LIM_UPP, ALIGN, BIG_OPERATORS } from './data';
+import { parseXml } from '../2-lightParser/entry';
+import { XElement } from '../2-lightParser/1-node/node';
+import { ACCENT_DEFAULT, ACCENTS, LATEX_SYMBOLS, BAR_DEFAULT, BAR, FRACTION_DEFAULT, FRACTION_TYPES, FUNC, BREAK, LIM_FUNC, LIM_UPP, ALIGN, BIG_OPERATORS } from './data';
 import { getValue, format, getUnicodeString, escapeLatex, isComplexEquation } from './utils';
 import { XmlPropNode } from './XmlPropNode';
 import { collectError, collectWarning } from '../errorCollector';
@@ -13,15 +14,14 @@ import { dlog } from '../../_utils/env';
  */
 export function makeLatexFromOmml(omml: string): string | null {
     try {
-        const dom = new JSDOM(omml, { contentType: 'text/xml' });
-        const elem = dom.window.document.documentElement;
-
+        const root = parseXml(omml);
+        
         // oMathPara 처리
-        const oMathPara = (elem.tagName === 'm:oMathPara') ? elem 
-            : elem.getElementsByTagName('m:oMathPara')[0];
+        const oMathPara = root.getElemByTagName('m:oMathPara', true);
+
         if (oMathPara) {
             const latexStrs: string[] = [];
-            for (const oMath of oMathPara.getElementsByTagName('m:oMath')) {
+            for (const oMath of oMathPara.getElemsByTagName('m:oMath')) {
                 const latexStr = convertMoMath(oMath);
                 if (!latexStr) continue;
                 latexStrs.push(latexStr);
@@ -40,8 +40,7 @@ export function makeLatexFromOmml(omml: string): string | null {
         }
 
         // oMath 처리
-        const oMath = (elem.tagName === 'm:oMath') ? elem
-            : elem.getElementsByTagName('m:oMath')[0];
+        const oMath = root.getElemByTagName('m:oMath', true);
         if (oMath) {
             const latexStr = convertMoMath(oMath);
             const latex = latexStr.trim();
@@ -52,7 +51,7 @@ export function makeLatexFromOmml(omml: string): string | null {
         collectError('<m:oMath> 또는 <m:oMathPara> 노드가 없습니다.');
         return null;
     } catch (error) {
-        collectError('OMML > LaTeX 변환 실패', error as Error);
+        collectError('OMML > LaTeX 변환 실패', error as Error, omml);
         return null;
     }
 } 
@@ -71,11 +70,11 @@ export interface NodeInfo {
  * @param oMath - XML 노드
  * @returns LaTeX 문자열
  */
-function convertMoMath(oMath: Element): string {
+function convertMoMath(oMath: XElement): string {
     // ommlStr = ommlStr
     //     .replaceAll(' ', ' ')
     //     .replaceAll('＝', '=')
-    let latexStr = processChildren(oMath.children)
+    let latexStr = processChildren(oMath.childElems)
     latexStr = latexStr
         .replace(/(?<!\\) }/g, '}')
         .replace(/(\\\s+)+/g, '\\ ') // 연속된 공백(`\ `) 제거
@@ -85,12 +84,12 @@ function convertMoMath(oMath: Element): string {
 
 /**
  * 자식 노드들을 처리하고 결과를 LaTeX 문자열로 반환
- * @param xmlNodes - 자식 XML 노드들
+ * @param elems - 자식 XML 노드들
  * @param include - 포함할 태그 목록 (선택적)
  * @returns LaTeX 문자열
  */
-function processChildren(xmlNodes: HTMLCollection, include?: Set<string>): string {
-    const nodesInfo = generateNodesInfo(xmlNodes, include);
+function processChildren(elems: XElement[], include?: Set<string>): string {
+    const nodesInfo = generateNodesInfo(elems, include);
     if (nodesInfo.length === 0) return '';
 
     let latexStr = '';
@@ -104,12 +103,12 @@ function processChildren(xmlNodes: HTMLCollection, include?: Set<string>): strin
 
 /**
  * 자식 노드들을 {태그명: 처리결과} 형태의 딕셔너리로 처리
- * @param xmlNodes - 자식 노드들
+ * @param elems - 자식 노드들
  * @param include - 포함할 태그 목록 (선택적)
  * @returns 태그별 처리된 노드 딕셔너리
  */
-function processChildrenForDict(xmlNodes: HTMLCollection, include?: Set<string>): Record<string, string | XmlPropNode> {
-    const nodesInfo = generateNodesInfo(xmlNodes, include);
+function processChildrenForDict(elems: XElement[], include?: Set<string>): Record<string, string | XmlPropNode> {
+    const nodesInfo = generateNodesInfo(elems, include);
     const latexChars: Record<string, string | XmlPropNode> = {};
     for (const info of nodesInfo) {
         latexChars[info.tag] = info.result;
@@ -119,23 +118,19 @@ function processChildrenForDict(xmlNodes: HTMLCollection, include?: Set<string>)
 
 /**
  * 자식 노드 리스트 처리
- * @param xmlNodes - 자식 노드들
+ * @param elems - 자식 노드들
  * @param include - 포함할 태그 목록 (선택적)
  * @returns `{태그명: 처리결과}[]`
  */
-function generateNodesInfo(xmlNodes: HTMLCollection, include?: Set<string>): NodeInfo[] {
-    if (!xmlNodes) return [];
-
+function generateNodesInfo(elems: XElement[], include?: Set<string>): NodeInfo[] {
     const nodesInfo: NodeInfo[] = [];
-    for (const xmlNode of xmlNodes) {
-        if (!xmlNode.namespaceURI?.includes(OMML_NS)) continue;
-
-        const tagName = xmlNode.tagName || '';
+    for (const elem of elems) {
+        const tagName = elem.tagName || '';
         if (include && !include.has(tagName)) continue;
 
-        let result: string | XmlPropNode = processTag(xmlNode);
+        let result: string | XmlPropNode = processTag(elem);
         if (tagName.endsWith('Pr')) {
-            result = new XmlPropNode(xmlNode);
+            result = new XmlPropNode(elem);
         }
         if (!result) continue;
 
@@ -145,32 +140,30 @@ function generateNodesInfo(xmlNodes: HTMLCollection, include?: Set<string>): Nod
 }
 
 /**
- * 태그에 따른 처리 메서드를 호출
- * @param tagName - 처리할 태그 이름
- * @param xmlNode - XML 노드
+ * 태그별 처리
  * @returns LaTeX 문자열 (@exception 해당하는 노드가 없으면 빈 문자열)
  */
-function processTag(xmlNode: Element): string {
-    switch (xmlNode.tagName) {
+function processTag(elem: XElement): string {
+    switch (elem.tagName) {
         // 그룹 1
-        case 'm:acc': return doAcc(xmlNode);
-        case 'm:bar': return doBar(xmlNode);
-        case 'm:d': return doD(xmlNode);
-        case 'm:eqArr': return doEqArr(xmlNode);
-        case 'm:f': return doF(xmlNode);
-        case 'm:fName': return doFName(xmlNode);
-        case 'm:func': return doFunc(xmlNode);
-        case 'm:groupChr': return doGroupChr(xmlNode);
-        case 'm:limLow': return doLimLow(xmlNode);
-        case 'm:limUpp': return doLimUpp(xmlNode);
-        case 'm:lim': return doLim(xmlNode);
-        case 'm:m': return doM(xmlNode);
-        case 'm:mr': return doMr(xmlNode);
-        case 'm:nary': return doNary(xmlNode);
-        case 'm:r': return doR(xmlNode);
-        case 'm:rad': return doRad(xmlNode);
-        case 'm:sub': return doSub(xmlNode);
-        case 'm:sup': return doSup(xmlNode);
+        case 'm:acc': return doAcc(elem);
+        case 'm:bar': return doBar(elem);
+        case 'm:d': return doD(elem);
+        case 'm:eqArr': return doEqArr(elem);
+        case 'm:f': return doF(elem);
+        case 'm:fName': return doFName(elem);
+        case 'm:func': return doFunc(elem);
+        case 'm:groupChr': return doGroupChr(elem);
+        case 'm:limLow': return doLimLow(elem);
+        case 'm:limUpp': return doLimUpp(elem);
+        case 'm:lim': return doLim(elem);
+        case 'm:m': return doM(elem);
+        case 'm:mr': return doMr(elem);
+        case 'm:nary': return doNary(elem);
+        case 'm:r': return doR(elem);
+        case 'm:rad': return doRad(elem);
+        case 'm:sub': return doSub(elem);
+        case 'm:sup': return doSup(elem);
         // 그룹 2 - 기존 패키지에서 directTags라고 이름 붙였던 것
         case 'm:box':
         case 'm:den':
@@ -180,7 +173,7 @@ function processTag(xmlNode: Element): string {
         case 'm:sSub':
         case 'm:sSup':
         case 'm:sSubSup': {
-            return processChildren(xmlNode.children);
+            return processChildren(elem.childElems);
         }
         // 기타 태그
         default: return '';
@@ -189,11 +182,10 @@ function processTag(xmlNode: Element): string {
 
 /**
  * 액센트 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doAcc(xmlNode: Element): string {
-    const children = processChildrenForDict(xmlNode.children);
+function doAcc(elem: XElement): string {
+    const children = processChildrenForDict(elem.childElems);
     const pr = children['m:accPr'];
     if (typeof pr === 'string') return '';
     const accent = getValue(pr.getAttributeValue('m:chr'), ACCENT_DEFAULT, ACCENTS);
@@ -202,15 +194,14 @@ function doAcc(xmlNode: Element): string {
 
 /**
  * Run: 런 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doR(xmlNode: Element): string {
-    const tNode = xmlNode.getElementsByTagName('m:t')[0] || null;
+function doR(elem: XElement): string {
+    const tNode = elem.getElemByTagName('m:t', true);
     if (!tNode) return '';
 
-    const text = (tNode.textContent || '');
-    const isSpaces = tNode.getAttribute('xml:space') === 'preserve';
+    const text = tNode.innerText;
+    const isSpaces = tNode.getAttrValue('xml:space') === 'preserve';
     let result = Array.from(text).map(ch => {
         if (isSpaces && ch === ' ') {
             return '\\ ';
@@ -219,7 +210,7 @@ function doR(xmlNode: Element): string {
         return LATEX_SYMBOLS[ch] || LATEX_SYMBOLS[uni] || ch;
     }).join('');
 
-    const children = processChildrenForDict(xmlNode.children);
+    const children = processChildrenForDict(elem.childElems);
     const mrPr = children['m:rPr'];
     if (mrPr instanceof XmlPropNode) {
         const regex = /(?<=^|\s)([^\s\\]+?)(?=\s|\\|$)/g;
@@ -238,11 +229,10 @@ function doR(xmlNode: Element): string {
 
 /**
  * 바 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doBar(xmlNode: Element): string {
-    const children = processChildrenForDict(xmlNode.children);
+function doBar(elem: XElement): string {
+    const children = processChildrenForDict(elem.childElems);
     const pr = children['m:barPr'];
     if (typeof pr === 'string') return '';
     const latexStr = getValue(pr.getAttributeValue('m:pos'), BAR_DEFAULT, BAR);
@@ -251,11 +241,10 @@ function doBar(xmlNode: Element): string {
 
 /**
  * Delimiter: 구분자 (괄호 등) 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doD(xmlNode: Element): string {
-    const children = processChildrenForDict(xmlNode.children);
+function doD(elem: XElement): string {
+    const children = processChildrenForDict(elem.childElems);
 
     // HACK: <m:dPr> 태그 처리하는 부분이 구현되어 있지 않음.
     // 이로 인해 결과물에 'undefined' 문자열이 포함되고 있음.
@@ -264,6 +253,9 @@ function doD(xmlNode: Element): string {
     const dPr = children['m:dPr'];
     if (typeof dPr === 'string') return '';
 
+    // NOTE: `nullVal` vs `defaultValue`
+    // `<m:begChr />`인 경우에는 `defaultValue` 값을 사용하고,
+    // `<m:begChr m:val=""/>`인 경우에는 `nullVal` 값을 사용함
     const nullVal = '.';
     const begChr = getValue(dPr.getAttributeValue('m:begChr'), '(', LATEX_SYMBOLS);
     const endChr = getValue(dPr.getAttributeValue('m:endChr'), ')', LATEX_SYMBOLS);
@@ -276,31 +268,28 @@ function doD(xmlNode: Element): string {
 
 /**
  * 아래 첨자 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doSub(xmlNode: Element): string {
-    const val = processChildren(xmlNode.children);
+function doSub(elem: XElement): string {
+    const val = processChildren(elem.childElems);
     return val ? `_{${val}}` : '';
 }
 
 /**
  * 위 첨자 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doSup(xmlNode: Element): string {
-    const val = processChildren(xmlNode.children);
+function doSup(elem: XElement): string {
+    const val = processChildren(elem.childElems);
     return val ? `^{${val}}` : '';
 }
 
 /**
  * 분수 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doF(xmlNode: Element): string {
-    const children = processChildrenForDict(xmlNode.children);
+function doF(elem: XElement): string {
+    const children = processChildrenForDict(elem.childElems);
 
     // HACK: <m:fPr> 태그 처리하는 부분이 구현되어 있지 않음.
     // 이로 인해 결과물에 'undefined' 문자열이 포함되고 있음.
@@ -315,11 +304,10 @@ function doF(xmlNode: Element): string {
 
 /**
  * 함수 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doFunc(xmlNode: Element): string {
-    const children = processChildrenForDict(xmlNode.children);
+function doFunc(elem: XElement): string {
+    const children = processChildrenForDict(elem.childElems);
     const fnName = children['m:fName'];
     const e = children['m:e'];
     if (typeof fnName !== 'string' || typeof e !== 'string') return '';
@@ -328,13 +316,12 @@ function doFunc(xmlNode: Element): string {
 
 /**
  * 함수 이름 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doFName(xmlNode: Element): string {
+function doFName(elem: XElement): string {
     let fnName: string = '';
     let isR: boolean = false;
-    for (const info of generateNodesInfo(xmlNode.children)) {
+    for (const info of generateNodesInfo(elem.childElems)) {
         const res = info.result;
         if (typeof res === 'string') {
             if (info.tag === 'm:r') isR = true;
@@ -351,11 +338,10 @@ function doFName(xmlNode: Element): string {
 
 /**
  * 그룹 문자 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doGroupChr(xmlNode: Element): string {
-    const children = processChildrenForDict(xmlNode.children);
+function doGroupChr(elem: XElement): string {
+    const children = processChildrenForDict(elem.childElems);
     const pr = children['m:groupChrPr'];
     if (typeof pr === 'string') return '';
     const chr = getValue(pr.getAttributeValue('m:chr'));
@@ -364,11 +350,10 @@ function doGroupChr(xmlNode: Element): string {
 
 /**
  * 근호 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doRad(xmlNode: Element): string {
-    const children = processChildrenForDict(xmlNode.children);
+function doRad(elem: XElement): string {
+    const children = processChildrenForDict(elem.childElems);
     if (children['m:deg'] && typeof children['m:deg'] === 'string' && children['m:deg'].length > 0) {
         return `\\sqrt[${children['m:deg']}]{${children['m:e']}}`;
     }
@@ -377,12 +362,11 @@ function doRad(xmlNode: Element): string {
 
 /**
  * 배열 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doEqArr(xmlNode: Element): string {
+function doEqArr(elem: XElement): string {
     const include = new Set(['m:e']);
-    const text = generateNodesInfo(xmlNode.children, include)
+    const text = generateNodesInfo(elem.childElems, include)
         .map(t => t.result)
         .join(BREAK);
     return `\\begin{array}{c}${text}\\end{array}`;
@@ -390,12 +374,11 @@ function doEqArr(xmlNode: Element): string {
 
 /**
  * 하한 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doLimLow(xmlNode: Element): string {
+function doLimLow(elem: XElement): string {
     const include = new Set(['m:e', 'm:lim']);
-    const children = processChildrenForDict(xmlNode.children, include);
+    const children = processChildrenForDict(elem.childElems, include);
     const funcName = children['m:e'];
     if (typeof funcName !== 'string' || !LIM_FUNC[funcName]) {
         collectError(`지원되지 않는 극한함수(limit function)입니다: '${funcName}'!`);
@@ -406,31 +389,28 @@ function doLimLow(xmlNode: Element): string {
 
 /**
  * 상한 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doLimUpp(xmlNode: Element): string {
+function doLimUpp(elem: XElement): string {
     const include = new Set(['m:e', 'm:lim']);
-    const children = processChildrenForDict(xmlNode.children, include);
+    const children = processChildrenForDict(elem.childElems, include);
     return format(LIM_UPP, children['m:lim'], children['m:e']);
 }
 
 /**
  * 극한 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doLim(xmlNode: Element): string {
-    return processChildren(xmlNode.children).replace('\\rightarrow', '\\to');
+function doLim(elem: XElement): string {
+    return processChildren(elem.childElems).replace('\\rightarrow', '\\to');
 }
 
 /**
  * 행렬 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doM(xmlNode: Element): string {
-    const rows = generateNodesInfo(xmlNode.children)
+function doM(elem: XElement): string {
+    const rows = generateNodesInfo(elem.childElems)
         .filter(info => info.tag === 'm:mr')
         .map(info => info.result)
         .join(BREAK);
@@ -439,26 +419,24 @@ function doM(xmlNode: Element): string {
 
 /**
  * 행렬 행 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doMr(xmlNode: Element): string {
+function doMr(elem: XElement): string {
     const include = new Set(['m:e']);
-    return generateNodesInfo(xmlNode.children, include)
+    return generateNodesInfo(elem.childElems, include)
         .map(t => t.result)
         .join(ALIGN);
 }
 
 /**
  * n항 연산자 처리
- * @param xmlNode - XML 노드
  * @returns LaTeX 문자열
  */
-function doNary(xmlNode: Element): string {
+function doNary(elem: XElement): string {
     const res: string[] = [];
     let bigOper = '';
 
-    for (const info of generateNodesInfo(xmlNode.children)) {
+    for (const info of generateNodesInfo(elem.childElems)) {
         if (info.tag === 'm:naryPr') {
             if (typeof info.result === 'string') continue;
             bigOper = getValue(info.result.getAttributeValue('m:chr'), null, BIG_OPERATORS);
@@ -479,4 +457,3 @@ function doNary(xmlNode: Element): string {
 
     return bigOper + val;
 }
-

@@ -3,7 +3,7 @@ import { JSDOM } from 'jsdom';
 import { toBuffer } from "../_utils/dataType";
 import JSZip from "jszip";
 import iconv from "iconv-lite";
-import { collectError } from "./errorCollector";
+import { collectError, collectWarning } from "./errorCollector";
 import { collectRefs } from "./dataCollector";
 
 export async function generateKipoFile(fileName: string, zip: JSZip): Promise<File> {
@@ -37,7 +37,13 @@ export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
         const buffer = await toBuffer(input);
         var options = {
             ignoreEmptyParagraphs: false,
-            convertImage: mammoth.images.imgElement(async (image) =>  { return { src: image.contentType } }),
+            convertImage: mammoth.images.imgElement(async (image) => {
+                return image.readAsBase64String().then(function(imageBuffer) {
+                    return {
+                        src: "data:" + image.contentType + ";base64," + imageBuffer
+                    };
+                });
+            }),
         }
         const result = await mammoth.convertToHtml({ buffer: buffer }, options);
 
@@ -50,22 +56,6 @@ export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
     } catch (error) {
         collectError('Mammoth html 변환 실패', error as Error);
         return '';
-    }
-}
-
-export async function getHtmlTables(input: FileOrBuffer | Html): Promise<HTMLTableElement[]> {
-    try {
-        let html = (typeof input === 'string') ? input : await getMammothHtml(input);
-        
-        const dom = new JSDOM(html);
-        const tables = dom.window.document.querySelectorAll('table');
-        const tableArray: HTMLTableElement[] = [];
-        tables.forEach(table => { tableArray.push(table); });
-        return tableArray;
-     
-    } catch (error) {
-        collectError('Html 테이블 추출 실패', error as Error);
-        return [];
     }
 }
 
@@ -90,7 +80,7 @@ export function integrateRtfTags(ml: string): string {
  * @param str - 처리할 문자열
  * @returns 이스케이프된 문자열
  */
-export function escapeCharacters(str: string): string {
+export function escapeChars(str: string): string {
     // hlz에서 이스케이프가 필요한 문자들
     const CHARS: Record<string, string> = {
         '<': '&lt;',
@@ -98,4 +88,67 @@ export function escapeCharacters(str: string): string {
         '&': '&amp;'
     };
     return str.split('').map(c => CHARS[c] || c).join('');
+}
+
+/**
+ * XML 태그 속성 값 문자열 이스케이프 해제
+ */
+export function unEscapeXmlAttr(str: string): string {
+    str = str.replaceAll('&lt;', '<');
+    str = str.replaceAll('&gt;', '>');
+    str = str.replaceAll('&amp;', '&');
+    str = str.replaceAll('&quot;', '"');
+    str = str.replaceAll('&nbsp;', ' ');
+
+    if (/&[a-z]+?;/g.test(str)) {
+        const match = str.match(/&[a-z]+?;/g);
+        collectWarning(`처음보는 이스케이프 등장: ${match![0]}`);
+    }
+
+    return str;
+}
+
+/**
+ * XML 텍스트 문자열 이스케이프 해제
+ */
+export function unEscapeXmlText(str: string): string {
+    str = str.replaceAll('&lt;', '<');
+    str = str.replaceAll('&gt;', '>');
+    str = str.replaceAll('&amp;', '&');
+    str = str.replaceAll('&nbsp;', ' ');
+
+    if (/&[a-z]+?;/g.test(str)) {
+        const match = str.match(/&[a-z]+?;/g);
+        collectWarning(`처음보는 이스케이프 등장: ${match![0]}`);
+    }
+
+    return str;
+}
+
+// label별 누적 시간 저장용 객체
+const timeAccumulator: Record<string, number> = {};
+
+/**
+ * label별로 누적 시간 측정하는 래퍼 함수
+ */
+export async function measureTime<T>(label: string, fn: () => Promise<T> | T): Promise<T> {
+    const start = performance.now();
+    const result = await fn();
+    const end = performance.now();
+    const elapsed = end - start;
+
+    // 누적 시간 기록
+    if (!timeAccumulator[label]) timeAccumulator[label] = 0;
+    timeAccumulator[label] += elapsed;
+
+    return result;
+}
+
+/**
+ * label별 누적 시간 조회 함수
+ */
+export function printAccTimes() {
+    for (const key in timeAccumulator) {
+        console.log(`${key}: ${timeAccumulator[key].toFixed(2)} ms`);
+    }
 }

@@ -74,6 +74,7 @@ export function getValue(
     values: Record<string, string> = ACCENTS
 ): string {
     if (key === null) return defaultValue || '';
+    if (key === '') return '';
     if (key in values) return values[key];
     const unicode = getUnicodeString(key);
     return values[unicode] || key;

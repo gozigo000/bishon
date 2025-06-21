@@ -1,6 +1,9 @@
 import { XNodeType } from "./nodeType.js";
-import { cloneNode, isEqualNode, removeNode, replaceNode } from "../2-domutils/node-utils.js";
-import { renderNode, renderNodes, SerializerOptions } from "../3-dom-serialize/dom-stringfier.js";
+import { findAll, findOne, getNextElemSibling, getPrevElemSibling, getSiblings, hasOne } from "../2-domutils/search.js";
+import { cloneNode, isEqualNode } from "../2-domutils/node-utils.js";
+import { appendChild, appendSibling, prependChild, prependSibling, removeNode, replaceNode } from "../2-domutils/manipulate.js";
+import { renderNode, renderNodes } from "../3-dom-serialize/dom-stringfier.js";
+import { innerText } from "../3-dom-serialize/dom-text.js";
 
 /** 태그 속성 */
 type Attribute = { name: string; value: string; }
@@ -40,155 +43,90 @@ export abstract class XNodeBase {
     /** Node type */
     abstract readonly type: XNodeType;
 
-    parent: XParentNode | null = null; // `null` if node is a root node
+    /** Only `XElement` nodes have a tag name. */
+    tagName: string = '';
+
+    /** Only `XElement` nodes can have attributes. */
+    attrs: Record<string, string> = {};
+    
+    hasAttr(attrName: string): boolean {
+        return Object.prototype.hasOwnProperty.call(this.attrs, attrName) &&
+            this.attrs[attrName] !== undefined;
+    }
+
+    getAttrValue(attrName: string): string | undefined {
+        const value = this.attrs[attrName];
+        return value;
+    }
+
+    getAttrArray(): Attribute[] {
+        return Object.entries(this.attrs).map(([name, value]) => ({ name, value }));
+    }
+
+    parent: XNode | null = null; // `null` if node is a root node
     prevSibling: XNode | null = null;
     nextSibling: XNode | null = null;
 
     /** Only `XDocument`, `XElement`, `XCDATA` nodes can have children. */
     childNodes: XNode[] = [];
 
+    get childElems(): XElement[] {
+        return this.childNodes.filter(node => isXElem(node));
+    }
+
+    get childTexts(): XText[] {
+        return this.childNodes.filter(node => isXText(node));
+    }
+
     /** Only `XText`, `XComment`, `XProcessingInstruction` nodes can have data. */
     content: string = '';
+
+    get outerXML(): string {
+        return renderNode(this as XNode);
+    }
+
+    get innerXML(): string {
+        return renderNodes(this.childNodes);
+    }
+
+    get innerText(): string {
+        return innerText(this as XNode);
+    }
 
     /**
      * @returns `childNode` or `null` if there is no child node at `idx`.
      */
-    childNode(idx: number): XNode | null {
+    getChildNodeAt(idx: number): XNode | null {
         return this.childNodes.at(idx) ?? null;
-    }
-
-    get childElems(): XElement[] {
-        return this.childNodes.filter(node => isXElement(node));
-    }
-
-    get innerText(): string {
-        if (isXText(this)) {
-            return unEscapeXmlText(this.content);
-        }
-        let text = '';
-        for (const child of this.childNodes) {
-            text += child.innerText;
-        }
-        return text;
     }
 
     /**
      * @returns next `element sibling` or `null` if there is no next element sibling.
      */
     getNextElemSibling(): XElement | null {
-        let next = this.nextSibling;
-        while (next !== null && !isXElement(next)) {
-            next = next.nextSibling;
-        }
-        return next;
+        return getNextElemSibling(this as XNode);
     }
 
     /**
      * @returns previous `element sibling` or `null` if there is no previous element sibling.
      */
     getPrevElemSibling(): XElement | null {
-        let prev = this.prevSibling;
-        while (prev !== null && !isXElement(prev)) {
-            prev = prev.prevSibling;
-        }
-        return prev;
+        return getPrevElemSibling(this as XNode);
     }
 
     /**
     * @returns 자기 자신을 포함한 형제 노드 배열
     */
-    getSiblings<T extends XNodeBase>(this: T): T[] {
-        // First, attempts to get the children through the node's parent.
-        const parent = this.parent;
-        if (parent !== null) {
-            return parent.childNodes as T[];
-        }
-        // Second, if we don't have a parent (the node is a root node), 
-        // we walk the node's `prevSibling` & `nextSibling` to get all siblings.
-        const siblings: T[] = [this];
-        let prev = this.prevSibling;
-        let next = this.nextSibling;
-        while (prev !== null) {
-            siblings.unshift(prev as T);
-            prev = prev.prevSibling;
-        }
-        while (next !== null) {
-            siblings.push(next as T);
-            next = next.nextSibling;
-        }
-        return siblings;
+    getSiblings(): XNode[] {
+        return getSiblings(this as XNode);
     }
 
     /**
-     * Search a node or an array of nodes for nodes passing a test function.
-     * @param test Function to test.
-     * @param isRecursive Also consider child nodes (default: `false`)
-     * @returns All nodes passing `test`.
-     */
-    findAll(test: (node: XNode) => boolean, isRecursive: boolean = false): XNode[] {
-        const result: XNode[] = [];
-        // Stack of the arrays we are looking at.
-        const nodeStack: XNode[][] = [this.childNodes];
-        // Stack of the indices within the arrays.
-        const idxStack: number[] = [0];
-
-        while (true) {
-            // First, check if the current array has elements to test.
-            if (idxStack[0] >= nodeStack[0].length) {
-                // If we have no more arrays to test, we are done.
-                if (idxStack.length === 1) {
-                    return result;
-                }
-                // Otherwise, remove the current array from the stack.
-                nodeStack.shift();
-                idxStack.shift();
-                // Loop back to the start to continue with the next array.
-                continue;
-            }
-
-            const node = nodeStack[0][idxStack[0]++];
-            if (test(node)) {
-                result.push(node);
-            }
-
-            if (isRecursive && node.childNodes.length > 0) {
-                // Add the children to the stack. We are DFS, 
-                // so this is the next array we look at.
-                nodeStack.unshift(node.childNodes);
-                idxStack.unshift(0);
-            }
-        }
-    }
-
-    /**
-     * 태그명으로 노드 검색
+     * 태그명으로 자식 노드 검색
      * @param isRecursive 후손 노드까지 검색할지 여부 (default: `false`)
      */
     getElemsByTagName(tagName: string, isRecursive: boolean = false): XElement[] {
-        return this.findAll(
-            node => isXTag(node) && node.tagName === tagName, isRecursive
-        ) as XElement[];
-    }
-
-    /**
-     * Finds "first" node that passes a test.
-     * @param test Function to test.
-     * @param isRecursive Also consider child nodes (default: `false`)
-     * @returns The first node that passes `test` or `null` if no node passes.
-     */
-    findOne(test: (node: XNode) => boolean, isRecursive = false): XNode | null {
-        const nodesToTest = this.childNodes;
-        for (let i = 0; i < nodesToTest.length; i++) {
-            const node = nodesToTest[i];
-            if (test(node)) {
-                return node;
-            }
-            if (isRecursive && node.childNodes.length > 0) {
-                const found = node.findOne(test, true);
-                if (found) return found;
-            }
-        }
-        return null;
+        return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, isRecursive) as XElement[];
     }
 
     /**
@@ -196,144 +134,62 @@ export abstract class XNodeBase {
     * @param isRecursive 후손 노드까지 검색할지 여부 (default: `false`)
     */
     getElemByTagName(tagName: string, isRecursive = false): XElement | null {
-        return this.findOne(
-            node => isXTag(node) && node.tagName === tagName, isRecursive
-        ) as XElement | null;
+        return findOne(this as XNode, node => isXElem(node) && node.tagName === tagName, isRecursive) as XElement | null;
     }
 
     /**
-     * Checks if childNodes contains at least one node passing a test.
+     * test 함수를 만족하는 자식 노드가 있는지 확인
      * @param test Function to test.
      * @param isRecursive Also consider child nodes (default: `false`)
-     * @returns Whether this node contains at least one child node passing the test.
     */
     hasOne(test: (node: XNode) => boolean, isRecursive = false): boolean {
-        return this.childNodes.some(node => {
-            if (test(node)) {
-                return true;
-            }
-            if (isRecursive && node.childNodes.length > 0) {
-                return node.hasOne(test, true)
-            }
-            return false;
-        })
+        return hasOne(this as XNode, test, isRecursive);
     }
 
     /**
-     * Append a child to a node's childNodes.
+     * 자식 노드들 뒤에 추가
      * @note `child`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
-     * @param child The node to be added as a child.
      */
     appendChild(child: XNode): void {
-        removeNode(child);
-
-        child.nextSibling = null;
-        child.parent = this as XParentNode;
-
-        if (this.childNodes.push(child) > 1) {
-            const sibling = this.childNodes[this.childNodes.length - 2];
-            sibling.nextSibling = child;
-            child.prevSibling = sibling;
-        } else {
-            child.prevSibling = null;
-        }
+        appendChild(this as XParentNode, child);
     }
 
     /**
-     * Prepend a child to a node's childNodes.
+     * 자식 노드들 앞에 추가
      * @note `child`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
-     * @param child The node to be added as a child.
      */
     prependChild(child: XNode): void {
-        removeNode(child);
-
-        child.parent = this as XParentNode;
-        child.prevSibling = null;
-
-        if (this.childNodes.unshift(child) !== 1) {
-            const sibling = this.childNodes[1];
-            sibling.prevSibling = child;
-            child.nextSibling = sibling;
-        } else {
-            child.nextSibling = null;
-        }
+        prependChild(this as XParentNode, child);
     }
 
-    /** Append a sibling after another */
+    /** 자기 뒤에 형제 노드로 추가 */
     appendSibling(node: XNode): void {
-        removeNode(node);
-
-        const parent = this.parent;
-        const currNext = this.nextSibling;
-
-        node.parent = parent;
-        node.nextSibling = currNext;
-        node.prevSibling = this as XNode;
-        this.nextSibling = node;
-
-        if (currNext) {
-            currNext.prevSibling = node;
-            if (parent) {
-                const siblings = parent.childNodes;
-                siblings.splice(siblings.lastIndexOf(currNext), 0, node);
-            }
-        } else if (parent) {
-            parent.childNodes.push(node);
-        }
+        appendSibling(this as XNode, node);
     }
 
-    /** Prepend a sibling before another */
+    /** 자기 앞에 형제 노드로 추가 */
     prependSibling(node: XNode): void {
-        removeNode(node);
-
-        const parent = this.parent;
-        if (parent) {
-            const siblings = parent.childNodes;
-            siblings.splice(siblings.indexOf(this as XNode), 0, node);
-        }
-
-        if (this.prevSibling) {
-            this.prevSibling.nextSibling = node;
-        }
-
-        node.parent = parent;
-        node.prevSibling = this.prevSibling;
-        node.nextSibling = this as XNode;
-        this.prevSibling = node;
+        prependSibling(this as XNode, node);
     }
 
-    /** Remove a node from the DOM */
+    /** 자기를 DOM에서 제거 */
     removeFromDOM(): void {
         removeNode(this as XNode);
     }
 
-    /** Replace a node in the DOM */
+    /** 자기를 새로운 노드로 교체 */
     replaceTo(newNode: XNode): void {
         replaceNode(this as XNode, newNode);
     }
 
+    /** 자기와 다른 노드가 같은지 확인 */
     isEqualWith(node: XNode): boolean {
         return isEqualNode(this as XNode, node);
     }
 
-    /**
-     * @param isRecursive 자식 노드도 재귀적으로 복사할지 여부 (default: `false`)
-     * @returns 복사된 노드
-     */
-    cloneNode<T extends XNodeBase>(this: T, isRecursive = false): T {
-        return cloneNode(this, isRecursive);
-    }
-
-    get outerXML(): string {
-        return renderNode(this as XNode);
-    }
-
-    get innerXML(): string {
-        return renderNodes(this.childNodes as XNode[]);
-    }
-
-    get innerText(): string {
-        return innerText(this as XNode);
+    /** 자기를 복사 */
+    cloneNode(isRecursive = false): XNode {
+        return cloneNode(this as XNode, isRecursive);
     }
 }
 
@@ -348,24 +204,31 @@ export abstract class XNodeWithData extends XNodeBase {
         super();
         this.content = content;
     }
+    override hasAttr(_: string): boolean { return false; }
+    override getAttrValue(_: string): string | undefined { return undefined; }
+    override getAttrArray(): Attribute[] { return []; }
+    override get childElems(): XElement[] { return []; }
+    override get childTexts(): XText[] { return []; }
+    override getChildNodeAt(_: number): XNode | null { return null; }
+    override getElemsByTagName(_: string, __: boolean = false): XElement[] { return []; }
+    override getElemByTagName(_: string, __: boolean = false): XElement | null { return null; }
+    override hasOne(_: (node: XNode) => boolean, __: boolean = false): boolean { return false; }
+    override appendChild(_: XNode): void { return; }
+    override prependChild(_: XNode): void { return; }
 }
 
 export class XText extends XNodeWithData {
-    type: XNodeType.Text = XNodeType.Text;
+    readonly type = XNodeType.Text;
 }
 
 export class XComment extends XNodeWithData {
-    type: XNodeType.Comment = XNodeType.Comment;
+    readonly type = XNodeType.Comment;
 }
 
-/** Processing instructions, including doc types */
 export class XProcessingInstruction extends XNodeWithData {
     readonly type = XNodeType.Directive;
-    name: string;
-    constructor(name: string, data: string) {
-        super(data);
-        this.name = name;
-    }
+    /** Processing instructions, including doc types */
+    constructor(public name: string, content: string) { super(content); }
 }
 
 /**
@@ -379,58 +242,32 @@ export abstract class XNodeWithChildren extends XNodeBase {
 }
 
 export class XCDATA extends XNodeWithChildren {
-    type: XNodeType.CDATA = XNodeType.CDATA;
+    readonly type = XNodeType.CDATA;
 }
 
 /** The root node of the document */
 export class XDocument extends XNodeWithChildren {
-    type: XNodeType.Root = XNodeType.Root;
+    readonly type = XNodeType.Root;
 }
 
-/** An element within the DOM */
+/** An element node within the DOM */
 export class XElement extends XNodeWithChildren {
-    type: XNodeType.Tag | XNodeType.Script | XNodeType.Style;
-    tagName: string;
-    attrs: Record<string, string>;
-
+    readonly type = XNodeType.Element;
     constructor(
         tagName: string,
-        attribs: Record<string, string>,
+        attrs: Record<string, string>,
         children: XNode[] = [],
     ) {
         super(children);
         this.tagName = tagName;
-        this.attrs = attribs;
-        this.type = XNodeType.Tag;
-        if (tagName === "style") this.type = XNodeType.Style;
-        if (tagName === "script") this.type = XNodeType.Script;
-    }
-
-    hasAttribute(attrName: string): boolean {
-        return Object.prototype.hasOwnProperty.call(this.attrs, attrName) &&
-            this.attrs[attrName] !== undefined;
-    }
-
-    getAttributeValue(attrName: string): string | undefined {
-        return this.attrs[attrName];
-    }
-
-    getAttributeArray(): Attribute[] {
-        return Object.entries(this.attrs).map(([name, value]) => ({ name, value }));
+        this.attrs = attrs;
     }
 }
 
 // 노드 타입 체크
-export function isXCDATA(node: XNodeBase): node is XCDATA { return node.type === XNodeType.CDATA; }
-export function isXComment(node: XNodeBase): node is XComment { return node.type === XNodeType.Comment; }
-export function isXDirective(node: XNodeBase): node is XProcessingInstruction { return node.type === XNodeType.Directive; }
-export function isXDocument(node: XNodeBase): node is XDocument { return node.type === XNodeType.Root; }
-export function isXTag(node: XNodeBase): node is XElement { return node.type === XNodeType.Tag; }
-export function isXText(node: XNodeBase): node is XText { return node.type === XNodeType.Text; }
-export function isXElement(node: XNodeBase): node is XElement {
-    return (
-        node.type === XNodeType.Tag ||
-        node.type === XNodeType.Script ||
-        node.type === XNodeType.Style
-    );
-}
+export function isXCDATA(node: XNode): node is XCDATA { return node.type === XNodeType.CDATA; }
+export function isXComment(node: XNode): node is XComment { return node.type === XNodeType.Comment; }
+export function isXDirective(node: XNode): node is XProcessingInstruction { return node.type === XNodeType.Directive; }
+export function isXDocu(node: XNode): node is XDocument { return node.type === XNodeType.Root; }
+export function isXText(node: XNode): node is XText { return node.type === XNodeType.Text; }
+export function isXElem(node: XNode): node is XElement { return node.type === XNodeType.Element; }

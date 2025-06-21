@@ -4,12 +4,8 @@ export enum XNodeType {
     Root = "root",
     /** 텍스트 노드 타입 */
     Text = "text",
-    /** 태그(element) 타입 */
-    Tag = "tag",
-    /** `<script>` 타입 */
-    Script = "script",
-    /** `<style>` 타입 */
-    Style = "style",
+    /** 요소 노드 타입 */
+    Element = "elem",
     /** `<? ... ?>` 타입 */
     Directive = "directive",
     /** `<!-- ... -->` 타입 */

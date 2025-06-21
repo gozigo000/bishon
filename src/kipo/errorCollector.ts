@@ -7,7 +7,6 @@ type ErrorInfo = {
     message: string;
     reference?: string;
     location?: string;
-    context?: any;
     errCode?: string;
     errMsg?: string;
     errStack?: string;
@@ -33,7 +32,15 @@ export class ErrorCollector {
     }
     
     /** 새로운 에러 정보 추가 */
-    public addError(error: ErrorInfo): void { this.errors.push(error); }
+    public addError(error: ErrorInfo): void {
+        const isNotNew = this.errors.some(err => 
+            err.message === error.message && 
+            err.location === error.location &&
+            err.reference === error.reference
+        );
+        if (isNotNew) return;
+        this.errors.push(error);   
+    }
     
     /** 수집한 모든 에러 정보 반환 */
     public getErrors(): ErrorInfo[] { return this.errors; }

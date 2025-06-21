@@ -1,7 +1,7 @@
-import * as cheerio from 'cheerio';
 import { BATANGCHE_WIDTH_PT } from '../ttfParser/batangche_width_pt';
 import { KipoParas } from '../diff/kipoParas';
 import { collectLine } from '../dataCollector';
+import { parseXml } from '../2-lightParser/entry';
 import { dlog } from '../../_utils/env';
 
 // NOTE: 폰트 사이즈
@@ -99,39 +99,32 @@ export class PageCounter {
 
     public makeCubeList(para: Paragraph) {
         const content = `<div>${para.content}</div>`;
-        const $ = cheerio.load(content, {
-            xml: {
-                decodeEntities: false,
-                withStartIndices: true,
-                withEndIndices: true,
-            },
-        });
+        const root = parseXml(content);
+        const div = root.getElemByTagName('div');
         
         const cubes: Cube[] = [];
-        for (const child of $('div').contents()) {
+        for (const child of div!.childNodes) {
             const type = child.type;
             if (type === 'text') {
-                const text = child.data.split('');
+                const text = child.innerText.split('');
                 for (const ch of text) {
                     const chW = BATANGCHE_WIDTH_PT[ch];
                     cubes.push({ ch: ch, H: BASE_LINE_HEIGHT, W: chW });
                 }
                 continue;
             }
-            if (type === 'tag') {
+            if (type === 'elem') {
                 const tagName = child.tagName;
                 if (tagName === 'img') {
-                    const imgW_mm = Number(child.attribs.wi);
-                    const imgH_mm = Number(child.attribs.he);
+                    const imgW_mm = Number(child.attrs['wi']);
+                    const imgH_mm = Number(child.attrs['he']);
                     const imgW = imgW_mm * IMG_WIDTH_TO_PT;
                     const imgH = imgH_mm * IMG_HEIGHT_TO_PT;
                     cubes.push({ ch: `<img/>`, H: imgH + LINE_GAP, W: imgW });
                     continue;
                 }
                 if (tagName === 'sub' || tagName === 'sup') {
-                    const text = content
-                        .slice(child.startIndex! + 5, child.endIndex! - 5)
-                        .split('');
+                    const text = child.innerXML.split('');
                     for (const ch of text) {
                         const chW = BATANGCHE_WIDTH_PT[ch];
                         if (ch === ' ') {
