@@ -1,6 +1,6 @@
-import { EntityDecoder } from "./4-entities/decode.js";
-import { xmlDecodeTree } from "./4-entities/decode-data-xml.js";
-import type { Parser } from "./Parser.js";
+import { EntityDecoder } from "./4-entities/decode";
+import { xmlDecodeTree } from "./4-entities/decode-data-xml";
+import type { Parser } from "./Parser";
 
 const enum CharCode {
     Tab = 0x9, // "\t"

@@ -1,4 +1,4 @@
-import { AstNode, isSelfCloseTag } from "./astNode.js";
+import { AstNode, isSelfCloseTag } from "./astNode";
 
 export function simplify(nodes: AstNode[]): AstNode[] {
     return collapse(removeEmpty(nodes));

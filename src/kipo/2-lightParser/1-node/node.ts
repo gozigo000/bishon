@@ -1,9 +1,9 @@
-import { XNodeType } from "./nodeType.js";
-import { findAll, findOne, getNextElemSibling, getPrevElemSibling, getSiblings, hasOne } from "../2-domutils/search.js";
-import { cloneNode, isEqualNode } from "../2-domutils/node-utils.js";
-import { appendChild, appendSibling, prependChild, prependSibling, removeNode, replaceNode } from "../2-domutils/manipulate.js";
-import { renderNode, renderNodes } from "../3-dom-serialize/dom-stringfier.js";
-import { innerText } from "../3-dom-serialize/dom-text.js";
+import { XNodeType } from "./nodeType";
+import { findAll, findOne, getNextElemSibling, getPrevElemSibling, getSiblings, hasOne } from "../2-domutils/search";
+import { cloneNode, isEqualNode } from "../2-domutils/node-utils";
+import { appendChild, appendSibling, prependChild, prependSibling, removeNode, replaceNode } from "../2-domutils/manipulate";
+import { renderNode, renderNodes } from "../3-dom-serialize/dom-stringfier";
+import { innerText } from "../3-dom-serialize/dom-text";
 
 /** 태그 속성 */
 type Attribute = { name: string; value: string; }

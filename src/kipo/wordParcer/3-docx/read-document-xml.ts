@@ -1,6 +1,6 @@
-import { ONode } from "../2-xmlParser/nodes.js";
-import { generateONode } from "../2-xmlParser/parser.js";
-import { FileHandler } from "../../1-zip/zipFile.js";
+import { ONode } from "../2-xmlParser/nodes";
+import { generateONode } from "../2-xmlParser/parser";
+import { FileHandler } from "../../1-zip/zipFile";
 
 export async function readDocumentXml(docxZip: FileHandler, path: string): Promise<ONode> {
     if (!docxZip.exists(path)) throw new Error("Could not find the document.xml");

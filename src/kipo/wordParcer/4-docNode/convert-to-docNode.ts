@@ -1,17 +1,17 @@
 import dingbatToUnicode from "dingbat-to-unicode";
-import { ONode, emptyONode } from "../2-xmlParser/nodes.js";
-import { Relationships } from "../3-docx/read-relationships.js";
-import { Numberings } from "../3-docx/read-numbering.js";
-import { ContentTypes } from "../3-docx/read-content-types.js";
+import { ONode, emptyONode } from "../2-xmlParser/nodes";
+import { Relationships } from "../3-docx/read-relationships";
+import { Numberings } from "../3-docx/read-numbering";
+import { ContentTypes } from "../3-docx/read-content-types";
 import {
     DocDocument, DocParagraph, DocRun,
     DocText, DocTab, DocHyperlink, DocCheckbox,
     DocImage, DocTable, DocTableRow, DocTableCell,
     DocBreak, DocMath, DocMathPara
-} from "./docNodes.js";
-import * as uris from "./uris.js";
-import { Result } from "./results.js";
-import { collectWarning } from "../../errorCollector.js";
+} from "./docNodes";
+import * as uris from "./uris";
+import { Result } from "./results";
+import { collectWarning } from "../../errorCollector";
 
 interface TableCellWithVMerge extends DocTableCell {
     _vMerge?: boolean | null; // RowSpan 계산을 위해 사용

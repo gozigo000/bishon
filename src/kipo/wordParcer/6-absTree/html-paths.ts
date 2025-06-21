@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from 'util'
-import { AstNode } from "./astNode.js";
+import { AstNode } from "./astNode";
 
 export class HtmlPath {
     private _elements: HtmlTag[];

@@ -1,4 +1,4 @@
-import { XNodeType } from "./1-node/nodeType.js";
+import { XNodeType } from "./1-node/nodeType";
 import {
     XNode,
     XElement,
@@ -9,7 +9,7 @@ import {
     XDocument,
     XProcessingInstruction,
     XParentNode,
-} from "./1-node/node.js";
+} from "./1-node/node";
 
 export type DomHandlerOptions = {
     /**

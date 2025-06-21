@@ -1,4 +1,4 @@
-import { ONode } from "../2-xmlParser/nodes.js";
+import { ONode } from "../2-xmlParser/nodes";
 
 const fallbackContentTypes: Record<string, string> = {
     "png": "png",

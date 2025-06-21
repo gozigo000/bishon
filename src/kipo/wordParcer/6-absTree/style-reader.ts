@@ -2,13 +2,13 @@ import lop from "lop";
 import {
     Matcher, BreakMatcher, HighlightMatcher,
     isEqualTo, startsWith, MatcherOptions
-} from "../5-styles/document-matchers.js";
-import { tokenise } from "../5-styles/tokeniser.js";
+} from "../5-styles/document-matchers";
+import { tokenise } from "../5-styles/tokeniser";
 import {
     HtmlPath, HtmlTag, emptyHtmlPath,
     makeHtmlPath, ignoredHtmlPath
-} from "./html-paths.js";
-import { collectWarning } from "../../errorCollector.js";
+} from "./html-paths";
+import { collectWarning } from "../../errorCollector";
 
 export type StyleMapping = {
     from: Matcher;

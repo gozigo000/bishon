@@ -4,13 +4,13 @@ import {
     DocTableCell, DocBreak, DocMath, DocMathPara,
     isDoc, isParagraph, isRun, isText, isTab, isCheckbox,
     isImage, isTable, isBreak, isMath, isMathPara
-} from "../4-docNode/docNodes.js";
-import { parseStyle, StyleMapping } from "./style-reader.js";
-import { emptyHtmlPath, HtmlTag, HtmlPath } from "./html-paths.js";
-import { AstNode } from "./astNode.js";
-import { simplify } from "./simplify.js";
-import { collectWarning } from "../../errorCollector.js";
-import { defaultStyleMap } from "../5-styles/default-style-map.js";
+} from "../4-docNode/docNodes";
+import { parseStyle, StyleMapping } from "./style-reader";
+import { emptyHtmlPath, HtmlTag, HtmlPath } from "./html-paths";
+import { AstNode } from "./astNode";
+import { simplify } from "./simplify";
+import { collectWarning } from "../../errorCollector";
+import { defaultStyleMap } from "../5-styles/default-style-map";
 
 type HtmlOptions = {
     styleMap: StyleMapping[];

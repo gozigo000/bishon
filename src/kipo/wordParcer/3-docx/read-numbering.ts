@@ -1,5 +1,5 @@
-import { ONode } from "../2-xmlParser/nodes.js";
-import { indexBy } from "../_utils/arrayUtils.js";
+import { ONode } from "../2-xmlParser/nodes";
+import { indexBy } from "../_utils/arrayUtils";
 
 type AbstractNum = {
     levels: Record<string, NumberingLevel>;

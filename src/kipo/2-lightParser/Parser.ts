@@ -1,7 +1,7 @@
-import { DomHandler } from "./Handler.js";
-import { fromCodePoint } from "./4-entities/decode-codepoint.js";
-import Tokenizer from "./Tokenizer.js";
-import { decodeXML } from "./4-entities/decode.js";
+import { DomHandler } from "./Handler";
+import { fromCodePoint } from "./4-entities/decode-codepoint";
+import Tokenizer from "./Tokenizer";
+import { decodeXML } from "./4-entities/decode";
 
 const formTags = new Set([
     "input",

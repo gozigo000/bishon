@@ -1,4 +1,4 @@
-import { DocNode } from "./docNodes.js";
+import { DocNode } from "./docNodes";
 
 export class Result {
     value: DocNode[];

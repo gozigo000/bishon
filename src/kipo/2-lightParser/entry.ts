@@ -1,6 +1,6 @@
-import type { XDocument, XElement } from "./1-node/node.js";
-import { DomHandler, type DomHandlerOptions } from "./Handler.js";
-import { Parser, type ParserOptions } from "./Parser.js";
+import type { XDocument, XElement } from "./1-node/node";
+import { DomHandler, type DomHandlerOptions } from "./Handler";
+import { Parser, type ParserOptions } from "./Parser";
 
 // 진입점
 

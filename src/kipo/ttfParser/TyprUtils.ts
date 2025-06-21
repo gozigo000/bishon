@@ -27,7 +27,7 @@
 // }
 
 
-import { Font, Table, Glyf } from "./Typr.js";
+import { Font, Table, Glyf } from "./Typr";
 
 // shapeToPath(font, shape)
 // font: font object

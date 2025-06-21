@@ -1,5 +1,5 @@
-import { parseFromString, serializeToString } from "./xmldom.js";
-import { ONode } from "./nodes.js";
+import { parseFromString, serializeToString } from "./xmldom";
+import { ONode } from "./nodes";
 import xmldom from "@xmldom/xmldom";
 
 /** 

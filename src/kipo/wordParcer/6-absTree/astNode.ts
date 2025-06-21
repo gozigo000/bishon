@@ -1,4 +1,4 @@
-import { HtmlTag } from "./html-paths.js";
+import { HtmlTag } from "./html-paths";
 
 export type AstNodeType = 'element' | 'text' | 'forceWrite';
 

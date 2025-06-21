@@ -1,6 +1,6 @@
-import type { XNodeType } from "../1-node/nodeType.js";
-import { isXElem, isXText, XNode, XElement } from "../1-node/node.js";
-import { findAll, findOne } from "./search.js";
+import type { XNodeType } from "../1-node/nodeType";
+import { isXElem, isXText, XNode, XElement } from "../1-node/node";
+import { findAll, findOne } from "./search";
 
 type TestType = (node: XNode) => boolean;
 

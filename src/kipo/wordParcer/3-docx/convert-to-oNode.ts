@@ -1,13 +1,13 @@
 import path from "path";
-import { FileHandler } from "../../1-zip/zipFile.js";
-import { ONode } from "../2-xmlParser/nodes.js";
-import { readDocumentXml } from "./read-document-xml.js";
-import { readRelationships, defaultRelationships, Relationships } from "./read-relationships.js";
-import { readContentTypes, defaultContentTypes, ContentTypes } from "./read-content-types.js";
-import { Numberings, readNumbering, defaultNumbering } from "./read-numbering.js";
-import { readStyles, defaultStyles } from "./read-styles-xml.js";
-import { docOptions } from "../4-docNode/convert-to-docNode.js";
-import { collectInfo } from "../../errorCollector.js";
+import { FileHandler } from "../../1-zip/zipFile";
+import { ONode } from "../2-xmlParser/nodes";
+import { readDocumentXml } from "./read-document-xml";
+import { readRelationships, defaultRelationships, Relationships } from "./read-relationships";
+import { readContentTypes, defaultContentTypes, ContentTypes } from "./read-content-types";
+import { Numberings, readNumbering, defaultNumbering } from "./read-numbering";
+import { readStyles, defaultStyles } from "./read-styles-xml";
+import { docOptions } from "../4-docNode/convert-to-docNode";
+import { collectInfo } from "../../errorCollector";
 
 type XmlPaths = {
     documentXmlPath: string;  // 기본: word/document.xml

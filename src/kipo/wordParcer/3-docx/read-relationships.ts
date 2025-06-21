@@ -1,4 +1,4 @@
-import { ONode } from "../2-xmlParser/nodes.js";
+import { ONode } from "../2-xmlParser/nodes";
 
 export type Relationship = {
     relationshipId: string;

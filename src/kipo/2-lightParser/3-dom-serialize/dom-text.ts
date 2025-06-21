@@ -1,5 +1,5 @@
-import { unEscapeXmlText } from "../../utils.js";
-import { XNode, isXText, isXCDATA, isXElem } from "../1-node/node.js";
+import { unEscapeXmlText } from "../../utils";
+import { XNode, isXText, isXCDATA, isXElem } from "../1-node/node";
 
 /**
  * Get a node's text content. Same as `textContent`

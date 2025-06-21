@@ -1,6 +1,6 @@
-import { isSelfCloseTag } from "../6-absTree/astNode.js";
-import { AstNode } from "../6-absTree/astNode.js";
-import { HtmlWriter } from "./html-writer.js";
+import { isSelfCloseTag } from "../6-absTree/astNode";
+import { AstNode } from "../6-absTree/astNode";
+import { HtmlWriter } from "./html-writer";
 
 export function writeHtml(writer: HtmlWriter, nodes: AstNode[]): void {
     nodes.forEach(node => writeNode(writer, node));

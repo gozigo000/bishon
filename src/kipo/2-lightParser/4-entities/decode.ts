@@ -1,5 +1,5 @@
-import { xmlDecodeTree } from "./decode-data-xml.js";
-import { replaceCodePoint, fromCodePoint } from "./decode-codepoint.js";
+import { xmlDecodeTree } from "./decode-data-xml";
+import { replaceCodePoint, fromCodePoint } from "./decode-codepoint";
 
 const enum CharCodes {
     NUM = 35, // "#"

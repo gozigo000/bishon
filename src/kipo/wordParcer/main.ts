@@ -1,8 +1,8 @@
-import { FileHandler } from "../1-zip/zipFile.js";
-import { readXmls } from "./3-docx/convert-to-oNode.js";
-import { fromONodeToDocNode } from "./4-docNode/convert-to-docNode.js";
-import { fromDocNodeToAbsTree } from "./6-absTree/convert-to-absTree.js";
-import { getHtmlWriter } from "./7-html/html-writer.js";
+import { FileHandler } from "../1-zip/zipFile";
+import { readXmls } from "./3-docx/convert-to-oNode";
+import { fromONodeToDocNode } from "./4-docNode/convert-to-docNode";
+import { fromDocNodeToAbsTree } from "./6-absTree/convert-to-absTree";
+import { getHtmlWriter } from "./7-html/html-writer";
 
 export async function convertToHtml(docxFile: FileHandler, options?: Options): Promise<string[]> {
     // Xml -> ONode

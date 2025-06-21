@@ -1,4 +1,4 @@
-import { DocNode, DocParagraph } from "../4-docNode/docNodes.js";
+import { DocNode, DocParagraph } from "../4-docNode/docNodes";
 
 export interface MatcherOptions {
     styleId?: string;

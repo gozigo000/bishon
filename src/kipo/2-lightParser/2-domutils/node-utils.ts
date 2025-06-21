@@ -2,7 +2,7 @@ import {
     type XNode,
     isXCDATA, isXComment, isXDirective, isXDocu, isXElem, isXText,
     XDocument, XElement, XText
-} from "../1-node/node.js";
+} from "../1-node/node";
 
 /**
  * Clone a node

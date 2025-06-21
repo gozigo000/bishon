@@ -1,5 +1,5 @@
-import { AstNode } from "../6-absTree/astNode.js";
-import { writeHtml } from "./convert-to-html.js";
+import { AstNode } from "../6-absTree/astNode";
+import { writeHtml } from "./convert-to-html";
 
 export interface HtmlWriter {
     openTag: (tagName: string, attributes: Record<string, string>) => void;

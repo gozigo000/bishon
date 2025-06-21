@@ -1,4 +1,4 @@
-import { collectWarning } from "../../errorCollector.js";
+import { collectWarning } from "../../errorCollector";
 
 export type DocNode = 
     | DocDocument

@@ -1,4 +1,4 @@
-import { type XNode } from "../1-node/node.js";
+import { type XNode } from "../1-node/node";
 
 /**
  * 노드 배열에서 다른 노드에 포함된 노드를 제거

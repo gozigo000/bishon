@@ -1,5 +1,5 @@
 import { KipoTagName as Tag } from '../data';
-import { escapeCharacters } from "../utils";
+import { escapeChars } from "../utils";
 import { KipoStructure, SpecPart as Part } from '../kipoParcer/KipoStructure';
 import { dlog } from '../../_utils/env';
 

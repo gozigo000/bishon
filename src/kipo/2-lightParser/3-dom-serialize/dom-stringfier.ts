@@ -1,6 +1,6 @@
-import { escapeAttribute, escapeText } from "../0-utils/escape.js";
-import { XNodeType } from "../1-node/nodeType.js";
-import type { XNode, XElement, XText } from "../1-node/node.js";
+import { escapeAttribute, escapeText } from "../0-utils/escape";
+import { XNodeType } from "../1-node/nodeType";
+import type { XNode, XElement, XText } from "../1-node/node";
 
 export interface SerializerOptions {
     /**
