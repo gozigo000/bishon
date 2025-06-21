@@ -1,4 +1,4 @@
-/** htmlparser2 DOM에서 사용되는 노드의 타입 */
+/** XDOM에서 사용되는 노드의 타입 */
 export enum XNodeType {
     /** 루트 노드 타입 */
     Root = "root",

@@ -57,6 +57,21 @@ export abstract class XNodeBase {
         return this.childNodes.at(idx) ?? null;
     }
 
+    get childElems(): XElement[] {
+        return this.childNodes.filter(node => isXElement(node));
+    }
+
+    get innerText(): string {
+        if (isXText(this)) {
+            return unEscapeXmlText(this.content);
+        }
+        let text = '';
+        for (const child of this.childNodes) {
+            text += child.innerText;
+        }
+        return text;
+    }
+
     /**
      * @returns next `element sibling` or `null` if there is no next element sibling.
      */
@@ -145,7 +160,11 @@ export abstract class XNodeBase {
         }
     }
 
-    findTags(tagName: string, isRecursive: boolean = false): XElement[] {
+    /**
+     * 태그명으로 노드 검색
+     * @param isRecursive 후손 노드까지 검색할지 여부 (default: `false`)
+     */
+    getElemsByTagName(tagName: string, isRecursive: boolean = false): XElement[] {
         return this.findAll(
             node => isXTag(node) && node.tagName === tagName, isRecursive
         ) as XElement[];
@@ -172,7 +191,11 @@ export abstract class XNodeBase {
         return null;
     }
 
-    findTag(tagName: string, isRecursive = false): XElement | null {
+    /**
+    * 태그명이 일치하는 첫번째 노드 검색
+    * @param isRecursive 후손 노드까지 검색할지 여부 (default: `false`)
+    */
+    getElemByTagName(tagName: string, isRecursive = false): XElement | null {
         return this.findOne(
             node => isXTag(node) && node.tagName === tagName, isRecursive
         ) as XElement | null;
@@ -301,12 +324,16 @@ export abstract class XNodeBase {
         return cloneNode(this, isRecursive);
     }
 
-    getOuterXML(options?: SerializerOptions): string {
-        return renderNode(this as XNode, options);
+    get outerXML(): string {
+        return renderNode(this as XNode);
     }
 
-    getInnerXML(options?: SerializerOptions): string {
-        return renderNodes(this.childNodes as XNode[], options);
+    get innerXML(): string {
+        return renderNodes(this.childNodes as XNode[]);
+    }
+
+    get innerText(): string {
+        return innerText(this as XNode);
     }
 }
 
@@ -333,7 +360,7 @@ export class XComment extends XNodeWithData {
 
 /** Processing instructions, including doc types */
 export class XProcessingInstruction extends XNodeWithData {
-    type: XNodeType.Directive = XNodeType.Directive;
+    readonly type = XNodeType.Directive;
     name: string;
     constructor(name: string, data: string) {
         super(data);

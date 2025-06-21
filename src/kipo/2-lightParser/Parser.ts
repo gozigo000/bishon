@@ -67,6 +67,7 @@ const openImpliesClose = new Map<string, Set<string>>([
     ["tfoot", tableSectionTags],
 ]);
 
+// 자식 노드를 가지면 안되는 태그들
 const voidElements = new Set([
     "area",
     "base",
@@ -78,7 +79,6 @@ const voidElements = new Set([
     "frame",
     "hr",
     "img",
-    "math", // <math> 태그 추가
     "input",
     "isindex",
     "keygen",
@@ -117,12 +117,6 @@ export type ParserOptions = {
      * @default false
      */
     recognizeCDATA?: boolean;
-    /**
-     * If `true`, self-closing tags will trigger the onclosetag event.
-     * NOTE: If xmlMode is `true` then self-closing tags will always be recognized.
-     * @default false
-     */
-    recognizeSelfClosing?: boolean;
 }
 
 const reNameEnd = /\s|\//;
