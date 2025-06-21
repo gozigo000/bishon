@@ -1,6 +1,6 @@
 import { DiffMatchPatch } from 'diff-match-patch-ts';
 import { KipoParas } from './kipoParas';
-import { getHtmlParas } from './htmlParas';
+import { getHtmlParasForDiff } from './htmlParas';
 import { collectRefs } from '../dataCollector';
 import { isProd } from '@/_utils/env';
 
@@ -10,13 +10,11 @@ type Pair = {
 }
 
 export async function generateDiffReport(kXmlStr: KXml, word: FileOrBuffer | Html): Promise<DiffLine[]> {
-    const newLines = await KipoParas.getParas(kXmlStr);
-    const oldLines = await getHtmlParas(word);
-    
-    const nls = newLines.map(l => l.content);
-    const ols = oldLines.map(l => l.content);
+    const newLines = KipoParas.getParas(kXmlStr);
+    const oldLines = (await getHtmlParasForDiff(word))
+        .map(c => c.replace(/__MATH-START__.*?__MATH-END__/g, ''));
 
-    const diffLines = await generateDiffLines(nls, ols);
+    const diffLines = generateDiffLines(newLines, oldLines);
 
     collectRefs({
         'Rpt_diffReport.json': diffLines,
@@ -25,16 +23,13 @@ export async function generateDiffReport(kXmlStr: KXml, word: FileOrBuffer | Htm
     return diffLines;
 }
 
-export async function generateDiffAfterInspection(kXmlAfter: KXml, kXmlBefore: KXml): Promise<DiffLine[]> {
+export function generateDiffAfterInspection(kXmlAfter: KXml, kXmlBefore: KXml): DiffLine[] {
     if (isProd()) return [];
 
-    const newLines = await KipoParas.getParas(kXmlAfter);
-    const oldLines = await KipoParas.getParas(kXmlBefore);
+    const newLines = KipoParas.getParas(kXmlAfter);
+    const oldLines = KipoParas.getParas(kXmlBefore);
         
-    const nls = newLines.map(l => l.content);
-    const ols = oldLines.map(l => l.content);
-
-    const diffLines = await generateDiffLines(nls, ols);
+    const diffLines = generateDiffLines(newLines, oldLines);
 
     collectRefs({
         'Rpt_diffAfterInspection.json': diffLines,
@@ -43,7 +38,7 @@ export async function generateDiffAfterInspection(kXmlAfter: KXml, kXmlBefore: K
     return diffLines;
 }
 
-export async function generateDiffLines(after: string[], before: string[]): Promise<DiffLine[]> {
+export function generateDiffLines(after: string[], before: string[]): DiffLine[] {
     const matches = lcsMatch(after, before);
 
     let i = 0, lenN = after.length;

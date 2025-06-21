@@ -35,30 +35,30 @@ declare type Cube = {
  */
 export class PageCounter {
     private static instances: Map<KipoXml, PageCounter> = new Map();
-    private discParas: Paragraph[] = [];
-    private claimParas: Paragraph[] = [];
-    private abstractParas: Paragraph[] = [];
-    private drawingParas: Paragraph[] = [];
+    private discParas: string[] = [];
+    private claimParas: string[] = [];
+    private abstractParas: string[] = [];
+    private drawingParas: string[] = [];
     public specPages = 0;
 
-    public static async getPages(hXml: string): Promise<number> {
+    public static getPages(hXml: string): number {
         if (!PageCounter.instances.has(hXml)) {
-            const paras = await KipoParas.getParas(hXml);
+            const paras = KipoParas.getParas(hXml);
             PageCounter.instances.set(hXml, new PageCounter(paras));
         }
         return PageCounter.instances.get(hXml)!.specPages;
     }
 
-    private constructor(paras: Paragraph[]) {
+    private constructor(paras: string[]) {
         let discIdx = 0;
         let claimIdx;
         let abstractIdx;
         let drawingIdx;
         for (const [idx, para] of paras.entries()) {
-            if (para.content === '【발명의 설명】') discIdx = idx;
-            if (para.content === '【청구범위】') claimIdx = idx;
-            if (para.content === '【요약서】') abstractIdx = idx;
-            if (para.content === '【도면】') drawingIdx = idx;
+            if (para === '【발명의 설명】') discIdx = idx;
+            if (para === '【청구범위】') claimIdx = idx;
+            if (para === '【요약서】') abstractIdx = idx;
+            if (para === '【도면】') drawingIdx = idx;
         }
         this.discParas = paras.slice(discIdx, claimIdx ?? abstractIdx ?? drawingIdx);
         this.claimParas = claimIdx ? paras.slice(claimIdx, abstractIdx ?? drawingIdx) : [];
@@ -75,7 +75,7 @@ export class PageCounter {
         this.precessSection(this.drawingParas, true);
     }
 
-    public precessSection(paras: Paragraph[], isDrawings: boolean = false): number {
+    public precessSection(paras: string[], isDrawings: boolean = false): number {
         const totalLines: Line[] = [];
         for (const para of paras) {
             const cubes = this.makeCubeList(para);
@@ -97,13 +97,11 @@ export class PageCounter {
         return this.countPages(totalLines);
     }
 
-    public makeCubeList(para: Paragraph) {
-        const content = `<div>${para.content}</div>`;
-        const root = parseXml(content);
-        const div = root.getElemByTagName('div');
+    public makeCubeList(para: string) {
+        const root = parseXml(para);
         
         const cubes: Cube[] = [];
-        for (const child of div!.childNodes) {
+        for (const child of root.childNodes) {
             const type = child.type;
             if (type === 'text') {
                 const text = child.innerText.split('');

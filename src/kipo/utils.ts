@@ -1,5 +1,4 @@
 import mammoth from "mammoth";
-import { JSDOM } from 'jsdom';
 import { toBuffer } from "../_utils/dataType";
 import JSZip from "jszip";
 import iconv from "iconv-lite";
@@ -18,18 +17,6 @@ export async function generateKipoFile(fileName: string, zip: JSZip): Promise<Fi
 
     const file = new File([zipBuffer], fileName);
     return file;
-}
-
-export class ElemFactory {
-    private static _emptyElem: Element;
-
-    static get emptyElem(): Element {
-        if (!this._emptyElem) {
-            this._emptyElem = new JSDOM('<empty></empty>', { contentType: 'text/xml' })
-                .window.document.documentElement;
-        }
-        return this._emptyElem;
-    }
 }
 
 export async function getMammothHtml(input: FileOrBuffer): Promise<string> {

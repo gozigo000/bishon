@@ -72,7 +72,6 @@ declare interface Page {
 
 declare interface Paragraph {
     content: string;
-    paraHtml?: string;
     lines?: Line[];
 }
 

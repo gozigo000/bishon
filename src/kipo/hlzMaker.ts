@@ -38,7 +38,7 @@ export async function makeHlz(wordFile: File)
         const { hlzXml, hImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
 
         const [finalXml, inspectionReport, countingReport] = KipoInspector.generateInspectionReport(hlzXml);
-        await generateDiffAfterInspection(finalXml, hlzXml);
+        generateDiffAfterInspection(finalXml, hlzXml);
 
         // hlz 생성
         const hlzZip = new JSZip();

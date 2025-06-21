@@ -89,32 +89,32 @@ export const dividingParaByBrTag = new Set<string>([
 ]);
 
 export enum KipoTagName {
-    '발명의 설명' = 'description',
-    '발명의 명칭' = 'invention-title',
+    '발명의설명' = 'description',
+    '발명의명칭' = 'invention-title',
     '기술분야' = 'technical-field',
     '배경기술' = 'background-art',
-    '발명의 배경이 되는 기술' = 'background-art',
+    '발명의배경이되는기술' = 'background-art',
 
     '선행기술문헌' = 'citation-list',
     '특허문헌' = 'patent-literature',
-    '특허목록' = 'patcit',
     '비특허문헌' = 'non-patent-literature',
+    '특허목록' = 'patcit',
     '비특허목록' = 'nplcit',
 
-    '발명의 내용' = 'summary-of-invention',
+    '발명의내용' = 'summary-of-invention',
     '과제' = 'tech-problem',
-    '해결하려는 과제' = 'tech-problem',
-    '해결하고자 하는 과제' = 'tech-problem',
+    '해결하려는과제' = 'tech-problem',
+    '해결하고자하는과제' = 'tech-problem',
     '수단' = 'tech-solution',
-    '과제의 해결 수단' = 'tech-solution',
+    '과제의해결수단' = 'tech-solution',
     '효과' = 'advantageous-effects',
-    '발명의 효과' = 'advantageous-effects',
+    '발명의효과' = 'advantageous-effects',
 
     '도간설' = 'description-of-drawings',
-    '도면의 간단한 설명' = 'description-of-drawings',
+    '도면의간단한설명' = 'description-of-drawings',
     '발실구내' = 'description-of-embodiments',
-    '발명을 실시하기 위한 구체적인 내용' = 'description-of-embodiments',
-    '부호의 설명' = 'reference-signs-list',
+    '발명을실시하기위한구체적인내용' = 'description-of-embodiments',
+    '부호의설명' = 'reference-signs-list',
     '표' = 'tables',
     '수학식' = 'maths',
 
@@ -128,3 +128,37 @@ export enum KipoTagName {
     '도면' = 'drawings',
     '도' = 'figure',
 };
+
+// NOTE: 플래그는 최대 32개까지 안전
+export enum PartFlag {
+    None = 0,
+    발명의설명 = 1 << 0,
+    청구범위 = 1 << 1,
+    요약서 = 1 << 2,
+    도면 = 1 << 3,
+
+    발명의명칭 = 1 << 4,
+    기술분야 = 1 << 5,
+    배경기술 = 1 << 6,
+    선행기술문헌 = 1 << 7,
+    발명의내용 = 1 << 8,
+    도간설 = 1 << 9,
+    발실구내 = 1 << 10,
+    부호의설명 = 1 << 11,
+
+    특허문헌 = 1 << 12,
+    비특허문헌 = 1 << 13,
+    특허목록 = 1 << 14,
+    비특허목록 = 1 << 15,
+
+    과제 = 1 << 16,
+    수단 = 1 << 17,
+    효과 = 1 << 18,
+
+    표 = 1 << 19,
+    수학식 = 1 << 20,
+    청구항 = 1 << 21,
+    요약 = 1 << 22,
+    대표도 = 1 << 23,
+    도 = 1 << 24
+}

@@ -1,9 +1,8 @@
 import { JSDOM } from "jsdom";
 import { getMammothHtml } from "../utils";
 import { collectRefs } from "../dataCollector";
-import { collectWarning } from "../errorCollector";
 
-export async function getHtmlParas(input: FileOrBuffer | Html): Promise<Paragraph[]> {
+export async function getHtmlParasForDiff(input: FileOrBuffer | Html): Promise<string[]> {
     try {
         let html = (typeof input === 'string') ? input : await getMammothHtml(input);
         html = html.replace(/<h[0-9]+>([\s\S]*?)<\/h[0-9]+>/g, `<p>$1</p>`);
@@ -14,19 +13,16 @@ export async function getHtmlParas(input: FileOrBuffer | Html): Promise<Paragrap
         html = html.replace(/<ol>([\s\S]*?)<\/ol>/g, `$1`);
         html = html.replace(/<ul>([\s\S]*?)<\/ul>/g, `$1`);
         html = html.replace(/<li>([\s\S]*?)<\/li>/g, `<p>$1</p>`);
-        html = html.replace(/<img [\s\S]*?\/>/g, ``); // 이미지 태그 전부 제거
         html = html.replace(/<strong>([\s\S]*?)<\/strong>/g, `<b>$1</b>`);
+        html = html.replace(/<img [\s\S]*?\/>/g, ``); // 이미지 태그 전부 제거
 
-        collectRefs({ 'Html_심플맘모스.html': html });
+        collectRefs({ 'Html_심플맘모스_Diff용.html': html });
         
         const dom = new JSDOM(html);
         // <html><head></head><body>
         const body = dom.window.document.getElementsByTagName('body')[0];
-        const elements = body.children;
-        const paras: Paragraph[] = [];
-        for (const element of elements) {
-            paras.push({ content: element.innerHTML });
-        }
+        const elems = body.children;
+        const paras = Array.from(elems).map(e => e.innerHTML);
         return paras;
      
     } catch (err) {
