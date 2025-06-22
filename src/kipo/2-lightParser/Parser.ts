@@ -1,5 +1,4 @@
 import { DomHandler } from "./Handler";
-import { fromCodePoint } from "./4-entities/decode-codepoint";
 import Tokenizer from "./Tokenizer";
 import { decodeXML } from "./4-entities/decode";
 
@@ -160,7 +159,7 @@ export class Parser {
 
     /** @internal */
     onText(start: number, endIdx: number): void {
-        const data = this.getSlice(start, endIdx);
+        const data = decodeXML(this.getSlice(start, endIdx));
         this.endIdx = endIdx - 1;
         this.domHandler.onText(data);
         this.startIdx = endIdx;
@@ -169,7 +168,7 @@ export class Parser {
     /** @internal */
     onTextEntity(cp: number, endIdx: number): void {
         this.endIdx = endIdx - 1;
-        this.domHandler.onText(fromCodePoint(cp));
+        this.domHandler.onText(String.fromCodePoint(cp));
         this.startIdx = endIdx;
     }
 
@@ -283,7 +282,7 @@ export class Parser {
 
     /** @internal */
     onAttrEntity(cp: number): void {
-        this.attrValue += fromCodePoint(cp);
+        this.attrValue += String.fromCodePoint(cp);
     }
 
     /** @internal */

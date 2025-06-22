@@ -1,4 +1,3 @@
-import { unEscapeXmlText } from "../../utils";
 import { XNode, isXText, isXCDATA, isXElem } from "../1-node/node";
 
 /**
@@ -8,7 +7,7 @@ import { XNode, isXText, isXCDATA, isXElem } from "../1-node/node";
  */
 export function textContent(node: XNode): string {
     if (isXText(node)) {
-        return unEscapeXmlText(node.content);
+        return node.content;
     }
     let text = '';
     if (node.childNodes.length > 0) {
@@ -27,7 +26,7 @@ export function textContent(node: XNode): string {
  */
 export function innerText(node: XNode): string {
     if (isXText(node)) {
-        return unEscapeXmlText(node.content);
+        return node.content;
     }
     let text = '';
     if (isXElem(node) || isXCDATA(node)) {

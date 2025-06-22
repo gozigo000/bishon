@@ -1,5 +1,71 @@
 import { xmlDecodeTree } from "./decode-data-xml";
-import { replaceCodePoint, fromCodePoint } from "./decode-codepoint";
+import { replaceCodePoint } from "./decode-codepoint";
+
+/**
+ * XML 문자열을 언이스케이프 처리하는 함수인 듯 \
+ * trie 사용하니까 빠를 듯... \
+ * HACK: 나중에 속도 측정해보고 다른 부분에도 적용해보기 \
+ * 참고: https://github.com/wooorm/decode-named-character-reference/blob/main/index.js
+ * 
+ * Decodes an XML string, requiring all entities to be terminated by a semicolon.
+ *
+ * @param xmlString The string to decode.
+ * @returns The decoded string.
+ */
+export function decodeXML(xmlString: string): string {
+    const xmlDecoder = getDecoder(xmlDecodeTree);
+    return xmlDecoder(xmlString, DecodingMode.Strict);
+}
+
+/**
+ * Creates a function that decodes entities in a string.
+ *
+ * @param decodeTree The decode tree.
+ * @returns A function that decodes entities in a string.
+ */
+function getDecoder(decodeTree: Uint16Array) {
+    let returnValue = "";
+    const decoder = new EntityDecoder(
+        decodeTree,
+        (data) => (returnValue += String.fromCodePoint(data)),
+    );
+
+    return function decodeWithTrie(
+        input: string,
+        decodeMode: DecodingMode,
+    ): string {
+        let lastIdx = 0;
+        let offset = 0;
+
+        while ((offset = input.indexOf("&", offset)) >= 0) {
+            returnValue += input.slice(lastIdx, offset);
+
+            decoder.startEntity(decodeMode);
+
+            const length = decoder.write(
+                input,
+                // Skip the "&"
+                offset + 1,
+            );
+
+            if (length < 0) {
+                lastIdx = offset + decoder.end();
+                break;
+            }
+
+            lastIdx = offset + length;
+            // If `length` is 0, skip the current `&` and continue.
+            offset = length === 0 ? lastIdx + 1 : lastIdx;
+        }
+
+        const result = returnValue + input.slice(lastIdx);
+
+        // Make sure we don't keep a reference to the final string.
+        returnValue = "";
+
+        return result;
+    };
+}
 
 const enum CharCodes {
     NUM = 35, // "#"
@@ -19,39 +85,10 @@ const enum CharCodes {
 /** Bit that needs to be set to convert an upper case ASCII character to lower case */
 const TO_LOWER_BIT = 0b10_0000;
 
-export enum BinTrieFlags {
+enum BinTrieFlags {
     VALUE_LENGTH = 0b1100_0000_0000_0000,
     BRANCH_LENGTH = 0b0011_1111_1000_0000,
     JUMP_TABLE = 0b0000_0000_0111_1111,
-}
-
-function isNumber(code: number): boolean {
-    return code >= CharCodes.ZERO && code <= CharCodes.NINE;
-}
-
-function isHexadecimalCharacter(code: number): boolean {
-    return (
-        (code >= CharCodes.UPPER_A && code <= CharCodes.UPPER_F) ||
-        (code >= CharCodes.LOWER_A && code <= CharCodes.LOWER_F)
-    );
-}
-
-function isAsciiAlphaNumeric(code: number): boolean {
-    return (
-        (code >= CharCodes.UPPER_A && code <= CharCodes.UPPER_Z) ||
-        (code >= CharCodes.LOWER_A && code <= CharCodes.LOWER_Z) ||
-        isNumber(code)
-    );
-}
-
-/**
- * Checks if the given character is a valid end character for an entity in an attribute.
- *
- * Attribute values that aren't terminated properly aren't parsed, and shouldn't lead to a parser error.
- * See the example in https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
- */
-function isEntityInAttributeInvalidEnd(code: number): boolean {
-    return code === CharCodes.EQUALS || isAsciiAlphaNumeric(code);
 }
 
 const enum EntityDecoderState {
@@ -62,7 +99,7 @@ const enum EntityDecoderState {
     NamedEntity,
 }
 
-export enum DecodingMode {
+enum DecodingMode {
     /** Entities in text nodes that can end with any character. */
     Legacy = 0,
     /** Only allow entities terminated with a semicolon. */
@@ -457,56 +494,6 @@ export class EntityDecoder {
 }
 
 /**
- * Creates a function that decodes entities in a string.
- *
- * @param decodeTree The decode tree.
- * @returns A function that decodes entities in a string.
- */
-function getDecoder(decodeTree: Uint16Array) {
-    let returnValue = "";
-    const decoder = new EntityDecoder(
-        decodeTree,
-        (data) => (returnValue += fromCodePoint(data)),
-    );
-
-    return function decodeWithTrie(
-        input: string,
-        decodeMode: DecodingMode,
-    ): string {
-        let lastIdx = 0;
-        let offset = 0;
-
-        while ((offset = input.indexOf("&", offset)) >= 0) {
-            returnValue += input.slice(lastIdx, offset);
-
-            decoder.startEntity(decodeMode);
-
-            const length = decoder.write(
-                input,
-                // Skip the "&"
-                offset + 1,
-            );
-
-            if (length < 0) {
-                lastIdx = offset + decoder.end();
-                break;
-            }
-
-            lastIdx = offset + length;
-            // If `length` is 0, skip the current `&` and continue.
-            offset = length === 0 ? lastIdx + 1 : lastIdx;
-        }
-
-        const result = returnValue + input.slice(lastIdx);
-
-        // Make sure we don't keep a reference to the final string.
-        returnValue = "";
-
-        return result;
-    };
-}
-
-/**
  * Determines the branch of the current node that is taken given the current
  * character. This function is used to traverse the trie.
  *
@@ -516,7 +503,7 @@ function getDecoder(decodeTree: Uint16Array) {
  * @param char The current character.
  * @returns The index of the next node, or -1 if no branch is taken.
  */
-export function determineBranch(
+function determineBranch(
     decodeTree: Uint16Array,
     current: number,
     nodeIdx: number,
@@ -562,12 +549,30 @@ export function determineBranch(
 }
 
 /**
- * Decodes an XML string, requiring all entities to be terminated by a semicolon.
+ * Checks if the given character is a valid end character for an entity in an attribute.
  *
- * @param xmlString The string to decode.
- * @returns The decoded string.
+ * Attribute values that aren't terminated properly aren't parsed, and shouldn't lead to a parser error.
+ * See the example in https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
  */
-export function decodeXML(xmlString: string): string {
-    const xmlDecoder = getDecoder(xmlDecodeTree);
-    return xmlDecoder(xmlString, DecodingMode.Strict);
+function isEntityInAttributeInvalidEnd(code: number): boolean {
+    return code === CharCodes.EQUALS || isAsciiAlphaNumeric(code);
+}
+
+function isHexadecimalCharacter(code: number): boolean {
+    return (
+        (code >= CharCodes.UPPER_A && code <= CharCodes.UPPER_F) ||
+        (code >= CharCodes.LOWER_A && code <= CharCodes.LOWER_F)
+    );
+}
+
+function isAsciiAlphaNumeric(code: number): boolean {
+    return (
+        (code >= CharCodes.UPPER_A && code <= CharCodes.UPPER_Z) ||
+        (code >= CharCodes.LOWER_A && code <= CharCodes.LOWER_Z) ||
+        isNumber(code)
+    );
+}
+
+function isNumber(code: number): boolean {
+    return code >= CharCodes.ZERO && code <= CharCodes.NINE;
 }
