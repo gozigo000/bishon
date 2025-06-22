@@ -49,7 +49,6 @@ class InspectionReporter {
 }
 
 export class KipoInspector {
-    private static instances: Map<KipoXml, KipoInspector> = new Map();
     private inputkXml: KXml;
     private roughXml: KXml = '';
     private safeXml: KXml = '';
@@ -62,10 +61,7 @@ export class KipoInspector {
     public static generateInspectionReport(kXmlStr: KXml): [
         KXml, InspectionReport, CountingReport
     ] {
-        if (!KipoInspector.instances.has(kXmlStr)) {
-            KipoInspector.instances.set(kXmlStr, new KipoInspector(kXmlStr));
-        }
-        return KipoInspector.instances.get(kXmlStr)!.getResult();
+        return new KipoInspector(kXmlStr).getResult();
     }
 
     private constructor(kXmlStr: KXml) {

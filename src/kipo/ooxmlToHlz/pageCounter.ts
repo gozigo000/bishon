@@ -34,19 +34,15 @@ declare type Cube = {
  * hlz 파일의 페이지 수를 계산하는 클래스
  */
 export class PageCounter {
-    private static instances: Map<KipoXml, PageCounter> = new Map();
     private discParas: string[] = [];
     private claimParas: string[] = [];
     private abstractParas: string[] = [];
     private drawingParas: string[] = [];
     public specPages = 0;
 
-    public static getPages(hXml: string): number {
-        if (!PageCounter.instances.has(hXml)) {
-            const paras = KipoParas.getParas(hXml);
-            PageCounter.instances.set(hXml, new PageCounter(paras));
-        }
-        return PageCounter.instances.get(hXml)!.specPages;
+    public static countPages(hXml: string): number {
+        const paras = KipoParas.getParas(hXml);
+        return new PageCounter(paras).specPages;
     }
 
     private constructor(paras: string[]) {
