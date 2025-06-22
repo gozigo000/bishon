@@ -1,15 +1,18 @@
 import { escapeAttribute, escapeText } from "../0-utils/escape";
 import { XNodeType } from "../1-node/nodeType";
 import type { XNode, XElement, XText } from "../1-node/node";
+import { collectWarning } from "@/kipo/errorCollector";
 
 export interface SerializerOptions {
     /**
-     * Print self-closing tags for tags without contents. If `xmlMode` is set, this will apply to all tags.
-     * Otherwise, only tags that are defined as self-closing in the HTML specification will be printed as such.
+     * Print self-closing tags for tags without contents.
+     * If `xmlMode` is set, this will apply to all tags.
+     * Otherwise, only tags that are defined as self-closing
+     * in the HTML specification will be printed as such.
      * @default xmlMode
-     * @example With <code>selfClosingTags: false</code>: <code>&lt;foo&gt;&lt;/foo&gt;&lt;br&gt;&lt;/br&gt;</code>
-     * @example With <code>xmlMode: true</code> and <code>selfClosingTags: true</code>: <code>&lt;foo/&gt;&lt;br/&gt;</code>
-     * @example With <code>xmlMode: false</code> and <code>selfClosingTags: true</code>: <code>&lt;foo&gt;&lt;/foo&gt;&lt;br /&gt;</code>
+     * @example With `selfClosingTags: false`: <foo></foo><br></br>
+     * @example With `xmlMode: true` and `selfClosingTags: true`: <foo/><br/>
+     * @example With `xmlMode: false` and `selfClosingTags: true`: <foo></foo><br />
      */
     selfClosingTags?: boolean;
 }
@@ -44,6 +47,8 @@ const selfClosingTags = new Set([
     "base",
     "basefont",
     "br",
+    "figref", // 추가
+    "colspec", // 추가
     "col",
     "command",
     "embed",
@@ -66,7 +71,12 @@ function renderTag(elem: XElement, opts?: SerializerOptions) {
     const attribs = formatAttributes(elem.attrs);
     if (attribs) tag += ` ${attribs}`;
 
-    if (selfClosingTags.has(elem.tagName) && elem.childNodes.length === 0) {
+    if (selfClosingTags.has(elem.tagName)) {
+        if (elem.childNodes.length > 0) {
+            collectWarning('inner/outerXML 생성하는 중에 자식이 있는 \
+                self-closing tag를 발견함: XML 생성이 잘못되었을 수 있음',
+                `tagName: ${elem.tagName}, childNodes: ${elem.childNodes.map(node => node.type)}`)
+        }
         if (elem.tagName === 'br') {
             tag += "/>";
         } else {
@@ -77,10 +87,7 @@ function renderTag(elem: XElement, opts?: SerializerOptions) {
         if (elem.childNodes.length > 0) {
             tag += renderNodes(elem.childNodes, opts);
         }
-
-        if (!selfClosingTags.has(elem.tagName)) {
-            tag += `</${elem.tagName}>`;
-        }
+        tag += `</${elem.tagName}>`;
     }
 
     return tag;
