@@ -17,11 +17,11 @@ export function makeLatexFromOmml(omml: string): string | null {
         const root = parseXml(omml);
         
         // oMathPara 처리
-        const oMathPara = root.getElemByTagName('m:oMathPara', true);
+        const oMathPara = root.getElemByTag('m:oMathPara');
 
         if (oMathPara) {
             const latexStrs: string[] = [];
-            for (const oMath of oMathPara.getElemsByTagName('m:oMath')) {
+            for (const oMath of oMathPara.getAllElemsByTag('m:oMath')) {
                 const latexStr = convertMoMath(oMath);
                 if (!latexStr) continue;
                 latexStrs.push(latexStr);
@@ -40,7 +40,7 @@ export function makeLatexFromOmml(omml: string): string | null {
         }
 
         // oMath 처리
-        const oMath = root.getElemByTagName('m:oMath', true);
+        const oMath = root.getElemByTag('m:oMath');
         if (oMath) {
             const latexStr = convertMoMath(oMath);
             const latex = latexStr.trim();
@@ -197,10 +197,10 @@ function doAcc(elem: XElement): string {
  * @returns LaTeX 문자열
  */
 function doR(elem: XElement): string {
-    const tNode = elem.getElemByTagName('m:t', true);
+    const tNode = elem.getElemByTag('m:t');
     if (!tNode) return '';
 
-    const text = tNode.innerText;
+    const text = tNode.textContent;
     const isSpaces = tNode.getAttrValue('xml:space') === 'preserve';
     let result = Array.from(text).map(ch => {
         if (isSpaces && ch === ' ') {

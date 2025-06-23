@@ -3,7 +3,6 @@ import type { XNode, XParentNode } from "../1-node/node";
 /**
  * Append a child to a node's childNodes.
  * @note `child`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
- * @param child The node to be added as a child.
  */
 export function appendChild(node: XParentNode, child: XNode): void {
     removeNode(child);
@@ -23,7 +22,6 @@ export function appendChild(node: XParentNode, child: XNode): void {
 /**
  * Prepend a child to a node's childNodes.
  * @note `child`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
- * @param child The node to be added as a child.
  */
 export function prependChild(node: XParentNode, child: XNode): void {
     removeNode(child);
@@ -85,9 +83,7 @@ export function prependSibling(node: XNode, sibling: XNode): void {
 
 /**
  * Remove a node from the DOM
- * @param node The node to be removed
  */
-
 export function removeNode(node: XNode): void {
     if (node.prevSibling) node.prevSibling.nextSibling = node.nextSibling;
     if (node.nextSibling) node.nextSibling.prevSibling = node.prevSibling;
@@ -104,24 +100,27 @@ export function removeNode(node: XNode): void {
     node.prevSibling = null;
     node.parent = null;
 }
+
 /**
  * Replace a node in the DOM
  * @param oldNode The node to be replaced
  * @param newNode The node to be added
  */
-
 export function replaceNode(oldNode: XNode, newNode: XNode): void {
-    const prev = (newNode.prevSibling = oldNode.prevSibling);
-    if (prev) {
-        prev.nextSibling = newNode;
+    const prevS = oldNode.prevSibling;
+    newNode.prevSibling = prevS;
+    if (prevS) {
+        prevS.nextSibling = newNode;
     }
 
-    const next = (newNode.nextSibling = oldNode.nextSibling);
-    if (next) {
-        next.prevSibling = newNode;
+    const nextS = oldNode.nextSibling;
+    newNode.nextSibling = nextS;
+    if (nextS) {
+        nextS.prevSibling = newNode;
     }
 
-    const parent = (newNode.parent = oldNode.parent);
+    const parent = oldNode.parent;
+    newNode.parent = parent;
     if (parent) {
         const childs = parent.childNodes;
         childs[childs.lastIndexOf(oldNode)] = newNode;

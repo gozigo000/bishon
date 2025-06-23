@@ -3,13 +3,13 @@ import { XElement, isXElem, XNode } from "../1-node/node";
 /**
  * Search a node or an array of nodes for nodes passing a test function.
  * @param test Function to test.
- * @param isRecursive Also consider child nodes (default: `false`)
+ * @param isRecursive Also consider child nodes
  * @returns All nodes passing `test`.
  */
 export function findAll(
     nodes: XNode,
     test: (node: XNode) => boolean,
-    isRecursive: boolean = false,
+    isRecursive: boolean,
 ): XNode[] {
     const result: XNode[] = [];
     // Stack of the arrays we are looking at.
@@ -48,10 +48,10 @@ export function findAll(
 /**
  * Finds "first" node that passes a test.
  * @param test Function to test.
- * @param isRecursive Also consider child nodes (default: `false`)
+ * @param isRecursive Also consider child nodes
  * @returns The first node that passes `test` or `null` if no node passes.
  */
-export function findOne(node: XNode, test: (node: XNode) => boolean, isRecursive = false): XNode | null {
+export function findOne(node: XNode, test: (node: XNode) => boolean, isRecursive: boolean): XNode | null {
     const nodesToTest = node.childNodes;
     for (let i = 0; i < nodesToTest.length; i++) {
         const node = nodesToTest[i];
@@ -69,10 +69,10 @@ export function findOne(node: XNode, test: (node: XNode) => boolean, isRecursive
 /**
  * test 함수를 만족하는 노드가 있는지 확인
  * @param test Function to test.
- * @param isRecursive Also consider child nodes (default: `false`)
+ * @param isRecursive Also consider child nodes
  * @returns Whether this node contains at least one child node passing the test.
 */
-export function hasOne(node: XNode, test: (node: XNode) => boolean, isRecursive = false): boolean {
+export function hasOne(node: XNode, test: (node: XNode) => boolean, isRecursive: boolean): boolean {
     return node.childNodes.some(node => {
         if (test(node)) {
             return true;

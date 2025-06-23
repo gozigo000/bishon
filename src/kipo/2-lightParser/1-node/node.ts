@@ -1,9 +1,8 @@
 import { XNodeType } from "./nodeType";
+import { appendChild, appendSibling, prependChild, prependSibling } from "../2-domutils/manipulate";
 import { findAll, findOne, getNextElemSibling, getPrevElemSibling, getSiblings, hasOne } from "../2-domutils/search";
-import { cloneNode, isEqualNode } from "../2-domutils/node-utils";
-import { appendChild, appendSibling, prependChild, prependSibling, removeNode, replaceNode } from "../2-domutils/manipulate";
+import { textContent } from "../3-dom-serialize/dom-text";
 import { renderNode, renderNodes } from "../3-dom-serialize/dom-stringfier";
-import { innerText } from "../3-dom-serialize/dom-text";
 
 /** 태그 속성 */
 type Attribute = { name: string; value: string; }
@@ -42,30 +41,24 @@ export type XNode =
 export abstract class XNodeBase {
     /** Node type */
     abstract readonly type: XNodeType;
+    /** `null` if node is a root node */
+    parent: XNode | null = null;
 
     /** Only `XElement` nodes have a tag name. */
     tagName: string = '';
-
     /** Only `XElement` nodes can have attributes. */
     attrs: Record<string, string> = {};
-    
+
     hasAttr(attrName: string): boolean {
         return Object.prototype.hasOwnProperty.call(this.attrs, attrName) &&
             this.attrs[attrName] !== undefined;
     }
-
     getAttrValue(attrName: string): string | undefined {
-        const value = this.attrs[attrName];
-        return value;
+        return this.attrs[attrName];
     }
-
     getAttrArray(): Attribute[] {
         return Object.entries(this.attrs).map(([name, value]) => ({ name, value }));
     }
-
-    parent: XNode | null = null; // `null` if node is a root node
-    prevSibling: XNode | null = null;
-    nextSibling: XNode | null = null;
 
     /** Only `XDocument`, `XElement`, `XCDATA` nodes can have children. */
     childNodes: XNode[] = [];
@@ -78,72 +71,44 @@ export abstract class XNodeBase {
         return this.childNodes.filter(node => isXText(node));
     }
 
-    /** Only `XText`, `XComment`, `XProcessingInstruction` nodes can have data. */
-    content: string = '';
-
-    get outerXML(): string {
-        return renderNode(this as XNode);
-    }
-
-    get innerXML(): string {
-        return renderNodes(this.childNodes);
-    }
-
-    get innerText(): string {
-        return innerText(this as XNode);
-    }
-
-    /**
-     * @returns `childNode` or `null` if there is no child node at `idx`.
-     */
+    /** 자식노드 or `null` */
     getChildNodeAt(idx: number): XNode | null {
         return this.childNodes.at(idx) ?? null;
     }
 
-    /**
-     * @returns next `element sibling` or `null` if there is no next element sibling.
-     */
-    getNextElemSibling(): XElement | null {
-        return getNextElemSibling(this as XNode);
+    /** 태그명이 일치하는 '후손' 노드가 있는지 확인 */
+    hasElem(tagName: string): boolean {
+        if (tagName.startsWith('<')) tagName = tagName.slice(1)
+        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        return hasOne(this as XNode, node => isXElem(node) && node.tagName === tagName, true);
     }
 
-    /**
-     * @returns previous `element sibling` or `null` if there is no previous element sibling.
-     */
-    getPrevElemSibling(): XElement | null {
-        return getPrevElemSibling(this as XNode);
+    /** 태그명이 일치하는 '첫번째' 후손 노드 or `null` */
+    getElemByTag(tagName: string): XElement | null {
+        if (tagName.startsWith('<')) tagName = tagName.slice(1)
+        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        return findOne(this as XNode, node => isXElem(node) && node.tagName === tagName, true) as XElement | null;
     }
 
-    /**
-    * @returns 자기 자신을 포함한 형제 노드 배열
-    */
-    getSiblings(): XNode[] {
-        return getSiblings(this as XNode);
+    /** 태그명이 일치하는 모든 '후손' 노드 배열 */
+    getAllElemsByTag(tagName: string): XElement[] {
+        if (tagName.startsWith('<')) tagName = tagName.slice(1)
+        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, true) as XElement[];
     }
 
-    /**
-     * 태그명으로 자식 노드 검색
-     * @param isRecursive 후손 노드까지 검색할지 여부 (default: `false`)
-     */
-    getElemsByTagName(tagName: string, isRecursive: boolean = false): XElement[] {
-        return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, isRecursive) as XElement[];
+    /** 태그명이 일치하는 '첫번째' 자식 노드 or `null` */
+    getChildElemByTag(tagName: string): XElement | null {
+        if (tagName.startsWith('<')) tagName = tagName.slice(1)
+        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        return findOne(this as XNode, node => isXElem(node) && node.tagName === tagName, false) as XElement | null;
     }
 
-    /**
-    * 태그명이 일치하는 첫번째 노드 검색
-    * @param isRecursive 후손 노드까지 검색할지 여부 (default: `false`)
-    */
-    getElemByTagName(tagName: string, isRecursive = false): XElement | null {
-        return findOne(this as XNode, node => isXElem(node) && node.tagName === tagName, isRecursive) as XElement | null;
-    }
-
-    /**
-     * test 함수를 만족하는 자식 노드가 있는지 확인
-     * @param test Function to test.
-     * @param isRecursive Also consider child nodes (default: `false`)
-    */
-    hasOne(test: (node: XNode) => boolean, isRecursive = false): boolean {
-        return hasOne(this as XNode, test, isRecursive);
+    /** 태그명이 일치하는 모든 자식 노드 배열 */
+    getChildElemsByTag(tagName: string): XElement[] {
+        if (tagName.startsWith('<')) tagName = tagName.slice(1)
+        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, false) as XElement[];
     }
 
     /**
@@ -162,34 +127,50 @@ export abstract class XNodeBase {
         prependChild(this as XParentNode, child);
     }
 
-    /** 자기 뒤에 형제 노드로 추가 */
+    prevSibling: XNode | null = null;
+    nextSibling: XNode | null = null;
+
+    get nextElemSibling(): XElement | null {
+        return getNextElemSibling(this as XNode);
+    }
+    get prevElemSibling(): XElement | null {
+        return getPrevElemSibling(this as XNode);
+    }
+
+    /** 자기 자신을 포함한 형제 노드 배열 반환 */
+    getSiblings(): XNode[] {
+        return getSiblings(this as XNode);
+    }
+
+    /** 
+     * 자기 뒤에 형제 노드 추가
+     * @note `node`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
+     */
     appendSibling(node: XNode): void {
         appendSibling(this as XNode, node);
     }
 
-    /** 자기 앞에 형제 노드로 추가 */
+    /** 
+     * 자기 앞에 형제 노드 추가 
+     * @note `node`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
+     */
     prependSibling(node: XNode): void {
         prependSibling(this as XNode, node);
     }
 
-    /** 자기를 DOM에서 제거 */
-    removeFromDOM(): void {
-        removeNode(this as XNode);
+    /** Only `XText`, `XComment`, `XProcessingInstruction` nodes can have data. */
+    content: string = '';
+
+    get outerXML(): string {
+        return renderNode(this as XNode);
+    }
+    
+    get innerXML(): string {
+        return renderNodes(this.childNodes);
     }
 
-    /** 자기를 새로운 노드로 교체 */
-    replaceTo(newNode: XNode): void {
-        replaceNode(this as XNode, newNode);
-    }
-
-    /** 자기와 다른 노드가 같은지 확인 */
-    isEqualWith(node: XNode): boolean {
-        return isEqualNode(this as XNode, node);
-    }
-
-    /** 자기를 복사 */
-    cloneNode(isRecursive = false): XNode {
-        return cloneNode(this as XNode, isRecursive);
+    get textContent(): string {
+        return textContent(this as XNode);
     }
 }
 
@@ -210,9 +191,11 @@ export abstract class XNodeWithData extends XNodeBase {
     override get childElems(): XElement[] { return []; }
     override get childTexts(): XText[] { return []; }
     override getChildNodeAt(_: number): XNode | null { return null; }
-    override getElemsByTagName(_: string, __: boolean = false): XElement[] { return []; }
-    override getElemByTagName(_: string, __: boolean = false): XElement | null { return null; }
-    override hasOne(_: (node: XNode) => boolean, __: boolean = false): boolean { return false; }
+    override hasElem(_: string): boolean { return false; }
+    override getElemByTag(_: string): XElement | null { return null; }
+    override getAllElemsByTag(_: string): XElement[] { return []; }
+    override getChildElemByTag(_: string): XElement | null { return null; }
+    override getChildElemsByTag(_: string): XElement[] { return []; }
     override appendChild(_: XNode): void { return; }
     override prependChild(_: XNode): void { return; }
 }

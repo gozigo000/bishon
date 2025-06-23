@@ -100,7 +100,7 @@ export class PageCounter {
         for (const child of root.childNodes) {
             const type = child.type;
             if (type === 'text') {
-                const text = child.innerText.split('');
+                const text = child.textContent.split('');
                 for (const ch of text) {
                     const chW = BATANGCHE_WIDTH_PT[ch];
                     cubes.push({ ch: ch, H: BASE_LINE_HEIGHT, W: chW });

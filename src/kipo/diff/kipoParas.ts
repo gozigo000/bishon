@@ -1,4 +1,3 @@
-import { KipoTagName as Tag } from '../data';
 import { escapeChars } from "../utils";
 import { KipoStructure } from '../kipoParcer/KipoStructure';
 import { PartFlag } from '../data';
@@ -110,7 +109,7 @@ export class KipoParas {
             this.paras.push('【청구범위】');
             for (const claim of claims) {
                 this.paras.push(`【청구항 ${claim.getAttrValue('num')}】`);
-                this.processParas(claim.getElemByTagName('claim-text')!.childNodes);
+                this.processParas(claim.getElemByTag('claim-text')!.childNodes);
             }
         }
 
@@ -127,7 +126,7 @@ export class KipoParas {
             if (absFig) {
                 this.paras.push('【대표도】');
                 const absFigNum = absFig
-                    ?.getElemByTagName('figref', true)
+                    ?.getElemByTag('figref')
                     ?.getAttrValue('num');
                 this.paras.push(`도 ${absFigNum}`);
             }
@@ -137,7 +136,7 @@ export class KipoParas {
             this.paras.push('【도면】');
             for (const figure of this.kipo.getParts(PartFlag.도)) {
                 this.paras.push(`【도 ${figure.getAttrValue('num')}】`);
-                for (const img of figure.getElemsByTagName('img', true)) {
+                for (const img of figure.getAllElemsByTag('img')) {
                     this.paras.push(img.outerXML);
                 }
             }
@@ -155,14 +154,14 @@ export class KipoParas {
             }
             else if (tag === 'maths') {
                 this.paras.push(`【수학식 ${node.getAttrValue('num')}】`);
-                const imgs = node.getElemsByTagName('img', true);
+                const imgs = node.getAllElemsByTag('img');
                 for (const img of imgs) {
                     this.paras.push(img.outerXML);
                 }
             }
             else if (tag === 'tables') {
                 this.paras.push(`【표 ${node.getAttrValue('num')}】`);
-                const cells = node.getElemsByTagName('entry', true);
+                const cells = node.getAllElemsByTag('entry');
                 // TODO: 페이지 카운트 위한 표 내용 처리 필요
                 for (const cell of cells) {
                     const paras = cell.innerXML
@@ -178,7 +177,7 @@ export class KipoParas {
                 content += node.outerXML;
             }
             else if (node.type === 'text') {
-                content += escapeChars(node.innerText);
+                content += escapeChars(node.textContent);
             }
             else if (tag === 'br' || tag === 'patcit' || tag === 'nplcit') {
                 this.paras.push(content);
