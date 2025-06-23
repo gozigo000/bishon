@@ -99,14 +99,14 @@ export class KipoInspector {
             kind: '개발', pos: '<머리 태그>', process: 'STOP',
             msg: '<KIPO> 등 머리 태그가 없습니다.'
         });
-        this.headTags = headTags.replaceAll('><', '>\n<');
+        this.headTags = headTags;
 
         const tailTags = this.roughXml.match(/<\/PatentCAFDOC><\/KIPO>/)?.[0];
         if (!tailTags) return this.report.record({ 
             kind: '개발', pos: '<꼬리 태그>', process: 'STOP',
             msg: '</KIPO> 등 꼬리 태그가 없습니다.'
         });
-        this.tailTags = tailTags.replaceAll('><', '>\n<');
+        this.tailTags = tailTags;
 
         if (/<p num="\w*">\s*<\/p>/.test(this.roughXml)) {
             const match = this.roughXml.matchAll(/<p num="(\w*)">\s*<\/p>/g);
@@ -152,11 +152,11 @@ export class KipoInspector {
             this.headTags,
             titleTag['<발명의 설명>'],
             title,
-            field.getOuterXml('\n', '\n').replaceAll('</p><p', '</p>\n<p'),
-            background.getOuterXml('\n', '\n').replaceAll('</p><p', '</p>\n<p'),
+            field.getOuterXml(),
+            background.getOuterXml(),
             disc.has('<선행기술문헌>') ? this.inspect_citations(disc) : '',
             invenSummary,
-            briefDrawings.getOuterXml('\n', '\n').replaceAll('<br/>', '<br/>\n'),
+            briefDrawings.getOuterXml(),
             embodiments,
             refSigns,
             titleTag['<//발명의 설명>'],
@@ -164,10 +164,9 @@ export class KipoInspector {
             abstract,
             drawings,
             this.tailTags
-        ].filter(Boolean).join('\n');
+        ].filter(Boolean).join('');
 
         return;
-
     }
 
     // E-263, E-266, E-269(중괄호 한 쪽이 없는 경우) 에러 보고
@@ -223,7 +222,7 @@ export class KipoInspector {
 
         title.setInnerXml(`${krTitle}{${enTitle}}`);
 
-        return title.getOuterXml('', '\n');
+        return title.getOuterXml();
     }
 
     private inspect_citations(disc: KXmlPouch): KXml {
@@ -239,19 +238,12 @@ export class KipoInspector {
             if (!citList.isInSpec) return '';
 
             return [
-                cit.getTag1().replaceAll('><', '>\n<'),
+                cit.getTag1(),
                 (!citList.hasMany) ?
-                    citList.getOuterXml('\n', '\n').
-                        replaceAll('><text>', '>\n<text>').
-                        replaceAll('</text><', '</text>\n<') :
-                    citList.getOuterXmls().map((xml, i) => {
-                        if (i > 0) return xml;
-                        else return xml.
-                            replaceAll('><text>', '>\n<text>').
-                            replaceAll('</text><', '</text>\n<');
-                    }).filter(Boolean).join('\n'),
-                cit.getTag2().replaceAll('><', '>\n<')
-            ].filter(Boolean).join('\n');
+                    citList.getOuterXml() :
+                    citList.getOuterXmls().filter(Boolean).join(''),
+                cit.getTag2()
+            ].filter(Boolean).join('');
         }
 
         const patcitList = (patcit.isInSpec) ? 
@@ -265,7 +257,7 @@ export class KipoInspector {
             patcitList,
             nonPatcitList,
             titleTag['<//선행기술문헌>']
-        ].filter(Boolean).join('\n')
+        ].filter(Boolean).join('')
     }
 
     private inspect_invenSummary(disc: KXmlPouch): KXml {
@@ -279,22 +271,22 @@ export class KipoInspector {
         if (task.isInSpec && solution.isInSpec && effect.isInSpec) {
             return [
                 titleTag['<발명의 내용>'],
-                task.getOuterXml('\n', '\n').replaceAll('</p><p', '</p>\n<p'),
-                solution.getOuterXml('\n', '\n').replaceAll('</p><p', '</p>\n<p'),
-                effect.getOuterXml('\n', '\n').replaceAll('</p><p', '</p>\n<p'),
+                task.getOuterXml(),
+                solution.getOuterXml(),
+                effect.getOuterXml(),
                 titleTag['<//발명의 내용>'],
-            ].filter(Boolean).join('\n');
+            ].filter(Boolean).join('');
         }
         else if (task.isInSpec || solution.isInSpec || effect.isInSpec) {
             return invenSummary.
                 peelTag('<과제>', '<//과제>').
                 peelTag('<수단>', '<//수단>').
                 peelTag('<효과>', '<//효과>').
-                getOuterXml('\n', '\n').replaceAll('</p><p', '</p>\n<p');
+                getOuterXml();
         }
         else {
             return invenSummary.
-                getOuterXml('\n', '\n').replaceAll('</p><p', '</p>\n<p');
+                getOuterXml();
         }
     }
 
@@ -324,7 +316,7 @@ export class KipoInspector {
             titleTag['<발실구내>'],
             ...paragraphs.getOuterXmls(),
             titleTag['<//발실구내>']
-        ].filter(Boolean).join('\n');
+        ].filter(Boolean).join('');
     }
 
     private inspect_table(tables: string): string {
@@ -352,16 +344,8 @@ export class KipoInspector {
                 });
             };
             // TODO: 표 제목 처리 - 임시로 표 제목은 제거함
-            const safeTbl = tbl[0].replace(/<title>[\s\S]*?<\/title>/, '').
-                replaceAll(`<colspec`, '\n<colspec').
-                replaceAll(`<tbody>`, '\n<tbody>').
-                replaceAll(`<row>`, '\n<row>').
-                replaceAll(`<entry`, '\n<entry').
-                replaceAll(`<\/row>`, '\n<\/row>').
-                replaceAll(`<\/tbody>`, '\n<\/tbody>').
-                replaceAll(`<\/tgroup>`, '\n<\/tgroup>').
-                replaceAll(`<\/table>`, '\n<\/table>');
-            return `<tables num="${tNum}">` + safeTbl + `\n</tables>`;
+            const safeTbl = tbl[0].replace(/<title>[\s\S]*?<\/title>/, '')
+            return `<tables num="${tNum}">` + safeTbl + `</tables>`;
         }
 
         return this.report.record({ 
@@ -397,7 +381,7 @@ export class KipoInspector {
         let refSigns = new KXmlPouch('<부호의 설명>', '<//부호의 설명>', disc.getInnerXml());
         if (!refSigns.isInSpec) return '';
         // TODO: 부호의 설명 검사 - 글자 말고 도면 등 다른 게 있는지 등...
-        return refSigns.getOuterXml('\n', '\n').replaceAll('<br/>', '<br/>\n');
+        return refSigns.getOuterXml();
     }
 
     // TODO: 상세 구현 필요
@@ -448,9 +432,9 @@ export class KipoInspector {
 
         return [
             titleTag['<청구범위>'],
-            ...claim.getOuterXmls('\n', '\n'),
+            ...claim.getOuterXmls(),
             titleTag['<//청구범위>']
-        ].filter(Boolean).join('\n');
+        ].filter(Boolean).join('');
     }
 
     private inspect_abstract(spec: string): string {
@@ -490,10 +474,10 @@ export class KipoInspector {
 
         return [
             titleTag['<요약서>'],
-            summary.getOuterXml('\n', '\n').replaceAll('<br/>', '<br/>\n'),
-            absFig.isInSpec ? absFig.getOuterXml('\n', '\n').replaceAll('><', '>\n<') : '',
+            summary.getOuterXml(),
+            absFig.isInSpec ? absFig.getOuterXml() : '',
             titleTag['<//요약서>']
-        ].filter(Boolean).join('\n');
+        ].filter(Boolean).join('');
     }
 
     private inspect_drawings(spec: string): string {
@@ -526,9 +510,9 @@ export class KipoInspector {
 
         return [
             titleTag['<도면>'],
-            ...figs.getOuterXmls('\n', '\n'),
+            ...figs.getOuterXmls(),
             titleTag['<//도면>']
-        ].filter(Boolean).join('\n');
+        ].filter(Boolean).join('');
     }
 
     private inspect_img(img: string): string {
