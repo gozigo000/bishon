@@ -1,5 +1,3 @@
-import { dlog } from "@/_utils/env";
-
 /**
  * 명세서에서 발명의 구성요소를 추출하는 함수
  * @param text 명세서 텍스트

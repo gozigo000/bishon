@@ -9,7 +9,6 @@ import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
 import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
 import { collectError } from '../0-utils/errorCollector';
 import { collectLatex } from '../0-utils/dataCollector';
-import { dlog } from '@/_utils/env';
 
 const adaptor = liteAdaptor();
 RegisterHTMLHandler(adaptor);

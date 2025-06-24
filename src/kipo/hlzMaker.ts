@@ -7,8 +7,7 @@ import { generateDiffAfterInspection, generateDiffReport } from './diff/paraDiff
 import { getBaseName } from '@/_utils/file';
 import { collectError, ErrorCollector } from './0-utils/errorCollector';
 import { collectRefs, collectFile, DataCollector } from './0-utils/dataCollector';
-import { dlog } from '@/_utils/env';
-import { convertToHtml } from './wordParcer/main';
+import { convertToHtml } from './wordParcer/entry';
 import { openFile } from './1-zip/zipFile';
 import { parseXml } from './2-lightParser/entry';
 
@@ -21,7 +20,7 @@ export async function makeHlz(wordFile: File)
     Img[],
 ] | null> {
     try {
-        dlog('=== hlz 생성 시작 ===');
+        log('=== hlz 생성 시작 ===');
 
         const docxFile = await openFile({ file: wordFile });
 
@@ -53,7 +52,7 @@ export async function makeHlz(wordFile: File)
             [`${baseName}.hlz`]: hlzFile,
         });
 
-        dlog(`=== hlz 생성 완료 ===`);
+        log(`=== hlz 생성 완료 ===`);
 
         const wordArrBuff = await toArrayBuffer(wordFile);
         const html = await getMammothHtml(wordArrBuff);

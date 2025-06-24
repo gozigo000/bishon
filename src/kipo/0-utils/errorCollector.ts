@@ -1,5 +1,5 @@
-import { dlog } from '../../_utils/env';
-import { OnDev, OnDevTest } from './decorators/devHandler';
+import { OnDevTest } from './decorators/devHandler';
+import { styleText as style } from 'util';
 
 type ErrorInfo = {
     severity: 'ARROR' | 'WARNING' | 'INFO';
@@ -65,12 +65,22 @@ export class ErrorCollector {
     /** 에러 정보를 포맷팅하여 문자열로 반환 */
     private formatErrors(): string {
         if (!this.hasErrors()) {
-            return color.green('에러가 발견되지 않았습니다.');
+            return style(['green'], '에러가 발견되지 않았습니다.');
         }
         return this.errors.map(errInfo => {
-            const [bgClr, clr] = errInfo.severity === 'ARROR' ? [color.bgRed, color.red] : 
-                errInfo.severity === 'WARNING' ? [color.bgYellow, color.yellow] :
-                [color.bgCyan, color.brCyan];
+            type ToColor = (t:string) => string;
+            const [bgClr, clr]: [ToColor, ToColor] = 
+                errInfo.severity === 'ARROR' ? [
+                    t => style(['bgRed'], t),
+                    t => style(['red'], t)
+                ] : 
+                errInfo.severity === 'WARNING' ? [
+                    t => style(['bgYellow'], t),
+                    t => style(['yellow'], t)
+                ] : [
+                    t => style(['bgCyan'], t),
+                    t => style(['cyanBright'], t)
+                ];
 
             const severity = `[${errInfo.severity}]`;
             const message = `${errInfo.message}`;
