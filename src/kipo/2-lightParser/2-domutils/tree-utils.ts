@@ -51,8 +51,8 @@ export function removeNewlineTextNodes(root: XNode): void {
 export const enum RelPos {
     EQUAL = 'Equal', // 추가
     DISCONNECTED = 'Disconnected',
-    A_PRECEDE_B = 'A-precede-B',
-    B_PRECEDE_A = 'B-precede-A',
+    A_PRECEDES_B = 'A-precedes-B',
+    B_PRECEDES_A = 'B-precedes-A',
     A_CONTAINS_B = 'A-contains-B',
     B_CONTAINS_A = 'B-contains-A',
 }
@@ -135,9 +135,9 @@ export function compareRelativePos(nodeA: XNode, nodeB: XNode): RelPos {
     const branchA = acensA[idx];
     const branchB = acensB[idx];
     if (branchs.indexOf(branchA) < branchs.indexOf(branchB)) {
-        return RelPos.A_PRECEDE_B;
+        return RelPos.A_PRECEDES_B;
     } else {
-        return RelPos.B_PRECEDE_A;
+        return RelPos.B_PRECEDES_A;
     }
 }
 

@@ -126,8 +126,6 @@ export function prettyKipoXml(root: XNode): string {
         effects.childElems.forEach(child => {
             child.appendSibling(new XText('\n'));
         });
-    } else {
-        console.log('effects is not found');
     }
 
     const briefDrawings = root.getElemByTag('<description-of-drawings>');
@@ -141,8 +139,6 @@ export function prettyKipoXml(root: XNode): string {
         brTags.forEach(br => {
             br.appendSibling(new XText('\n'));
         });
-    } else {
-        console.log('briefDrawings is not found');
     }
 
     const embodiments = root.getElemByTag('<description-of-embodiments>');
@@ -151,8 +147,6 @@ export function prettyKipoXml(root: XNode): string {
         embodiments.childElems.forEach(embodiment => {
             embodiment.appendSibling(new XText('\n'));
         });
-    } else {
-        console.log('embodiments is not found');
     }
 
     const tables = root.getAllElemsByTag('<tables>');
@@ -200,8 +194,6 @@ export function prettyKipoXml(root: XNode): string {
         claims.childElems.forEach(child => {
             child.appendSibling(new XText('\n'));
         });
-    } else {
-        console.log('claims is not found');
     }
 
     const eachClaims = root.getAllElemsByTag('claim');
@@ -218,8 +210,6 @@ export function prettyKipoXml(root: XNode): string {
         abstract.childElems.forEach(child => {
             child.appendSibling(new XText('\n'));
         });
-    } else {
-        console.log('abstract is not found');
     }
 
     const summary = root.getElemByTag('<summary>');

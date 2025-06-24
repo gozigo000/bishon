@@ -82,11 +82,16 @@ export function prependSibling(node: XNode, sibling: XNode): void {
 }
 
 /**
- * Remove a node from the DOM
+ * DOM에서 {@link node} 제거
+ * @note {@link node}의 하위 노드들도 DOM에서 함께 제거됨
  */
 export function removeNode(node: XNode): void {
-    if (node.prevSibling) node.prevSibling.nextSibling = node.nextSibling;
-    if (node.nextSibling) node.nextSibling.prevSibling = node.prevSibling;
+    if (node.prevSibling) {
+        node.prevSibling.nextSibling = node.nextSibling;
+    }
+    if (node.nextSibling) {
+        node.nextSibling.prevSibling = node.prevSibling;
+    }
 
     if (node.parent) {
         const childs = node.parent.childNodes;

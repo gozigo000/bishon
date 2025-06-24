@@ -47,9 +47,9 @@ export function uniqueSort<T extends XNode>(nodes: T[]): T[] {
 
     nodes.sort((a, b) => {
         const relative = compareRelativePos(a, b);
-        if (relative === RelPos.A_PRECEDE_B) {
+        if (relative === RelPos.A_PRECEDES_B) {
             return -1;
-        } else if (relative === RelPos.B_PRECEDE_A) {
+        } else if (relative === RelPos.B_PRECEDES_A) {
             return 1;
         }
         return 0;

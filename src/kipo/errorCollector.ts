@@ -63,7 +63,7 @@ export class ErrorCollector {
     }
 
     /** 에러 정보를 포맷팅하여 문자열로 반환 */
-    public formatErrors(): string {
+    private formatErrors(): string {
         if (!this.hasErrors()) {
             return color.green('에러가 발견되지 않았습니다.');
         }
