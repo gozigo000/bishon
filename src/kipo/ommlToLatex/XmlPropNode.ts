@@ -1,6 +1,7 @@
 import { BREAK } from "./data";
 import { NodeInfo } from "./OmmlConverter";
 import { XElement } from "../2-lightParser/1-node/node";
+import { isString } from "../0-utils/typeCheck";
 
 export class XmlPropNode {
 
@@ -31,7 +32,7 @@ export class XmlPropNode {
         if (list.length === 0) return '';
         let xmlStr = '';
         for (const t of list) {
-            if (typeof t.result === 'string') {
+            if (isString(t.result)) {
                 xmlStr += t.result;
             }
         }

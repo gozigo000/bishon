@@ -5,6 +5,7 @@ import { getValue, format, getUnicodeString, escapeLatex, isComplexEquation } fr
 import { XmlPropNode } from './XmlPropNode';
 import { collectError, collectWarning } from '../0-utils/errorCollector';
 import { collectLatex } from '../0-utils/dataCollector';
+import { isString } from '../0-utils/typeCheck';
 
 /**
  * OMML 문자열을 LaTeX 문자열로 변환
@@ -93,7 +94,7 @@ function processChildren(elems: XElement[], include?: Set<string>): string {
 
     let latexStr = '';
     for (const info of nodesInfo) {
-        if (typeof info.result === 'string') {
+        if (isString(info.result)) {
             latexStr += info.result;
         }
     }
@@ -186,7 +187,7 @@ function processTag(elem: XElement): string {
 function doAcc(elem: XElement): string {
     const children = processChildrenForDict(elem.childElems);
     const pr = children['m:accPr'];
-    if (typeof pr === 'string') return '';
+    if (isString(pr)) return '';
     const accent = getValue(pr.getAttributeValue('m:chr'), ACCENT_DEFAULT, ACCENTS);
     return format(accent, children['m:e']);
 }
@@ -233,7 +234,7 @@ function doR(elem: XElement): string {
 function doBar(elem: XElement): string {
     const children = processChildrenForDict(elem.childElems);
     const pr = children['m:barPr'];
-    if (typeof pr === 'string') return '';
+    if (isString(pr)) return '';
     const latexStr = getValue(pr.getAttributeValue('m:pos'), BAR_DEFAULT, BAR);
     return pr + format(latexStr, children['m:e']);
 }
@@ -250,7 +251,7 @@ function doD(elem: XElement): string {
     // 우선은 리턴 값에 'pr + ' 대신 (pr ? pr : '') + 를 사용하여 해결함.
     // - OOXML 문서: 22.1.2.31 dPr (Delimiter Properties)
     const dPr = children['m:dPr'];
-    if (typeof dPr === 'string') return '';
+    if (isString(dPr)) return '';
 
     // NOTE: `nullVal` vs `defaultValue`
     // `<m:begChr />`인 경우에는 `defaultValue` 값을 사용하고,
@@ -296,7 +297,7 @@ function doF(elem: XElement): string {
     // doD() 메서드도 동일한 문제점을 가짐.
     // - OOXML 문서: 22.1.2.38 fPr (Fraction Properties)
     const pr = children['m:fPr'];
-    if (typeof pr === 'string') return '';
+    if (isString(pr)) return '';
     const frac = getValue(pr.getAttributeValue('m:type'), FRACTION_DEFAULT, FRACTION_TYPES);
     return (pr ? pr : '') + format(frac, children['m:num'], children['m:den']);
 }
@@ -309,7 +310,7 @@ function doFunc(elem: XElement): string {
     const children = processChildrenForDict(elem.childElems);
     const fnName = children['m:fName'];
     const e = children['m:e'];
-    if (typeof fnName !== 'string' || typeof e !== 'string') return '';
+    if (!isString(fnName) || !isString(e)) return '';
     return fnName + e;
 }
 
@@ -322,7 +323,7 @@ function doFName(elem: XElement): string {
     let isR: boolean = false;
     for (const info of generateNodesInfo(elem.childElems)) {
         const res = info.result;
-        if (typeof res === 'string') {
+        if (isString(res)) {
             if (info.tag === 'm:r') isR = true;
             fnName += res;
         }
@@ -342,7 +343,7 @@ function doFName(elem: XElement): string {
 function doGroupChr(elem: XElement): string {
     const children = processChildrenForDict(elem.childElems);
     const pr = children['m:groupChrPr'];
-    if (typeof pr === 'string') return '';
+    if (isString(pr)) return '';
     const chr = getValue(pr.getAttributeValue('m:chr'));
     return pr + format(chr, children['m:e']);
 }
@@ -353,7 +354,7 @@ function doGroupChr(elem: XElement): string {
  */
 function doRad(elem: XElement): string {
     const children = processChildrenForDict(elem.childElems);
-    if (children['m:deg'] && typeof children['m:deg'] === 'string' && children['m:deg'].length > 0) {
+    if (children['m:deg'] && isString(children['m:deg']) && children['m:deg'].length > 0) {
         return `\\sqrt[${children['m:deg']}]{${children['m:e']}}`;
     }
     return `\\sqrt{${children['m:e']}}`;
@@ -379,7 +380,7 @@ function doLimLow(elem: XElement): string {
     const include = new Set(['m:e', 'm:lim']);
     const children = processChildrenForDict(elem.childElems, include);
     const funcName = children['m:e'];
-    if (typeof funcName !== 'string' || !LIM_FUNC[funcName]) {
+    if (!isString(funcName) || !LIM_FUNC[funcName]) {
         collectError(`지원되지 않는 극한함수(limit function)입니다: '${funcName}'!`);
         return `${funcName}_{${children['m:lim']}}`;
     }
@@ -437,14 +438,14 @@ function doNary(elem: XElement): string {
 
     for (const info of generateNodesInfo(elem.childElems)) {
         if (info.tag === 'm:naryPr') {
-            if (typeof info.result === 'string') continue;
+            if (isString(info.result)) continue;
             bigOper = getValue(info.result.getAttributeValue('m:chr'), null, BIG_OPERATORS);
             if (!bigOper) {
                 bigOper = '\\int';
             }
-        } else if (info.tag === 'm:e' && typeof info.result === 'string' && isComplexEquation(info.result)) {
+        } else if (info.tag === 'm:e' && isString(info.result) && isComplexEquation(info.result)) {
             res.push(`{${info.result}}`);
-        } else if (typeof info.result === 'string') {
+        } else if (isString(info.result)) {
             res.push(info.result);
         }
     }

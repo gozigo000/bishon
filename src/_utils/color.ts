@@ -1,4 +1,5 @@
 import { styleText as style, inspect } from "util";
+import { isObject } from "../kipo/0-utils/typeCheck";
 
 // 기타 스타일 옵션
 // "bold", "italic", "underline"
@@ -7,7 +8,7 @@ import { styleText as style, inspect } from "util";
 // "hidden", "inverse", "overlined"
 
 export function print(...input: any) {
-    if (typeof input[0] === 'object') {
+    if (isObject(input[0])) {
         console.debug(inspect(input[0], { depth: Infinity, colors: true }));
     } else {
         console.debug(style(['blue'], input.join(", ")));

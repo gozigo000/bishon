@@ -9,6 +9,7 @@ import { XNodeType } from '../2-lightParser/1-node/nodeType';
 import { inspect_numbering, inspect_claimNumbering } from './numbering';
 import { inspect_img, inspect_math, inspect_paragraph, inspect_table } from './subParts';
 import { inspect_invenTitle } from './invenTitle';
+import { isString } from '../0-utils/typeCheck';
 
 type InspectionResult = {
     xDoc: XDocument;
@@ -26,7 +27,7 @@ export class KipoInspector {
     private figNums: string[] = [];
 
     public static generateReport(kXml: KXml | XDocument): InspectionResult {
-        if (typeof kXml === 'string') {
+        if (isString(kXml)) {
             kXml = parseXml(kXml);
         }
         return new KipoInspector(kXml).getResult();

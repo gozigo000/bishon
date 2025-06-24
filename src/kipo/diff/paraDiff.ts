@@ -3,13 +3,14 @@ import { getKipoParas } from './kipoParas';
 import { getHtmlParasForDiff } from './htmlParas';
 import { collectRefs } from '../0-utils/dataCollector';
 import { isProd } from '@/_utils/env';
+import { XDocument } from '../2-lightParser/1-node/node';
 
 type Pair = {
     old: number;
     new: number;
 }
 
-export async function generateDiffReport(kXmlStr: KXml, word: FileOrBuffer | Html): Promise<DiffLine[]> {
+export async function generateDiffReport(kXmlStr: string | XDocument, word: FileOrBuffer | Html): Promise<DiffLine[]> {
     const newLines = getKipoParas(kXmlStr);
     const oldLines = await getHtmlParasForDiff(word);
 
@@ -22,7 +23,7 @@ export async function generateDiffReport(kXmlStr: KXml, word: FileOrBuffer | Htm
     return diffLines;
 }
 
-export function generateDiffAfterInspection(kXmlAfter: KXml, kXmlBefore: KXml): DiffLine[] {
+export function generateDiffAfterInspection(kXmlAfter: string | XDocument, kXmlBefore: string | XDocument): DiffLine[] {
     if (isProd()) return [];
 
     const newLines = getKipoParas(kXmlAfter);

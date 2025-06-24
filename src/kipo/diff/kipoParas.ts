@@ -1,13 +1,14 @@
 import { escapeXmlText } from "../0-utils/escape";
-import { XNode } from '../2-lightParser/1-node/node';
+import { isString } from "../0-utils/typeCheck";
+import { XNode, XDocument } from '../2-lightParser/1-node/node';
 import { parseXml } from "../2-lightParser/entry";
 
 /**
  * Kipo XML에서 Paragraphs를 추출
  */
-export function getKipoParas(kXml: KipoXml): string[] {
+export function getKipoParas(kXml: string | XDocument): string[] {
     const paras: string[] = [];
-    const xDoc = parseXml(kXml);
+    const xDoc = isString(kXml) ? parseXml(kXml) : kXml;
 
     if (xDoc.hasKipoElem('<발명의설명>')) {
         paras.push('【발명의 설명】');

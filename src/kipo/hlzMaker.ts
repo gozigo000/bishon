@@ -39,7 +39,7 @@ export async function makeHlz(wordFile: File)
 
         const hlzDom = parseXml(hlzXml);
         const { xDoc: hlzDom2, inspectionReport, countingReport } = KipoInspector.generateReport(hlzDom);
-        generateDiffAfterInspection(hlzDom2.outerXML, hlzXml);
+        generateDiffAfterInspection(hlzDom2, hlzDom);
 
         // hlz 생성
         const hlzZip = new JSZip();
@@ -56,7 +56,7 @@ export async function makeHlz(wordFile: File)
 
         const wordArrBuff = await toArrayBuffer(wordFile);
         const html = await getMammothHtml(wordArrBuff);
-        const diffReport = await generateDiffReport(hlzDom2.outerXML, html); // TODO: XDom 사용하기
+        const diffReport = await generateDiffReport(hlzDom2, html);
 
         // 테스트 관련
         DataCollector.$.savePages(baseName);
