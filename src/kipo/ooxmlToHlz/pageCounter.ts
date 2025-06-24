@@ -1,5 +1,5 @@
 import { BATANGCHE_WIDTH_PT } from '../ttfParser/batangche_width_pt';
-import { KipoParas } from '../diff/kipoParas';
+import { getKipoParas } from '../diff/kipoParas';
 import { collectLine } from '../dataCollector';
 import { parseXml } from '../2-lightParser/entry';
 import { dlog } from '../../_utils/env';
@@ -41,7 +41,7 @@ export class PageCounter {
     public specPages = 0;
 
     public static countPages(hXml: string): number {
-        const paras = KipoParas.getParas(hXml);
+        const paras = getKipoParas(hXml);
         return new PageCounter(paras).specPages;
     }
 

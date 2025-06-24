@@ -1,5 +1,5 @@
 import { DiffMatchPatch } from 'diff-match-patch-ts';
-import { KipoParas } from './kipoParas';
+import { getKipoParas } from './kipoParas';
 import { getHtmlParasForDiff } from './htmlParas';
 import { collectRefs } from '../dataCollector';
 import { isProd } from '@/_utils/env';
@@ -10,7 +10,7 @@ type Pair = {
 }
 
 export async function generateDiffReport(kXmlStr: KXml, word: FileOrBuffer | Html): Promise<DiffLine[]> {
-    const newLines = KipoParas.getParas(kXmlStr);
+    const newLines = getKipoParas(kXmlStr);
     const oldLines = (await getHtmlParasForDiff(word))
         .map(c => c.replace(/__MATH-START__.*?__MATH-END__/g, ''));
 
@@ -26,8 +26,8 @@ export async function generateDiffReport(kXmlStr: KXml, word: FileOrBuffer | Htm
 export function generateDiffAfterInspection(kXmlAfter: KXml, kXmlBefore: KXml): DiffLine[] {
     if (isProd()) return [];
 
-    const newLines = KipoParas.getParas(kXmlAfter);
-    const oldLines = KipoParas.getParas(kXmlBefore);
+    const newLines = getKipoParas(kXmlAfter);
+    const oldLines = getKipoParas(kXmlBefore);
         
     const diffLines = generateDiffLines(newLines, oldLines);
 

@@ -3,6 +3,7 @@ import { appendChild, appendSibling, prependChild, prependSibling, removeNode } 
 import { findAll, findOne, getNextElemSibling, getPrevElemSibling, getSiblings, hasOne } from "../2-domutils/search";
 import { textContent } from "../3-dom-serialize/dom-text";
 import { renderNode, renderNodes } from "../3-dom-serialize/dom-stringfier";
+import { KipoTag, KipoTagName } from "../../data";
 
 /** 태그 속성 */
 type Attribute = { name: string; value: string; }
@@ -119,6 +120,24 @@ export abstract class XNodeBase {
     /** `XNodeType`이 일치하는 '첫번째' 후손 노드 or `null` */
     getNodeByType(type: XNodeType): XNode | null {
         return findOne(this as XNode, node => node.type === type, true)
+    }
+
+    /** 태그명이 일치하는 '후손' KIPO 노드가 있는지 확인 */
+    hasKipoElem(tag: KipoTag): boolean {
+        const tagName = KipoTagName[tag];
+        return hasOne(this as XNode, node => isXElem(node) && node.tagName === tagName, true);
+    }
+
+    /** 태그명이 일치하는 모든 '후손' KIPO 노드 배열 */
+    getKipoElems(tag: KipoTag): XElement[] {
+        const tagName = KipoTagName[tag];
+        return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, true) as XElement[];
+    }
+
+    /** 태그명이 일치하는 '첫번째' 후손 KIPO 노드 or `null` */
+    getKipoElem(tag: KipoTag): XElement | null {
+        const tagName = KipoTagName[tag];
+        return findOne(this as XNode, node => isXElem(node) && node.tagName === tagName, true) as XElement | null;
     }
 
     /** 자기 자신을 포함한 모든 `XElement`에 대해서 {@link callback} 수행 */
