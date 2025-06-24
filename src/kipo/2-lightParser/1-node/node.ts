@@ -1,5 +1,5 @@
 import { XNodeType } from "./nodeType";
-import { appendChild, appendSibling, prependChild, prependSibling } from "../2-domutils/manipulate";
+import { appendChild, appendSibling, prependChild, prependSibling, removeNode } from "../2-domutils/manipulate";
 import { findAll, findOne, getNextElemSibling, getPrevElemSibling, getSiblings, hasOne } from "../2-domutils/search";
 import { textContent } from "../3-dom-serialize/dom-text";
 import { renderNode, renderNodes } from "../3-dom-serialize/dom-stringfier";
@@ -111,6 +111,53 @@ export abstract class XNodeBase {
         return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, false) as XElement[];
     }
 
+    /** `XNodeType`이 일치하는 모든 '후손' 노드 배열 */
+    getNodesByType(type: XNodeType): XNode[] {
+        return findAll(this as XNode, node => node.type === type, true)
+    }
+
+    /** `XNodeType`이 일치하는 '첫번째' 후손 노드 or `null` */
+    getNodeByType(type: XNodeType): XNode | null {
+        return findOne(this as XNode, node => node.type === type, true)
+    }
+
+    /** 자기 자신을 포함한 모든 `XElement`에 대해서 {@link callback} 수행 */
+    forEachElem(callback: (elem: XElement) => void): void {
+        if (this.type === XNodeType.Element) {
+            callback(this as XElement);
+            return;
+        }
+        this.childNodes.forEach(node => {
+            node.forEachElem(callback);
+        });
+    }
+    
+    /** 자기 자신을 포함한 모든 `XText`에 대해서 {@link callback} 수행 */
+    forEachXText(callback: (content: string) => string): void {
+        if (this.type === XNodeType.Text) {
+            this.content = callback(this.content);
+            return;
+        }
+        this.childNodes.forEach(node => {
+            node.forEachXText(callback);
+        });
+    }
+
+    /** 연속된 XText 노드들을 하나로 병합 */
+    mergeTextNodes(): void {
+        if (this.type === XNodeType.Text) {
+            while (this.nextSibling?.type === XNodeType.Text) {
+                const next = this.nextSibling;
+                this.content += next.content;
+                removeNode(next);
+            }
+            return;
+        }
+        this.childNodes.forEach(node => {
+            node.mergeTextNodes();
+        });
+    }
+
     /**
      * 자식 노드들 뒤에 추가
      * @note `child`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
@@ -158,7 +205,10 @@ export abstract class XNodeBase {
         prependSibling(this as XNode, node);
     }
 
-    /** Only `XText`, `XComment`, `XProcessingInstruction` nodes can have data. */
+    /** 
+     * Only `XText`, `XComment`, `XProcessingInstruction` nodes can have data. 
+     * @internal
+     */
     content: string = '';
 
     get outerXML(): string {
@@ -196,6 +246,9 @@ export abstract class XNodeWithData extends XNodeBase {
     override getAllElemsByTag(_: string): XElement[] { return []; }
     override getChildElemByTag(_: string): XElement | null { return null; }
     override getChildElemsByTag(_: string): XElement[] { return []; }
+    override getNodesByType(_: XNodeType): XNode[] { return []; }
+    override getNodeByType(_: XNodeType): XNode | null { return null; }
+    override forEachElem(_: (_: XElement) => void): void { return; }
     override appendChild(_: XNode): void { return; }
     override prependChild(_: XNode): void { return; }
 }

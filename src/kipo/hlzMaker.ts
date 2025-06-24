@@ -10,6 +10,7 @@ import { collectRefs, collectFile, DataCollector } from './dataCollector';
 import { dlog } from '@/_utils/env';
 import { convertToHtml } from './wordParcer/main';
 import { openFile } from './1-zip/zipFile';
+import { parseXml } from './2-lightParser/entry';
 
 export async function makeHlz(wordFile: File)
 : Promise<[
@@ -37,13 +38,14 @@ export async function makeHlz(wordFile: File)
         // hlz 구성물 생성
         const { hlzXml, hImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
 
-        const [finalXml, inspectionReport, countingReport] = KipoInspector.generateInspectionReport(hlzXml);
-        generateDiffAfterInspection(finalXml, hlzXml);
+        const hlzDom = parseXml(hlzXml);
+        const { xDoc: hlzDom2, inspectionReport, countingReport } = KipoInspector.generateInspectionReport(hlzDom);
+        generateDiffAfterInspection(hlzDom2.outerXML, hlzXml); // TODO: XDom 사용하기
 
         // hlz 생성
         const hlzZip = new JSZip();
         const baseName = getBaseName(wordFile);
-        hlzZip.file(`${baseName}.xml`, finalXml);
+        hlzZip.file(`${baseName}.xml`, hlzDom2.outerXML);
         hImgs.forEach(hImg => hlzZip.file(hImg.name, hImg.buffer));
         const hlzFile = await generateKipoFile(`${baseName}.hlz`, hlzZip);
 
@@ -55,7 +57,7 @@ export async function makeHlz(wordFile: File)
 
         const wordArrBuff = await toArrayBuffer(wordFile);
         const html = await getMammothHtml(wordArrBuff);
-        const diffReport = await generateDiffReport(finalXml, html);
+        const diffReport = await generateDiffReport(hlzDom2.outerXML, html); // TODO: XDom 사용하기
 
         // 테스트 관련
         DataCollector.$.savePages(baseName);
