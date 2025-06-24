@@ -5,7 +5,7 @@ import { collectWarning } from "./errorCollector";
  * @param str - 처리할 문자열
  * @returns 이스케이프된 문자열
  */
-export function escapeChars(str: string): string {
+export function escapeXmlText(str: string): string {
     // hlz에서 이스케이프가 필요한 문자들
     const CHARS: Record<string, string> = {
         '<': '&lt;',

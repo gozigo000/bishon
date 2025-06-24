@@ -11,8 +11,7 @@ type Pair = {
 
 export async function generateDiffReport(kXmlStr: KXml, word: FileOrBuffer | Html): Promise<DiffLine[]> {
     const newLines = getKipoParas(kXmlStr);
-    const oldLines = (await getHtmlParasForDiff(word))
-        .map(c => c.replace(/__MATH-START__.*?__MATH-END__/g, ''));
+    const oldLines = await getHtmlParasForDiff(word);
 
     const diffLines = generateDiffLines(newLines, oldLines);
 

@@ -1,4 +1,4 @@
-import { escapeChars } from "../0-utils/escape";
+import { escapeXmlText } from "../0-utils/escape";
 import { XNode } from '../2-lightParser/1-node/node';
 import { parseXml } from "../2-lightParser/entry";
 
@@ -157,7 +157,7 @@ function processParas(kTitleNode: XNode[]): string[] {
             content += node.outerXML;
         }
         else if (node.type === 'text') {
-            content += escapeChars(node.textContent);
+            content += escapeXmlText(node.textContent);
         }
         else if (tag === 'br' || tag === 'patcit' || tag === 'nplcit') {
             paras.push(content);

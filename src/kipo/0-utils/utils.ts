@@ -7,7 +7,6 @@ import { collectRefs } from "./dataCollector";
 
 export async function generateKipoFile(fileName: string, zip: JSZip): Promise<File> {
     // HACK: jszip 모듈에서 수정하지 말고 jszip 모듈을 src 폴더로 옮기기
-    // jszip 수정위치: ./node_modules/jszip/lib/generate/ZipFileWorker.js: line 158-159
     const zipBuffer = await zip.generateAsync({ 
         type: 'nodebuffer',
         encodeFileName: (fileName) => iconv.encode(fileName, 'cp949').toString('binary'),
@@ -22,18 +21,26 @@ export async function generateKipoFile(fileName: string, zip: JSZip): Promise<Fi
 export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
     try {
         const buffer = await toBuffer(input);
-        var options = {
+        const result = await mammoth.convertToHtml({ buffer }, {
             ignoreEmptyParagraphs: false,
             convertImage: mammoth.images.imgElement(async (image) => {
-                return image.readAsBase64String().then(function(imageBuffer) {
-                    return {
-                        // src: "data:" + image.contentType + ";base64," + imageBuffer
-                        src: "data:" + image.contentType
-                    };
-                });
+                return { src: image.contentType.split('/')[1] };
+                // return image.readAsBase64String().then(function(imageBuffer) {
+                //     return { src: "data:" + image.contentType + ";base64," + imageBuffer };
+                // });
             }),
-        }
-        const result = await mammoth.convertToHtml({ buffer: buffer }, options);
+            styleMap: [
+                "p[style-name='Heading 1'] => p:fresh",
+                "p[style-name='Heading 2'] => p:fresh",
+                "p[style-name='Heading 3'] => p:fresh",
+                "p[style-name='Heading 4'] => p:fresh",
+                "p[style-name='Heading 5'] => p:fresh",
+                "p[style-name='Heading 6'] => p:fresh",
+                "b => b",
+                "i => i",
+                "u => u",
+            ],
+        });
 
         collectRefs({ 'Html_맘모스.html': result.value });
 

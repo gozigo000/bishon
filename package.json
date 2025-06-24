@@ -18,7 +18,7 @@
     "test:index": "cls && npx jest index.test.ts",
     "test:xmlDom": "cls && npx jest xmlComparison/xmlDom.test.ts --detectOpenHandles",
     "test:elemExtractor": "cls && npx jest elemExtractor.test.ts",
-    "test:passFail": "cls && m run test:ommlst passFail.test.ts --detectOpenHandles",
+    "test:passFail": "cls && npx jest passFail.test.ts --detectOpenHandles",
     "test:mathjax": "cls && npx jest ommlToImage/mathjax.test.ts",
     "test:ttfParser": "cls && npx jest ttfParser/ttfParser.test.ts"
   },

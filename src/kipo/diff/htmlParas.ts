@@ -1,11 +1,11 @@
-import { JSDOM } from "jsdom";
 import { getMammothHtml } from "../0-utils/utils";
 import { collectRefs } from "../0-utils/dataCollector";
+import { parseXml } from "../2-lightParser/entry";
+import { removeSubsets } from "../2-lightParser/2-domutils/array-utils";
 
 export async function getHtmlParasForDiff(input: FileOrBuffer | Html): Promise<string[]> {
     try {
         let html = (typeof input === 'string') ? input : await getMammothHtml(input);
-        html = html.replace(/<h[0-9]+>([\s\S]*?)<\/h[0-9]+>/g, `<p>$1</p>`);
         html = html.replace(/<a.*?>([\s\S]*?)<\/a>/g, `$1`); // 이것 때문에 괄호 안 내용이 사라졌던 것
         html = html.replace(/<table>([\s\S]*?)<\/table>/g, `$1`);
         html = html.replace(/<tr>([\s\S]*?)<\/tr>/g, `$1`);
@@ -13,16 +13,15 @@ export async function getHtmlParasForDiff(input: FileOrBuffer | Html): Promise<s
         html = html.replace(/<ol>([\s\S]*?)<\/ol>/g, `$1`);
         html = html.replace(/<ul>([\s\S]*?)<\/ul>/g, `$1`);
         html = html.replace(/<li>([\s\S]*?)<\/li>/g, `<p>$1</p>`);
-        html = html.replace(/<strong>([\s\S]*?)<\/strong>/g, `<b>$1</b>`);
         html = html.replace(/<img [\s\S]*?\/>/g, ``); // 이미지 태그 전부 제거
 
         collectRefs({ 'Html_심플맘모스_Diff용.html': html });
         
-        const dom = new JSDOM(html);
-        // <html><head></head><body>
-        const body = dom.window.document.getElementsByTagName('body')[0];
-        const elems = body.children;
-        const paras = Array.from(elems).map(e => e.innerHTML);
+        const dom = parseXml(html);
+        const pTags = dom.getAllElemsByTag('<p>');
+        removeSubsets(pTags);
+        const paras = pTags.map(e => e.innerXML);
+
         return paras;
      
     } catch (err) {
