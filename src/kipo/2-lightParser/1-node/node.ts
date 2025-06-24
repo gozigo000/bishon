@@ -3,7 +3,7 @@ import { appendChild, appendSibling, prependChild, prependSibling, removeNode } 
 import { findAll, findOne, getNextElemSibling, getPrevElemSibling, getSiblings, hasOne } from "../2-domutils/search";
 import { textContent } from "../3-dom-serialize/dom-text";
 import { renderNode, renderNodes } from "../3-dom-serialize/dom-stringfier";
-import { KipoTag, KipoTagName } from "../../data";
+import { KipoTag, KipoTagName } from "../../0-data/kipoTitles";
 
 /** 태그 속성 */
 type Attribute = { name: string; value: string; }
@@ -79,36 +79,31 @@ export abstract class XNodeBase {
 
     /** 태그명이 일치하는 '후손' 노드가 있는지 확인 */
     hasElem(tagName: string): boolean {
-        if (tagName.startsWith('<')) tagName = tagName.slice(1)
-        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        tagName = tagName.replace(/^<|>$/g, '');
         return hasOne(this as XNode, node => isXElem(node) && node.tagName === tagName, true);
     }
 
     /** 태그명이 일치하는 '첫번째' 후손 노드 or `null` */
     getElemByTag(tagName: string): XElement | null {
-        if (tagName.startsWith('<')) tagName = tagName.slice(1)
-        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        tagName = tagName.replace(/^<|>$/g, '');
         return findOne(this as XNode, node => isXElem(node) && node.tagName === tagName, true) as XElement | null;
     }
 
     /** 태그명이 일치하는 모든 '후손' 노드 배열 */
     getAllElemsByTag(tagName: string): XElement[] {
-        if (tagName.startsWith('<')) tagName = tagName.slice(1)
-        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        tagName = tagName.replace(/^<|>$/g, '');
         return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, true) as XElement[];
     }
 
     /** 태그명이 일치하는 '첫번째' 자식 노드 or `null` */
     getChildElemByTag(tagName: string): XElement | null {
-        if (tagName.startsWith('<')) tagName = tagName.slice(1)
-        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        tagName = tagName.replace(/^<|>$/g, '');
         return findOne(this as XNode, node => isXElem(node) && node.tagName === tagName, false) as XElement | null;
     }
 
     /** 태그명이 일치하는 모든 자식 노드 배열 */
     getChildElemsByTag(tagName: string): XElement[] {
-        if (tagName.startsWith('<')) tagName = tagName.slice(1)
-        if (tagName.endsWith('>')) tagName = tagName.slice(0, -1)
+        tagName = tagName.replace(/^<|>$/g, '');
         return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, false) as XElement[];
     }
 
@@ -267,6 +262,9 @@ export abstract class XNodeWithData extends XNodeBase {
     override getChildElemsByTag(_: string): XElement[] { return []; }
     override getNodesByType(_: XNodeType): XNode[] { return []; }
     override getNodeByType(_: XNodeType): XNode | null { return null; }
+    override hasKipoElem(_: KipoTag): boolean { return false; }
+    override getKipoElems(_: KipoTag): XElement[] { return []; }
+    override getKipoElem(_: KipoTag): XElement | null { return null; }
     override forEachElem(_: (_: XElement) => void): void { return; }
     override appendChild(_: XNode): void { return; }
     override prependChild(_: XNode): void { return; }

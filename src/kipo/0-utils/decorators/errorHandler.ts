@@ -1,4 +1,4 @@
-import { collectError } from '../../errorCollector';
+import { collectError } from '../errorCollector';
 
 /**
  * 메서드에 try-catch를 적용하는 데코레이터

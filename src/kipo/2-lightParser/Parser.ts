@@ -1,6 +1,6 @@
 import { DomHandler } from "./Handler";
 import Tokenizer from "./Tokenizer";
-import { decodeXML } from "./4-entities/decode";
+import { decodeXML } from "../0-utils/escape2/decode";
 
 const formTags = new Set([
     "input",

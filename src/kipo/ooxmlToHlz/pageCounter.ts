@@ -1,6 +1,6 @@
-import { BATANGCHE_WIDTH_PT } from '../ttfParser/batangche_width_pt';
+import { BATANGCHE_WIDTH_PT } from '../0-data/batangche/batangche_width_pt';
 import { getKipoParas } from '../diff/kipoParas';
-import { collectLine } from '../dataCollector';
+import { collectLine } from '../0-utils/dataCollector';
 import { parseXml } from '../2-lightParser/entry';
 import { dlog } from '../../_utils/env';
 

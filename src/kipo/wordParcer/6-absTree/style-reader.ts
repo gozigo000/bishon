@@ -8,7 +8,7 @@ import {
     HtmlPath, HtmlTag, emptyHtmlPath,
     makeHtmlPath, ignoredHtmlPath
 } from "./html-paths";
-import { collectWarning } from "../../errorCollector";
+import { collectWarning } from "../../0-utils/errorCollector";
 
 export type StyleMapping = {
     from: Matcher;

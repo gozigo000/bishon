@@ -3,8 +3,8 @@ import { XElement } from '../2-lightParser/1-node/node';
 import { ACCENT_DEFAULT, ACCENTS, LATEX_SYMBOLS, BAR_DEFAULT, BAR, FRACTION_DEFAULT, FRACTION_TYPES, FUNC, BREAK, LIM_FUNC, LIM_UPP, ALIGN, BIG_OPERATORS } from './data';
 import { getValue, format, getUnicodeString, escapeLatex, isComplexEquation } from './utils';
 import { XmlPropNode } from './XmlPropNode';
-import { collectError, collectWarning } from '../errorCollector';
-import { collectLatex } from '../dataCollector';
+import { collectError, collectWarning } from '../0-utils/errorCollector';
+import { collectLatex } from '../0-utils/dataCollector';
 import { dlog } from '../../_utils/env';
 
 /**

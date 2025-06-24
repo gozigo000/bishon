@@ -1,9 +1,9 @@
-import { escapeChars } from "../utils";
+import { escapeChars } from "../0-utils/escape";
 import { XNode } from '../2-lightParser/1-node/node';
 import { parseXml } from "../2-lightParser/entry";
 
 /**
- * Kipo XML에서 Paragraphs를 추출하는 클래스
+ * Kipo XML에서 Paragraphs를 추출
  */
 export function getKipoParas(kXml: KipoXml): string[] {
     const paras: string[] = [];

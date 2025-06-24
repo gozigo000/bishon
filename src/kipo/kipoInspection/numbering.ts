@@ -1,5 +1,5 @@
 import { XElement } from "../2-lightParser/1-node/node";
-import { collectError, collectWarning } from "../errorCollector";
+import { collectError, collectWarning } from "../0-utils/errorCollector";
 
 
 // 표/수학식/도면 번호 검사 후 번호 반환

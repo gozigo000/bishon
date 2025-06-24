@@ -7,8 +7,8 @@ import { SVG } from 'mathjax-full/js/output/svg.js';
 import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor.js';
 import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
 import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
-import { collectError } from '../errorCollector';
-import { collectLatex } from '../dataCollector';
+import { collectError } from '../0-utils/errorCollector';
+import { collectLatex } from '../0-utils/dataCollector';
 import { dlog } from '@/_utils/env';
 
 const adaptor = liteAdaptor();

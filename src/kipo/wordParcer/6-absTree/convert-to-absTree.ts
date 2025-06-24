@@ -9,7 +9,7 @@ import { parseStyle, StyleMapping } from "./style-reader";
 import { emptyHtmlPath, HtmlTag, HtmlPath } from "./html-paths";
 import { AstNode } from "./astNode";
 import { simplify } from "./simplify";
-import { collectWarning } from "../../errorCollector";
+import { collectWarning } from "../../0-utils/errorCollector";
 import { defaultStyleMap } from "../5-styles/default-style-map";
 
 type HtmlOptions = {

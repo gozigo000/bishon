@@ -1,5 +1,5 @@
-import { EntityDecoder } from "./4-entities/decode";
-import { xmlDecodeTree } from "./4-entities/decode-data-xml";
+import { EntityDecoder } from "../0-utils/escape2/decode";
+import { xmlDecodeTree } from "../0-utils/escape2/decode-data-xml";
 import type { Parser } from "./Parser";
 
 const enum CharCode {

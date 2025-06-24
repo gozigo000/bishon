@@ -1,12 +1,12 @@
 import JSZip from 'jszip';
 import { OoxmlConverter } from './ooxmlToHlz/OoxmlConverter';
-import { getMammothHtml, generateKipoFile } from './utils';
+import { getMammothHtml, generateKipoFile } from './0-utils/utils';
 import { toArrayBuffer } from "@/_utils/dataType";
 import { KipoInspector } from './kipoInspection/kipoInspector';
 import { generateDiffAfterInspection, generateDiffReport } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
-import { collectError, ErrorCollector } from './errorCollector';
-import { collectRefs, collectFile, DataCollector } from './dataCollector';
+import { collectError, ErrorCollector } from './0-utils/errorCollector';
+import { collectRefs, collectFile, DataCollector } from './0-utils/dataCollector';
 import { dlog } from '@/_utils/env';
 import { convertToHtml } from './wordParcer/main';
 import { openFile } from './1-zip/zipFile';
@@ -39,8 +39,8 @@ export async function makeHlz(wordFile: File)
         const { hlzXml, hImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
 
         const hlzDom = parseXml(hlzXml);
-        const { xDoc: hlzDom2, inspectionReport, countingReport } = KipoInspector.generateInspectionReport(hlzDom);
-        generateDiffAfterInspection(hlzDom2.outerXML, hlzXml); // TODO: XDom 사용하기
+        const { xDoc: hlzDom2, inspectionReport, countingReport } = KipoInspector.generateReport(hlzDom);
+        generateDiffAfterInspection(hlzDom2.outerXML, hlzXml);
 
         // hlz 생성
         const hlzZip = new JSZip();

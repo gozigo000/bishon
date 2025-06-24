@@ -7,7 +7,7 @@ import { readContentTypes, defaultContentTypes, ContentTypes } from "./read-cont
 import { Numberings, readNumbering, defaultNumbering } from "./read-numbering";
 import { readStyles, defaultStyles } from "./read-styles-xml";
 import { docOptions } from "../4-docNode/convert-to-docNode";
-import { collectInfo } from "../../errorCollector";
+import { collectInfo } from "../../0-utils/errorCollector";
 
 type XmlPaths = {
     documentXmlPath: string;  // 기본: word/document.xml

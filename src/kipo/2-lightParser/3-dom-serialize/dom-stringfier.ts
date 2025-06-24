@@ -1,7 +1,7 @@
-import { escapeAttribute, escapeText } from "../0-utils/escape";
+import { escapeAttribute, escapeText } from "../../0-utils/escape2/escape";
 import { XNodeType } from "../1-node/nodeType";
 import type { XNode, XElement, XText } from "../1-node/node";
-import { collectWarning } from "@/kipo/errorCollector";
+import { collectWarning } from "@/kipo/0-utils/errorCollector";
 
 export interface SerializerOptions {
     /**

@@ -11,7 +11,7 @@ import {
 } from "./docNodes";
 import * as uris from "./uris";
 import { Result } from "./results";
-import { collectWarning } from "../../errorCollector";
+import { collectWarning } from "../../0-utils/errorCollector";
 
 interface TableCellWithVMerge extends DocTableCell {
     _vMerge?: boolean | null; // RowSpan 계산을 위해 사용

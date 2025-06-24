@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom";
-import { getMammothHtml } from "../utils";
-import { collectRefs } from "../dataCollector";
+import { getMammothHtml } from "../0-utils/utils";
+import { collectRefs } from "../0-utils/dataCollector";
 
 export async function getHtmlParasForDiff(input: FileOrBuffer | Html): Promise<string[]> {
     try {

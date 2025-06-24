@@ -1,7 +1,7 @@
-import { collectRefs } from '../dataCollector';
+import { collectRefs } from '../0-utils/dataCollector';
 import { XDocument, XElement, XProcessingInstruction } from '../2-lightParser/1-node/node';
-import { PartFlag as Flag } from '../data';
-import { collectError } from '../errorCollector';
+import { PartFlag as Flag } from '../0-data/kipoTitles';
+import { collectError } from '../0-utils/errorCollector';
 import { parseXml } from '../2-lightParser/entry';
 import { removeNode } from '../2-lightParser/2-domutils/manipulate';
 import { compareRelativePos, RelPos } from '../2-lightParser/2-domutils/tree-utils';
@@ -25,7 +25,7 @@ export class KipoInspector {
     private claimNums: string[] = [];
     private figNums: string[] = [];
 
-    public static generateInspectionReport(kXml: KXml | XDocument): InspectionResult {
+    public static generateReport(kXml: KXml | XDocument): InspectionResult {
         if (typeof kXml === 'string') {
             kXml = parseXml(kXml);
         }

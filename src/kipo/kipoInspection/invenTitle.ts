@@ -1,5 +1,5 @@
 import { XElement } from '../2-lightParser/1-node/node';
-import { collectError } from '../errorCollector';
+import { collectError } from '../0-utils/errorCollector';
 
 // E-263, E-266, E-269(중괄호 한 쪽이 없는 경우) 에러 보고
 // E-261, E-262, E-267, E-268, E-269(중괄호 짝이 여럿인 경우) 에러 수정

@@ -1,5 +1,5 @@
-import { dlog } from '../_utils/env';
-import { OnDev, OnDevTest } from './0-utils/decorators/devHandler';
+import { dlog } from '../../_utils/env';
+import { OnDev, OnDevTest } from './decorators/devHandler';
 
 type ErrorInfo = {
     severity: 'ARROR' | 'WARNING' | 'INFO';

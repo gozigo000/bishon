@@ -1,8 +1,8 @@
 import { XElement } from "../2-lightParser/1-node/node";
-import { collectError, collectWarning } from "../errorCollector";
+import { collectError, collectWarning } from "../0-utils/errorCollector";
 
 export function inspect_paragraph(paragraph: XElement) {
-    if (/^\s*$/.test(paragraph.textContent)) {
+    if (/^\s*$/.test(paragraph.innerXML)) {
         collectWarning(`공백이 있는 <p> 태그가 존재합니다: ${paragraph.outerXML}`);
     };
     // HACK: 추가 검사 필요하면 추가하기

@@ -1,7 +1,7 @@
 import { DiffMatchPatch } from 'diff-match-patch-ts';
 import { getKipoParas } from './kipoParas';
 import { getHtmlParasForDiff } from './htmlParas';
-import { collectRefs } from '../dataCollector';
+import { collectRefs } from '../0-utils/dataCollector';
 import { isProd } from '@/_utils/env';
 
 type Pair = {
