@@ -38,7 +38,7 @@ export async function makeHlz(wordFile: File)
         const { hlzXml, hImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
 
         const hlzDom = parseXml(hlzXml);
-        const { xDoc: hlzDom2, inspectionReport, countingReport } = KipoInspector.generateReport(hlzDom);
+        const { xDoc: hlzDom2, countingReport } = KipoInspector.generateReport(hlzDom);
         generateDiffAfterInspection(hlzDom2, hlzDom);
 
         // hlz 생성
@@ -58,12 +58,15 @@ export async function makeHlz(wordFile: File)
         const html = await getMammothHtml(wordArrBuff);
         const diffReport = await generateDiffReport(hlzDom2, html);
 
+        const inspectionReport = MsgCollector.$.getMsgs();
+        MsgCollector.$.logMsgs();
+        MsgCollector.$.clearMsgs();
+
         // 테스트 관련
         DataCollector.$.savePages(baseName);
         DataCollector.$.saveRefs(baseName);
         DataCollector.$.saveFiles(baseName);
         DataCollector.$.saveLatex(baseName);
-        MsgCollector.$.logMsgs();
 
         return [
             hlzFile,

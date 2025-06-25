@@ -28,13 +28,16 @@ declare type CountInfo = {
     nums: string[]
 };
 
-declare type InspectionReport = InspectionMsg[];
-declare type InspectionMsg = {
-    kind: '개발' | '에러' | '경고';
-    process: 'GO' | 'STOP';
-    pos?: string;
-    msg: string;
-    from?: string;
+declare type InspectionReport = MsgInfo[];
+declare type MsgInfo = {
+    kind: 'ERROR' | 'WARNING' | 'INFO';
+    timestamp: Date;
+    message: string;
+    reference?: string;
+    location?: string;
+    errCode?: string;
+    errMsg?: string;
+    errStack?: string;
 }
 
 declare type DiffReport = DiffLine[];
@@ -49,17 +52,6 @@ declare type DiffLine = {
 
 declare type Diff = [DiffOp, string];
 declare enum DiffOp { Delete = -1, Equal = 0, Insert = 1 }
-
-declare type MsgInfo = {
-    kind: 'ARROR' | 'WARNING' | 'INFO';
-    timestamp: Date;
-    message: string;
-    reference?: string;
-    location?: string;
-    errCode?: string;
-    errMsg?: string;
-    errStack?: string;
-}
 
 declare interface Img {
     name: string;

@@ -13,7 +13,6 @@ import { isString } from '../0-utils/typeCheck';
 
 type InspectionResult = {
     xDoc: XDocument;
-    inspectionReport: InspectionReport;
     countingReport: CountingReport;
 }
 
@@ -44,12 +43,6 @@ export class KipoInspector {
         // const errors = ErrorCollector.$.getErrors();
         // console.log(`에러 개수: ${errors.length}`);
 
-        const inspectionReport: InspectionReport = [
-            { kind: '에러', process: 'STOP', msg: 'to be implemented' },
-            { kind: '경고', process: 'GO', msg: 'to be implemented' },
-            { kind: '개발', process: 'GO', msg: 'to be implemented' },
-        ];
-
         const countingReport: CountingReport = [
             { kind: '수학식', cnt: this.mathNums.length, nums: this.mathNums },
             { kind: '표', cnt: this.tableNums.length, nums: this.tableNums },
@@ -65,7 +58,6 @@ export class KipoInspector {
 
         return {
             xDoc: this.xDoc,
-            inspectionReport,
             countingReport,
         };
     }

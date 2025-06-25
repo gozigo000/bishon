@@ -1,5 +1,6 @@
 import { OnDevTest } from './decorators/devHandler';
 import { styleText as style } from 'util';
+import { isString } from '../0-utils/typeCheck';
 
 /**
  * 전역 메시지 수집 클래스
@@ -20,7 +21,7 @@ export class MsgCollector {
         return MsgCollector.instance;
     }
     
-    /** 새로운 에러 정보 추가 */
+    /** 새로운 메시지 추가 */
     public addMsg(newMsg: MsgInfo): void {
         const isNotNew = this.msgs.some(msg => 
             msg.message === newMsg.message && 
@@ -59,7 +60,7 @@ export class MsgCollector {
         return this.msgs.map(msgInfo => {
             type ToColor = (t:string) => string;
             const [bgClr, clr]: [ToColor, ToColor] = 
-                msgInfo.kind === 'ARROR' ? [
+                msgInfo.kind === 'ERROR' ? [
                     t => style(['bgRed'], t),
                     t => style(['red'], t)
                 ] : 
@@ -71,7 +72,7 @@ export class MsgCollector {
                     t => style(['cyanBright'], t)
                 ];
 
-            const severity = `[${msgInfo.kind}]`;
+            const kind = `[${msgInfo.kind}]`;
             const message = `${msgInfo.message}`;
             const timestamp = '\n(tms) ' + msgInfo.timestamp.toLocaleString('ko-KR', { 
                 year: 'numeric', month: 'numeric', day: 'numeric',
@@ -84,7 +85,7 @@ export class MsgCollector {
             const errMsg = msgInfo.errMsg ? `\n(err) ${msgInfo.errMsg}` : '';
             const errStack = msgInfo.errStack ? `\n(stk) ${msgInfo.errStack}` : '';
 
-            return bgClr(`${severity} ${message} `)
+            return bgClr(`${kind} ${message} `)
                 + clr(`${timestamp}${location}${reference}${errCode}${errMsg}${errStack}\n`);
         }).join('\n');
     }
@@ -96,11 +97,17 @@ export class MsgCollector {
  * @param error 발생한 에러 객체
  * @param reference 참고 정보
  */
-export function collectError(message: string, error?: Error, reference?: string): void {
+export function collectError(message: string, reference?: string): void;
+export function collectError(message: string, error?: Error, reference?: string): void;
+export function collectError(message: string, error?: Error | string, reference?: string): void {
+    if (isString(error)) {
+        reference = error;
+        error = undefined;
+    }
     const msgCollector = MsgCollector.getInstance();
 
     msgCollector.addMsg({
-        kind: 'ARROR',
+        kind: 'ERROR',
         message,
         timestamp: new Date(),
         location: getCallerPos(),

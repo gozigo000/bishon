@@ -10,24 +10,24 @@ export default function InspectionReporter({ inspectionReport }: ReporterProps) 
             {inspectionReport.map((item, i) => (
                 <div key={i} className="text-white/90 flex items-start gap-2">
                     <span className={`font-semibold ${
-                        item.kind === '에러' ? 'text-red-400' :
-                        item.kind === '경고' ? 'text-yellow-400' :
-                        item.kind === '개발' ? 'text-blue-400' : ''
+                        item.kind === 'ERROR' ? 'text-red-400' :
+                        item.kind === 'WARNING' ? 'text-yellow-400' :
+                        item.kind === 'INFO' ? 'text-blue-400' : ''
                     }`}>
                         [{item.kind}]
                     </span>
                     <div className="flex-1">
                         <div>
-                            {item.msg}
+                            {item.message}
                         </div>
-                        {item.pos && (
+                        {item.location && (
                             <div className="text-white/60 text-sm mt-1">
-                                위치: {item.pos}
+                                위치: {item.location}
                             </div>
                         )}
-                        {item.from && (
+                        {item.reference && (
                             <div className="text-white/60 text-sm">
-                                From: {item.from}
+                                참고: {item.reference}
                             </div>
                         )}
                     </div>

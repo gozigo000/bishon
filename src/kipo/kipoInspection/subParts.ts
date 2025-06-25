@@ -50,7 +50,7 @@ export function inspect_img(imgs: XElement[]) {
     for (const img of imgs) {
         if (!/<img id="(\w+)" he="(\d+)" wi="(\d+)" file="pat(\d{5})\.(\w+)" img-format="(\w+)" \/>/
             .test(img.outerXML)) {
-            collectError(`이미지 태그 형식이 잘못되었습니다: ${img.outerXML}`);
+            collectError(`이미지 태그 형식이 잘못되었습니다: XML:${img.outerXML}`);
         }
 
         const id = img.getAttrValue('id')!;
@@ -60,14 +60,14 @@ export function inspect_img(imgs: XElement[]) {
         const imgFormat = img.getAttrValue('img-format')!;
 
         if (!/^i\d{4}$/.test(id))
-            collectError(`이미지 id가 올바르지 않습니다: id:${id}`);
+            collectError(`이미지 id가 올바르지 않음: id:${id}`, `XML:${img.outerXML}`);
         if (Number(he) > 222)
-            collectError(`이미지 높이가 222mm를 초과합니다: ${he}mm`);
+            collectError(`이미지 높이가 222mm를 초과함: ${he}mm`, `XML:${img.outerXML}`);
         if (Number(wi) > 165)
-            collectError(`이미지 너비가 165mm를 초과합니다: ${wi}mm`);
+            collectError(`이미지 너비가 165mm를 초과함: ${wi}mm`, `XML:${img.outerXML}`);
         if (!/^pat\d{5}\.(jpe?g|tiff?)$/.test(file))
-            collectError(`이미지 파일명 또는 확장자가 올바르지 않습니다: file:${file}`);
+            collectError(`이미지 파일명 또는 확장자가 올바르지 않음: file:${file}`, `XML:${img.outerXML}`);
         if (!/^jpe?g|tiff?$/.test(imgFormat))
-            collectError(`이미지 파일 확장자가 올바르지 않습니다: img-format:${imgFormat}`);
+            collectError(`이미지 파일 확장자가 올바르지 않음: img-format:${imgFormat}`, `XML:${img.outerXML}`);
     }
 }
