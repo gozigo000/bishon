@@ -1,80 +1,69 @@
 import { OnDevTest } from './decorators/devHandler';
 import { styleText as style } from 'util';
 
-type ErrorInfo = {
-    severity: 'ARROR' | 'WARNING' | 'INFO';
-    timestamp: Date;
-    message: string;
-    reference?: string;
-    location?: string;
-    errCode?: string;
-    errMsg?: string;
-    errStack?: string;
-}
-
 /**
- * 전역 에러 수집기 클래스
- * 싱글톤 패턴으로 구현되어 애플리케이션 전체에서 하나의 인스턴스만 사용
+ * 전역 메시지 수집 클래스
+ * @note 싱글톤 패턴으로 구현
  */
-export class ErrorCollector {
-    private static instance: ErrorCollector;
-    private errors: ErrorInfo[] = [];
+export class MsgCollector {
+    private static instance: MsgCollector;
+    private msgs: MsgInfo[] = [];
     
     private constructor() {}
     
     /** GlobalErrorCollector의 인스턴스 반환 */
-    public static get $(): ErrorCollector { return ErrorCollector.getInstance(); }
-    public static getInstance(): ErrorCollector {
-        if (!ErrorCollector.instance) {
-            ErrorCollector.instance = new ErrorCollector();
+    public static get $(): MsgCollector { return MsgCollector.getInstance(); }
+    public static getInstance(): MsgCollector {
+        if (!MsgCollector.instance) {
+            MsgCollector.instance = new MsgCollector();
         }
-        return ErrorCollector.instance;
+        return MsgCollector.instance;
     }
     
     /** 새로운 에러 정보 추가 */
-    public addError(error: ErrorInfo): void {
-        const isNotNew = this.errors.some(err => 
-            err.message === error.message && 
-            err.location === error.location &&
-            err.reference === error.reference
+    public addMsg(newMsg: MsgInfo): void {
+        const isNotNew = this.msgs.some(msg => 
+            msg.message === newMsg.message && 
+            msg.location === newMsg.location &&
+            msg.reference === newMsg.reference
         );
         if (isNotNew) return;
-        this.errors.push(error);   
+        this.msgs.push(newMsg);   
     }
     
-    /** 수집한 모든 에러 정보 반환 */
-    public getErrors(): ErrorInfo[] { return this.errors; }
+    /** 수집한 메시지 모두 초기화 */
+    public clearMsgs(): void { this.msgs = []; }
     
-    /** 수집한 에러 정보 모두 초기화 */
-    public clearErrors(): void { this.errors = []; }
+    /** 메시지가 존재하는지 확인 */
+    public hasMsgs(): boolean { return this.msgs.length > 0; }
     
-    /** 에러가 존재하는지 확인 */
-    public hasErrors(): boolean { return this.errors.length > 0; }
+    /** 수집한 모든 메시지 반환 */
+    public getMsgs(): MsgInfo[] { return this.msgs; }
     
-    /** 특정 심각도의 에러만 필터링하여 반환 */
-    public getErrorsBySeverity(severity: ErrorInfo['severity']): ErrorInfo[] {
-        return this.errors.filter(error => error.severity === severity);
+    /** 특정 종류의 메시지만 반환 */
+    public getMsgsByKind(kind: MsgInfo['kind']): MsgInfo[] {
+        return this.msgs.filter(error => error.kind === kind);
     }
     
-    /** 수집한 에러를 콘솔에 출력 */
+    /** 수집한 메시지를 콘솔에 출력 */
     @OnDevTest()
-    public logErrors(): void {
-        console.log(this.formatErrors());
+    public logMsgs(): void {
+        console.log(this.formatMsgs());
     }
 
-    /** 에러 정보를 포맷팅하여 문자열로 반환 */
-    private formatErrors(): string {
-        if (!this.hasErrors()) {
-            return style(['green'], '에러가 발견되지 않았습니다.');
+    /** 메시지를 포맷팅하여 문자열로 반환 */
+    private formatMsgs(): string {
+        if (!this.hasMsgs()) {
+            return style(['green'], '메시지가 없습니다.');
         }
-        return this.errors.map(errInfo => {
+        return this.msgs.map(msgInfo => {
             type ToColor = (t:string) => string;
             const [bgClr, clr]: [ToColor, ToColor] = 
-                errInfo.severity === 'ARROR' ? [
+                msgInfo.kind === 'ARROR' ? [
                     t => style(['bgRed'], t),
                     t => style(['red'], t)
                 ] : 
-                errInfo.severity === 'WARNING' ? [
+                msgInfo.kind === 'WARNING' ? [
                     t => style(['bgYellow'], t),
                     t => style(['yellow'], t)
                 ] : [
@@ -82,18 +71,18 @@ export class ErrorCollector {
                     t => style(['cyanBright'], t)
                 ];
 
-            const severity = `[${errInfo.severity}]`;
-            const message = `${errInfo.message}`;
-            const timestamp = '\n(tms) ' + errInfo.timestamp.toLocaleString('ko-KR', { 
+            const severity = `[${msgInfo.kind}]`;
+            const message = `${msgInfo.message}`;
+            const timestamp = '\n(tms) ' + msgInfo.timestamp.toLocaleString('ko-KR', { 
                 year: 'numeric', month: 'numeric', day: 'numeric',
                 hour: 'numeric', minute: 'numeric', second: 'numeric', 
                 fractionalSecondDigits: 3,
             });
-            const location = errInfo.location ? `\n(loc) ${errInfo.location}` : '';
-            const reference = errInfo.reference ? `\n(ctx) ${errInfo.reference}` : '';
-            const errCode = errInfo.errCode ? `\n(cod) ${errInfo.errCode}` : '';
-            const errMsg = errInfo.errMsg ? `\n(err) ${errInfo.errMsg}` : '';
-            const errStack = errInfo.errStack ? `\n(stk) ${errInfo.errStack}` : '';
+            const location = msgInfo.location ? `\n(loc) ${msgInfo.location}` : '';
+            const reference = msgInfo.reference ? `\n(ctx) ${msgInfo.reference}` : '';
+            const errCode = msgInfo.errCode ? `\n(cod) ${msgInfo.errCode}` : '';
+            const errMsg = msgInfo.errMsg ? `\n(err) ${msgInfo.errMsg}` : '';
+            const errStack = msgInfo.errStack ? `\n(stk) ${msgInfo.errStack}` : '';
 
             return bgClr(`${severity} ${message} `)
                 + clr(`${timestamp}${location}${reference}${errCode}${errMsg}${errStack}\n`);
@@ -108,10 +97,10 @@ export class ErrorCollector {
  * @param reference 참고 정보
  */
 export function collectError(message: string, error?: Error, reference?: string): void {
-    const errorCollector = ErrorCollector.getInstance();
+    const msgCollector = MsgCollector.getInstance();
 
-    errorCollector.addError({
-        severity: 'ARROR',
+    msgCollector.addMsg({
+        kind: 'ARROR',
         message,
         timestamp: new Date(),
         location: getCallerPos(),
@@ -129,10 +118,10 @@ export function collectError(message: string, error?: Error, reference?: string)
  * @param reference 참고 정보
  */
 export function collectWarning(message: string, reference?: any): void {
-    const errorCollector = ErrorCollector.getInstance();
+    const msgCollector = MsgCollector.getInstance();
     
-    errorCollector.addError({
-        severity: 'WARNING',
+    msgCollector.addMsg({
+        kind: 'WARNING',
         message,
         timestamp: new Date(),
         location: getCallerPos(),
@@ -146,10 +135,10 @@ export function collectWarning(message: string, reference?: any): void {
  * @param reference 참고 정보
  */
 export function collectInfo(message: string, reference?: any): void {
-    const errorCollector = ErrorCollector.getInstance();
+    const msgCollector = MsgCollector.getInstance();
     
-    errorCollector.addError({
-        severity: 'INFO',
+    msgCollector.addMsg({
+        kind: 'INFO',
         message,
         timestamp: new Date(),
         location: getCallerPos(),

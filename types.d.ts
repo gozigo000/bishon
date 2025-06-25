@@ -50,6 +50,17 @@ declare type DiffLine = {
 declare type Diff = [DiffOp, string];
 declare enum DiffOp { Delete = -1, Equal = 0, Insert = 1 }
 
+declare type MsgInfo = {
+    kind: 'ARROR' | 'WARNING' | 'INFO';
+    timestamp: Date;
+    message: string;
+    reference?: string;
+    location?: string;
+    errCode?: string;
+    errMsg?: string;
+    errStack?: string;
+}
+
 declare interface Img {
     name: string;
     buffer: ArrayBuffer;

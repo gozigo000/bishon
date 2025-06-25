@@ -5,7 +5,7 @@ import { toArrayBuffer } from "@/_utils/dataType";
 import { KipoInspector } from './kipoInspection/kipoInspector';
 import { generateDiffAfterInspection, generateDiffReport } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
-import { collectError, ErrorCollector } from './0-utils/errorCollector';
+import { collectError, MsgCollector } from './0-utils/errorCollector';
 import { collectRefs, collectFile, DataCollector } from './0-utils/dataCollector';
 import { convertToHtml } from './wordParcer/entry';
 import { openFile } from './1-zip/zipFile';
@@ -63,7 +63,7 @@ export async function makeHlz(wordFile: File)
         DataCollector.$.saveRefs(baseName);
         DataCollector.$.saveFiles(baseName);
         DataCollector.$.saveLatex(baseName);
-        ErrorCollector.$.logErrors();
+        MsgCollector.$.logMsgs();
 
         return [
             hlzFile,

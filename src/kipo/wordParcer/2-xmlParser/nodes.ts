@@ -1,3 +1,4 @@
+import { collectWarning } from "@/kipo/0-utils/errorCollector";
 
 export class ONode {
     type: ONodeType;
@@ -7,16 +8,16 @@ export class ONode {
     ooxml: string = '';
     text: string = '';
 
-    constructor(name?: string, attributes?: string)
+    constructor(name?: string, text?: string)
     constructor(name?: string, attributes?: Record<string, string>, children?: ONode[], ooxml?: string)
-    constructor(name?: string, attributes?: string | Record<string, string>, children?: ONode[], ooxml?: string) {
-        if (typeof attributes === "string") {
+    constructor(name?: string, attrOrText?: string | Record<string, string>, children?: ONode[], ooxml?: string) {
+        if (typeof attrOrText === "string") {
             this.type = "text";
-            this.text = attributes || '';
+            this.text = attrOrText || '';
         } else {
             this.type = name ? "element" : "empty";
             this.name = name || ''; // ooxml 태그명
-            this.attributes = attributes || {};
+            this.attributes = attrOrText || {};
             this.children = children || [];
             this.ooxml = ooxml || '';
         }
@@ -51,7 +52,8 @@ export class ONode {
         if (this.children.length === 0) {
             return "";
         } else if (this.children.length !== 1 || this.children[0].type !== "text") {
-            throw new Error("Not implemented");
+            collectWarning("(Not implemented) 트리 구조에 오류가 있을 수도 있음");
+            return ""
         }
         return this.children[0].text;
     }

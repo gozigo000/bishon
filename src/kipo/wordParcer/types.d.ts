@@ -14,14 +14,6 @@ declare type Options = {
     prettyPrint?: boolean;
 }
 
-declare type Message = {
-    type: MessageType;
-    message: string;
-    error?: unknown;
-}
-
-declare type MessageType = 'warning' | 'error';
-
 /**********************************************/
 
 declare type Styles = {

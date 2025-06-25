@@ -1,13 +1,13 @@
 import path from "path";
 import { FileHandler } from "../../1-zip/zipFile";
 import { ONode } from "../2-xmlParser/nodes";
-import { readDocumentXml } from "./read-document-xml";
+import { readDocxXml } from "./parse-xml";
 import { readRelationships, defaultRelationships, Relationships } from "./read-relationships";
 import { readContentTypes, defaultContentTypes, ContentTypes } from "./read-content-types";
 import { Numberings, readNumbering, defaultNumbering } from "./read-numbering";
 import { readStyles, defaultStyles } from "./read-styles-xml";
 import { docOptions } from "../4-docNode/convert-to-docNode";
-import { collectInfo } from "../../0-utils/errorCollector";
+import { collectError, collectInfo } from "../../0-utils/errorCollector";
 
 type XmlPaths = {
     documentXmlPath: string;  // 기본: word/document.xml
@@ -27,9 +27,12 @@ export async function readXmls(docxFile: FileHandler): Promise<{ oBodyNode: ONod
     const docOptions = { contentTypes, styles, numbering, relationships };
 
     // XML -> ONode
-    const oRoot = await readDocumentXml(docxFile, wordXmlPaths.documentXmlPath);
+    const oRoot = await readDocxXml(docxFile, wordXmlPaths.documentXmlPath);
     const oBodyNode = oRoot.getFirst("w:body");
-    if (!oBodyNode) throw new Error("Could not find the body element: docx file?");
+    if (!oBodyNode) {
+        collectError("Could not find the body element: docx file?");
+        return { oBodyNode: new ONode(), docOptions };
+    }
     return { oBodyNode, docOptions };
 }
 
@@ -49,7 +52,8 @@ async function findPartPaths(docxFile: FileHandler): Promise<XmlPaths> {
     });
 
     if (!docxFile.exists(documentXmlPath)) {
-        throw new Error("Could not find main document. Are you sure this is a .docx file?");
+        collectError("Could not find main document: docx file?");
+        return { documentXmlPath: "", numberingXmlPath: "", stylesXmlPath: "", relationshipsXmlPath: "" };
     }
 
     const relationshipsXmlPath = relationshipsFilename(documentXmlPath);
@@ -107,36 +111,32 @@ function stripPrefix(value: string, prefix: string): string {
 
 async function readContentTypesXml(docxFile: FileHandler, path: string): Promise<ContentTypes> {
     if (!docxFile.exists(path)) {
-        collectInfo(`[Content_Types].xml 없음: ${path}`);
         return defaultContentTypes;
     }
-    const elem = await readDocumentXml(docxFile, path);
+    const elem = await readDocxXml(docxFile, path);
     return elem ? readContentTypes(elem) : defaultContentTypes;
 }
 
 async function readStylesXml(docxFile: FileHandler, path: string): Promise<Styles> {
     if (!docxFile.exists(path)) {
-        collectInfo(`styles.xml 없음: ${path}`);
         return defaultStyles;
     }
-    const elem = await readDocumentXml(docxFile, path);
+    const elem = await readDocxXml(docxFile, path);
     return elem ? readStyles(elem) : defaultStyles;
 }
 
 async function readNumberingXml(docxFile: FileHandler, path: string, styles: any): Promise<Numberings> {
     if (!docxFile.exists(path)) {
-        collectInfo(`numbering.xml 없음: ${path}`);
         return defaultNumbering;
     }
-    const elem = await readDocumentXml(docxFile, path);
+    const elem = await readDocxXml(docxFile, path);
     return elem ? readNumbering(elem, { styles }) : defaultNumbering;
 }
 
 async function readRelationshipsXml(docxFile: FileHandler, path: string): Promise<Relationships> {
     if (!docxFile.exists(path)) {
-        collectInfo(`relationships.xml 없음: ${path}`);
         return defaultRelationships;
     }
-    const elem = await readDocumentXml(docxFile, path);
+    const elem = await readDocxXml(docxFile, path);
     return elem ? readRelationships(elem) : defaultRelationships;
 }

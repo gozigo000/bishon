@@ -1,9 +1,13 @@
 import { ONode } from "../2-xmlParser/nodes";
 import { generateONode } from "../2-xmlParser/parser";
 import { FileHandler } from "../../1-zip/zipFile";
+import { collectWarning } from "../../0-utils/errorCollector";
 
-export async function readDocumentXml(docxZip: FileHandler, path: string): Promise<ONode> {
-    if (!docxZip.exists(path)) throw new Error("Could not find the document.xml");
+export async function readDocxXml(docxZip: FileHandler, path: string): Promise<ONode> {
+    if (!docxZip.exists(path)) {
+        collectWarning(`The xml file is not found: ${path}`);
+        return new ONode();
+    }
 
     const xml = await docxZip.readFile(path, "utf-8");
     const stripped = xml.replace(/^\uFEFF/g, ''); // 유니코드 바이트 순서 마커(Utf8Bom) 제거
