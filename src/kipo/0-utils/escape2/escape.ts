@@ -9,7 +9,7 @@ export function escapeAttribute(data: string): string {
         new Map([
             [34, "&quot;"],
             [38, "&amp;"],
-            [160, "&nbsp;"],
+            [160, " "], // &nbsp;는 그냥 공백(스페이스) 문자로 바꿈
         ]),
     )(data);
 }
@@ -26,7 +26,7 @@ export function escapeText(data: string): string {
             [38, "&amp;"],
             [60, "&lt;"],
             [62, "&gt;"],
-            [160, "&nbsp;"],
+            [160, " "], // &nbsp;는 그냥 공백(스페이스) 문자로 바꿈
         ]),
     )(data);
 }
