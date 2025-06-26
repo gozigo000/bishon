@@ -506,8 +506,23 @@ function readShape(element: ONode): Result {
         collectWarning("이미지 사이즈를 읽을 수 없습니다");
         return new Result();
     }
-    const w = Number(width.replace('pt', '')) * 12700; // 1pt = 12700 EMU
-    const h = Number(height.replace('pt', '')) * 12700; // 1pt = 12700 EMU
+    // 이미지 사이즈 단위 변환
+    function convertUnit(size: string): string {
+        if (size.endsWith('pt')) {
+            const emu = Number(size.replace('pt', '')) * 12700 // 1pt = 12700 EMU
+            return emu.toString();
+        }
+        else if (size.endsWith('in')) {
+            const emu = Number(size.replace('in', '')) * 914400 // 1in = 914400 EMU
+            return emu.toString();
+        }
+        else {
+            collectWarning(`이미지 사이즈 단위 변환이 필요함: ${size}`);
+            return size.replace(/[^\d.]/g, '');
+        }
+    }
+    const w = convertUnit(width);
+    const h = convertUnit(height);
 
     const relationshipId = element.getFirstOrEmpty("v:imagedata").attributes['r:id'];
     if (!relationshipId) {
@@ -517,7 +532,7 @@ function readShape(element: ONode): Result {
     const shapeImageFilePath = uris.uriToZipEntryName(
         "word", relationships.findTargetByRelationshipId(relationshipId)
     );
-    return readImage(shapeImageFilePath, w.toString(), h.toString());
+    return readImage(shapeImageFilePath, w, h);
 }
 
 function readImage(imageFilePath: string, w: string, h: string): Result {
