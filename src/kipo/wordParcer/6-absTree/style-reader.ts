@@ -8,7 +8,7 @@ import {
     HtmlPath, HtmlTag, emptyHtmlPath,
     makeHtmlPath, ignoredHtmlPath
 } from "./html-paths";
-import { collectWarning } from "../../0-utils/errorCollector";
+import { collectInfo, collectWarning } from "../../0-utils/errorCollector";
 
 export type StyleMapping = {
     from: Matcher;
@@ -57,7 +57,7 @@ function createStyleRule(): StyleMapping {
 }
 
 export function parseDocumentMatcher(str: string): StyleMapping | null {
-    log(`체크 - parseString(documentMatcherRule(), str):\n${parseString(documentMatcherRule(), str)}`)
+    collectInfo(`체크 - parseString(documentMatcherRule(), str):\n${parseString(documentMatcherRule(), str)}`)
     return parseString(documentMatcherRule(), str);
 }
 
@@ -222,7 +222,7 @@ function documentMatcherRule(): any {
 }
 
 export function parseHtmlPath(str: string): HtmlPath | null {
-    log(`체크 - parseString(htmlPathRule(), str):\n${parseString(htmlPathRule(), str)}`)
+    collectInfo(`체크 - parseString(htmlPathRule(), str):\n${parseString(htmlPathRule(), str)}`)
     return parseString(htmlPathRule(), str) as HtmlPath | null;
 }
 

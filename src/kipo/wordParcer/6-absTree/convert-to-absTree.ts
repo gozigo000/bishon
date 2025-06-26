@@ -25,7 +25,7 @@ export async function fromDocNodeToAbsTree(docDoc: DocDocument, opts?: Options):
 
     options = {
         styleMap: parsedStyleMap,
-        ignoreEmptyParagraphs: opts?.ignoreEmptyParagraphs
+        ignoreEmptyParagraphs: opts?.ignoreEmptyParagraphs || false
     };
 
     const ast = convertNode(docDoc);

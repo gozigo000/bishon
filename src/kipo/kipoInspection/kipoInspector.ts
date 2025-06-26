@@ -40,9 +40,6 @@ export class KipoInspector {
         this.preInspect();
         this.mainInspect();
 
-        // const errors = ErrorCollector.$.getErrors();
-        // console.log(`에러 개수: ${errors.length}`);
-
         const countingReport: CountingReport = [
             { kind: '수학식', cnt: this.mathNums.length, nums: this.mathNums },
             { kind: '표', cnt: this.tableNums.length, nums: this.tableNums },

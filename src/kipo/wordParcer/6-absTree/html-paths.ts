@@ -1,5 +1,6 @@
 import { isDeepStrictEqual } from 'util'
 import { AstNode } from "./astNode";
+import { collectInfo } from '../../0-utils/errorCollector';
 
 export class HtmlPath {
     private _elements: HtmlTag[];
@@ -51,7 +52,7 @@ export class HtmlTag {
 export function makeHtmlPath(elementStyles: (string | HtmlTag)[]): HtmlPath {
     return new HtmlPath(elementStyles.map(elementStyle => {
         if (typeof elementStyle === "string") {
-            log(`체크 - elementStyle: ${elementStyle}`);
+            collectInfo(`체크 - elementStyle: ${elementStyle}`);
             return new HtmlTag(elementStyle);
         }
         return elementStyle;

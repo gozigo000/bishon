@@ -11,7 +11,7 @@ import {
 } from "./docNodes";
 import * as uris from "./uris";
 import { Result } from "./results";
-import { collectWarning } from "../../0-utils/errorCollector";
+import { collectInfo, collectWarning } from "../../0-utils/errorCollector";
 
 interface TableCellWithVMerge extends DocTableCell {
     _vMerge?: boolean | null; // RowSpan 계산을 위해 사용
@@ -369,7 +369,7 @@ function readSymbol(element: ONode): Result {
         return new Result();
     } else {
         const value = unicodeChar.string;
-        log(`체크 - readSymbol: ${value}`)
+        collectInfo(`체크 - readSymbol: ${value}`)
         return new Result(new DocText(value));
     }
 }
