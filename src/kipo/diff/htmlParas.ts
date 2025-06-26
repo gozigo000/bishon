@@ -11,9 +11,6 @@ export async function getHtmlParasForDiff(input: FileOrBuffer | Html): Promise<s
         html = html.replace(/<table>([\s\S]*?)<\/table>/g, `$1`);
         html = html.replace(/<tr>([\s\S]*?)<\/tr>/g, `$1`);
         html = html.replace(/<td>([\s\S]*?)<\/td>/g, `$1`);
-        html = html.replace(/<ol>([\s\S]*?)<\/ol>/g, `$1`);
-        html = html.replace(/<ul>([\s\S]*?)<\/ul>/g, `$1`);
-        html = html.replace(/<li>([\s\S]*?)<\/li>/g, `<p>$1</p>`);
         html = html.replace(/<img [\s\S]*?\/>/g, ``); // 이미지 태그 전부 제거
 
         collectRefs({ 'Html_심플맘모스_Diff용.html': html });

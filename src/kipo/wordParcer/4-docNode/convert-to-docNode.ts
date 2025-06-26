@@ -94,7 +94,7 @@ function readONode(elem: ONode): Result {
         case "m:oMathPara": return readOMathPara(elem);
         default: {
             if (ignoredElements.has(elem.name)) break;
-            collectWarning(`의도치 않게 무시된 요소가 있음: ${elem.name}`);
+            collectWarning(`고려되지 않은 요소가 있음: ${elem.name}`);
         }
     }
     return new Result();

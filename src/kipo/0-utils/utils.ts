@@ -30,15 +30,25 @@ export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
                 // });
             }),
             styleMap: [
+                "b => b",
+                "i => i",
+                "u => u",
                 "p[style-name='Heading 1'] => p:fresh",
                 "p[style-name='Heading 2'] => p:fresh",
                 "p[style-name='Heading 3'] => p:fresh",
                 "p[style-name='Heading 4'] => p:fresh",
                 "p[style-name='Heading 5'] => p:fresh",
                 "p[style-name='Heading 6'] => p:fresh",
-                "b => b",
-                "i => i",
-                "u => u",
+                "p:unordered-list(1) => p:fresh",
+                "p:unordered-list(2) => p:fresh",
+                "p:unordered-list(3) => p:fresh",
+                "p:unordered-list(4) => p:fresh",
+                "p:unordered-list(5) => p:fresh",
+                "p:ordered-list(1) => p:fresh",
+                "p:ordered-list(2) => p:fresh",
+                "p:ordered-list(3) => p:fresh",
+                "p:ordered-list(4) => p:fresh",
+                "p:ordered-list(5) => p:fresh",
             ],
         });
 
