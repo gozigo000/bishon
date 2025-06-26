@@ -228,6 +228,7 @@ export const isRun = (node: DocNode): node is DocRun => node.type === "run";
 export const isText = (node: DocNode): node is DocText => node.type === "text";
 export const isTab = (node: DocNode): node is DocTab => node.type === "tab";
 export const isCheckbox = (node: DocNode): node is DocCheckbox => node.type === "checkbox";
+export const isHyperlink = (node: DocNode): node is DocHyperlink => node.type === "hyperlink";
 export const isImage = (node: DocNode): node is DocImage => node.type === "image";
 export const isTable = (node: DocNode): node is DocTable => node.type === "table";
 export const isTableRow = (node: DocNode): node is DocTableRow => node.type === "tableRow";

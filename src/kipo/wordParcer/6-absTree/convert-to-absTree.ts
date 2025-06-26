@@ -1,9 +1,9 @@
 import {
     DocDocument, DocNode, DocParagraph, DocRun,
-    DocCheckbox, DocImage, DocTable, DocTableRow,
-    DocTableCell, DocBreak, DocMath, DocMathPara,
+    DocCheckbox, DocHyperlink, DocImage, DocTable,
+    DocTableRow, DocTableCell, DocBreak, DocMath, DocMathPara,
     isDoc, isParagraph, isRun, isText, isTab, isCheckbox,
-    isImage, isTable, isBreak, isMath, isMathPara
+    isImage, isTable, isBreak, isMath, isMathPara, isHyperlink,
 } from "../4-docNode/docNodes";
 import { parseStyle, StyleMapping } from "./style-reader";
 import { emptyHtmlPath, HtmlTag, HtmlPath } from "./html-paths";
@@ -40,6 +40,7 @@ function convertNode(elem: DocNode): AstNode[] {
     if (isText(elem)) return [new AstNode("text", elem.value)];
     if (isTab(elem)) return [new AstNode("text", "\t")];
     if (isCheckbox(elem)) return convertCheckbox(elem);
+    if (isHyperlink(elem)) return convertHyperlink(elem);
     if (isImage(elem)) return convertImage(elem);
     if (isTable(elem)) return convertTable(elem);
     if (isBreak(elem)) return convertBreak(elem);
@@ -50,7 +51,7 @@ function convertNode(elem: DocNode): AstNode[] {
 
 function convertParagraph(elem: DocParagraph): AstNode[] {
     const style = findStyle(elem);
-    if (!style && elem.styleId && 
+    if (!style && elem.styleId &&
         !['Normal (Web)', '바탕글'].includes(elem.styleName || '-')
     ) {
         collectWarning(`인식할 수 없는 paragraph style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
@@ -128,6 +129,10 @@ function convertCheckbox(elem: DocCheckbox): AstNode[] {
     const attributes: Record<string, string> = { type: "checkbox" };
     if (elem.checked) attributes["checked"] = "checked";
     return [new AstNode("element", new HtmlTag("input", attributes, { fresh: true }), [])];
+}
+
+function convertHyperlink(elem: DocHyperlink): AstNode[] {
+    return elem.children.map(elem => convertNode(elem)).flat();
 }
 
 function convertImage(node: DocImage): AstNode[] {
