@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import mammoth from "mammoth";
 import { toBuffer } from "../../_utils/dataType";
 import JSZip from "jszip";
@@ -16,6 +18,11 @@ export async function generateKipoFile(fileName: string, zip: JSZip): Promise<Fi
 
     const file = new File([zipBuffer], fileName);
     return file;
+}
+
+export function getFailedImg(): Buffer<ArrayBufferLike> {
+    const failedImg = path.join(process.cwd(), 'public/null.jpg');
+    return fs.readFileSync(failedImg);
 }
 
 export async function getMammothHtml(input: FileOrBuffer): Promise<string> {

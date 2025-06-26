@@ -7,8 +7,11 @@ import { SVG } from 'mathjax-full/js/output/svg.js';
 import { liteAdaptor } from 'mathjax-full/js/adaptors/liteAdaptor.js';
 import { RegisterHTMLHandler } from 'mathjax-full/js/handlers/html.js';
 import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
+import sharp from 'sharp';
 import { collectError } from '../0-utils/errorCollector';
 import { collectLatex } from '../0-utils/dataCollector';
+import { makeLatexFromOmml } from '../ommlToLatex/OmmlConverter';
+import { getFailedImg } from '../0-utils/utils';
 
 const adaptor = liteAdaptor();
 RegisterHTMLHandler(adaptor);
@@ -20,8 +23,8 @@ const tex = new TeX({
     processEnvironments: true
 });
 const svg = new SVG({});
-const html = mathjax.document('', { 
-    InputJax: tex, 
+const html = mathjax.document('', {
+    InputJax: tex,
     OutputJax: svg
 });
 
@@ -30,22 +33,60 @@ const html = mathjax.document('', {
  */
 export class MathJax {
     /**
-     * latex 문자열을 SVG 이미지 문자열로 변환
+     * omml 문자열을 JPG 이미지 버퍼로 변환
      */
-    public static async convert(latex: string): Promise<string | null> {
+    public static async convertToJpg(ooxml: string): Promise<Buffer<ArrayBufferLike>> {
+        const latex = makeLatexFromOmml(ooxml);
+        if (!latex) {
+            return getFailedImg();
+        }
+
         try {
-            const node = html.convert(latex, { 
+            // MathJax 사용
+            const node = html.convert(latex, {
                 display: true // 수식 표시 모드 (true: 블록, false: 인라인)
             });
             const svg = adaptor.innerHTML(node);
-
             collectLatex({ latex, svg });
-            
-            return svg;
+
+            return await this.makeJpgBuff(svg)
+
         } catch (error) {
             collectError(`latex > svg 변환 실패`, error as Error,
                 `latex 문자열: ${latex}\n mathjax 변환 사이트: https://thomasahle.com/latex2png/`);
-            return null;
+            return getFailedImg();
+        }
+    }
+
+    private static async makeJpgBuff(svgStr: string): Promise<Buffer<ArrayBufferLike>> {
+        try {
+            const svgBuffer = Buffer.from(svgStr);
+
+            // 원본 이미지 크기 가져오기
+            const svgMetadata = await sharp(svgBuffer).metadata();
+            const svgWidth = svgMetadata.width || 1;
+
+            // SVG를 JPG로 변환
+            const jpgBuffer = await sharp(svgBuffer)
+                .flatten({ background: { r: 255, g: 255, b: 255 } })
+                .resize({
+                    width: svgWidth * 3, // 크기 3배
+                    fit: 'contain', // 원본 비율 유지
+                })
+                .extend({
+                    bottom: 5,
+                    left: 2,
+                    right: 2,
+                    background: { r: 255, g: 255, b: 255 }
+                })
+                .jpeg({ quality: 80 }) // 80% 품질로 설정
+                .toBuffer();
+
+            return jpgBuffer;
+
+        } catch (error) {
+            collectError(`svg > jpg 변환 실패`, error as Error);
+            return getFailedImg();
         }
     }
 }

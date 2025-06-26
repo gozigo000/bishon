@@ -23,7 +23,7 @@ export async function makeHlz(wordFile: File): Promise<HlzFileEtc> {
         const docxFile = await openFile({ file: wordFile });
 
         const docxHtml = await convertToHtml(docxFile, { ignoreEmptyParagraphs: true });
-        collectRefs({ 'HTML_document.html': docxHtml });
+        collectRefs({ 'HTML_document.html': docxHtml.join('\n') });
 
         // document.xml 파일 찾기
         const ooxml = await docxFile.readFile('word/document.xml', 'text');
