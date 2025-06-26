@@ -1,4 +1,5 @@
 import { collectError } from '../errorCollector';
+import { styleText as style } from "util";
 
 /**
  * 메서드에 try-catch를 적용하는 데코레이터
@@ -16,14 +17,14 @@ export function ErrorHandler(errorMessage: string, returnValue?: any) {
                 if (result instanceof Promise) {
                     return result.catch(error => {
                         collectError(errorMessage, error);
-                        console.debug(color.yellow(`ErrorHandler: ${errorMessage}:`), error);
+                        console.debug(style(['yellow'], `ErrorHandler: ${errorMessage}:`), error);
                         return (returnValue !== undefined) ? returnValue : null;
                     });
                 }
                 return result;
             } catch (error) {
                 collectError(errorMessage, error as Error);
-                console.debug(color.yellow(`ErrorHandler: ${errorMessage}:`), error);
+                console.debug(style(['yellow'], `ErrorHandler: ${errorMessage}:`), error);
                 return (returnValue !== undefined) ? returnValue : null;
                 // MEMO: (!returnValue) 사용 X
                 // (!returnValue)는 오른쪽 값들을 true로 평가: undefined, null, false, 0, '', NaN
