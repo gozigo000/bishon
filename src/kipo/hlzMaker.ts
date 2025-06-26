@@ -56,7 +56,6 @@ export async function makeHlz(wordFile: File): Promise<HlzFileEtc> {
         // collectRefs({ 'Rpt_msgReport.json': msgReport });
 
         MsgCollector.$.logMsgs();
-        MsgCollector.$.clearMsgs();
 
         // 테스트 관련
         DataCollector.$.savePages(baseName);
@@ -82,5 +81,8 @@ export async function makeHlz(wordFile: File): Promise<HlzFileEtc> {
             diffReport: [],
             msgReport: MsgCollector.$.getMsgs(),
         };
+    } finally {
+        MsgCollector.$.clearMsgs();
+        DataCollector.$.clearAll();
     }
 };

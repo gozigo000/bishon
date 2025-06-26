@@ -10,14 +10,8 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
 # 테스트 파일
 test/**/*
-!test/**/*.ts
-!test/**/*.test.ts
-!test/**/*.ps1
 
 # 참고자료
 참고자료/**/*
@@ -35,9 +29,6 @@ test/**/*
 
 # debug
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
 .env*
