@@ -12,6 +12,7 @@ export default function FileUploader() {
     const handleFileSelect = async (file: File) => {
         setIsLoading(true);
         setReport(null);
+
         try {
             // 파일 업로드
             const formData = new FormData();
@@ -21,37 +22,25 @@ export default function FileUploader() {
                 body: formData,
             });
             if (!res.ok) {
-                throw new Error('- 변환 실패 -'); // TODO: 변환 실패 메시지 상세히 구현하기
+                throw new Error('- 서버 응답 실패 -');
             }
-            
-            const data: deliveryBox = await res.json();
-            // 결과 보고
-            setReport(data.report);
+
+            // 결과 수신
+            const { userDownloadFile, report } = await res.json();
             // 파일 다운로드
-            if (data.userDownloadFile) {
-                const byteChars = atob(data.userDownloadFile);
-                const byteNums = new Array(byteChars.length);
-                for (let i = 0; i < byteChars.length; i++) {
-                    byteNums[i] = byteChars.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNums);
-                const blob = new Blob([byteArray], { type: 'application/zip' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `짜잔-${getBaseName(file)}.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
+            if (userDownloadFile) {
+                downloadFile(userDownloadFile, getBaseName(file));
             }
+            // 리포트 보고
+            setReport(report);
 
         } catch (error) {
             setReport({
-                errorMsg: error instanceof Error ? error.message : '알 수 없는 오류',
+                errorMsg: (error as Error).message,
                 status: 'error',
                 generatedFiles: [],
                 countingReport: '',
-                inspectionReport: '',
+                magReport: '',
                 diffReport: '',
                 jpgImgs: '',
             });
@@ -74,4 +63,22 @@ export default function FileUploader() {
             )}
         </div>
     );
-} 
+}
+
+function downloadFile(userDownloadFile: string, fileName: string) {
+    const byteChars = atob(userDownloadFile);
+    const byteNums = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+        byteNums[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNums);
+    const blob = new Blob([byteArray], { type: 'application/zip' });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `짜잔-${fileName}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+}

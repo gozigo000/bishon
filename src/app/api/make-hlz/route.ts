@@ -10,39 +10,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const formData = await req.formData();
         const file = formData.get('file') as File;
         if (!file) {
-            return new NextResponse('No file uploaded', { status: 400 });
+            return new NextResponse('업로드된 파일이 없습니다', { status: 400 });
         }
 
         // 배송물품 생성
         const hlzFileEtc = await makeHlz(file);
-        if (!hlzFileEtc) {
-            return new NextResponse('HLZ 파일 생성 중 오류가 발생했습니다.', { status: 500 });
-        }
-        const [
-            hlzFile, 
-            countingReport, 
-            inspectionReport, 
-            diffReport, 
-            hImgs, 
-        ] = hlzFileEtc;
-       
-        if (!hlzFile) {
-             const report: FinalReport = {
-                status: 'fail' as const,
-                generatedFiles: [],
-                countingReport: JSON.stringify(countingReport),
-                inspectionReport: JSON.stringify(inspectionReport),
-                diffReport: '',
-                jpgImgs: '',
-            };
-            // 배송
-            const box: deliveryBox = { userDownloadFile: null, report };
-            return NextResponse.json(box);
-        }
+        const { hlzFile, hlzImgs, countingReport, msgReport, diffReport } = hlzFileEtc;
+        const finFile = hlzFile ? await makeFin(hlzFile) : null;
 
-        const finFile = await makeFin(hlzFile);
-        if (!finFile) {
-            return new NextResponse('FIN 파일 생성 중 오류가 발생했습니다.', { status: 500 });
+        if (!hlzFile || !finFile) {
+            // 배송
+            const box: deliveryBox = {
+                userDownloadFile: null,
+                report: {
+                    status: 'fail',
+                    generatedFiles: [],
+                    countingReport: '',
+                    magReport: JSON.stringify(msgReport),
+                    diffReport: '',
+                    jpgImgs: '',
+                }
+            };
+            return NextResponse.json(box);
         }
 
         const zip = new JSZip();
@@ -51,35 +40,41 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
         const userDownloadFile = zipBuffer.toString('base64');
 
-        const jpgImgsBase64: Record<string, string> = {};
-        for (const hImg of hImgs) {
+        const jpgImgs: Record<string, string> = {};
+        for (const hImg of hlzImgs) {
             const base64Str = Buffer.from(hImg.buffer).toString('base64');
-            jpgImgsBase64[hImg.name] = base64Str;
+            jpgImgs[hImg.name] = base64Str;
         }
 
-        const report: FinalReport = {
-            status: 'success' as const,
-            generatedFiles: [hlzFile.name, finFile.name],
-            countingReport: JSON.stringify(countingReport),
-            inspectionReport: JSON.stringify(inspectionReport),
-            diffReport: JSON.stringify(diffReport),
-            jpgImgs: JSON.stringify(jpgImgsBase64),
-        };
-
         // 배송
-        const box: deliveryBox = { userDownloadFile, report };
+        const box: deliveryBox = {
+            userDownloadFile,
+            report: {
+                status: 'success',
+                generatedFiles: [hlzFile.name, finFile.name],
+                countingReport: JSON.stringify(countingReport),
+                magReport: JSON.stringify(msgReport),
+                diffReport: JSON.stringify(diffReport),
+                jpgImgs: JSON.stringify(jpgImgs),
+            }
+        };
         return NextResponse.json(box);
 
     } catch (error) {
         console.error('make-hlz API 에러:', error);
-        return NextResponse.json({ 
-            error: '파일 변환 중 오류가 발생했습니다.',
+        // 배송
+        const box: deliveryBox = {
+            userDownloadFile: null,
             report: {
-                status: 'error' as const,
-                convertedFiles: [],
-                message: error instanceof Error ? error.message : '알 수 없는 오류'
+                errorMsg: (error as Error).message,
+                status: 'error',
+                generatedFiles: [],
+                countingReport: '',
+                magReport: '',
+                diffReport: '',
+                jpgImgs: '',
             }
-        }, { status: 500 });
+        };
+        return NextResponse.json(box);
     }
-
 } 

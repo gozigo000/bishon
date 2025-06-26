@@ -1,7 +1,6 @@
 import { DiffMatchPatch } from 'diff-match-patch-ts';
 import { getKipoParas } from './kipoParas';
 import { getHtmlParasForDiff } from './htmlParas';
-import { collectRefs } from '../0-utils/dataCollector';
 import { isProd } from '@/_utils/env';
 import { XDocument } from '../2-lightParser/1-node/node';
 
@@ -14,13 +13,7 @@ export async function generateDiffReport(kXmlStr: string | XDocument, word: File
     const newLines = getKipoParas(kXmlStr);
     const oldLines = await getHtmlParasForDiff(word);
 
-    const diffLines = generateDiffLines(newLines, oldLines);
-
-    collectRefs({
-        'Rpt_diffReport.json': diffLines,
-    });
-
-    return diffLines;
+    return generateDiffLines(newLines, oldLines);
 }
 
 export function generateDiffAfterInspection(kXmlAfter: string | XDocument, kXmlBefore: string | XDocument): DiffLine[] {
@@ -29,13 +22,7 @@ export function generateDiffAfterInspection(kXmlAfter: string | XDocument, kXmlB
     const newLines = getKipoParas(kXmlAfter);
     const oldLines = getKipoParas(kXmlBefore);
         
-    const diffLines = generateDiffLines(newLines, oldLines);
-
-    collectRefs({
-        'Rpt_diffAfterInspection.json': diffLines,
-    });
-
-    return diffLines;
+    return generateDiffLines(newLines, oldLines);
 }
 
 export function generateDiffLines(after: string[], before: string[]): DiffLine[] {

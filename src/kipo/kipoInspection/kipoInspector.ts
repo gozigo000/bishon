@@ -1,4 +1,3 @@
-import { collectRefs } from '../0-utils/dataCollector';
 import { XDocument, XElement, XProcessingInstruction } from '../2-lightParser/1-node/node';
 import { PartFlag as Flag } from '../0-data/kipoTitles';
 import { collectError } from '../0-utils/errorCollector';
@@ -46,12 +45,6 @@ export class KipoInspector {
             { kind: '청구항', cnt: this.claimNums.length, nums: this.claimNums },
             { kind: '도면', cnt: this.figNums.length, nums: this.figNums },
         ];
-
-        collectRefs({
-            'Xml_2차.xml': this.xDoc.outerXML,
-            // 'Rpt_inspectionReport.json': this.report.inspectionReport,
-            // 'Rpt_countingReport.json': this.counter.countingReport,
-        });
 
         return {
             xDoc: this.xDoc,

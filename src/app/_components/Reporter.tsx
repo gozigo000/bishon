@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Notice from "./Notice";
 import CountingReporter from "@/app/_components/CountingReporter";
-import InspectionReporter from "./InspectionReporter";
+import MsgReporter from "./MsgReporter";
 import DiffReporter from "@/app/_components/DiffReporter";
 
 interface ReporterProps {
@@ -26,9 +26,9 @@ export default function Reporter({ report }: ReporterProps) {
         catch { return []; }
     }, [report]);
 
-    const inspectionReport: InspectionReport = useMemo(() => {
-        if (!report.inspectionReport) return [];
-        try { return JSON.parse(report.inspectionReport); }
+    const msgReport: MsgReport = useMemo(() => {
+        if (!report.magReport) return [];
+        try { return JSON.parse(report.magReport); }
         catch { return []; }
     }, [report]);
 
@@ -79,8 +79,8 @@ export default function Reporter({ report }: ReporterProps) {
                     </ul>
                 </div>
                 <CountingReporter countingReport={countingReport} />
-                {inspectionReport.length > 0 && (
-                    <InspectionReporter inspectionReport={inspectionReport} />
+                {msgReport.length > 0 && (
+                    <MsgReporter msgReport={msgReport} />
                 )}
                 {diffReport.length > 0 && (
                     <DiffReporter diffReport={diffReport} imgBuffs={imgBuffs} />

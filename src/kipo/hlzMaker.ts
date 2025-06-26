@@ -1,7 +1,6 @@
 import JSZip from 'jszip';
 import { OoxmlConverter } from './ooxmlToHlz/OoxmlConverter';
-import { getMammothHtml, generateKipoFile } from './0-utils/utils';
-import { toArrayBuffer } from "@/_utils/dataType";
+import { generateKipoFile } from './0-utils/utils';
 import { KipoInspector } from './kipoInspection/kipoInspector';
 import { generateDiffAfterInspection, generateDiffReport } from './diff/paraDiff';
 import { getBaseName } from '@/_utils/file';
@@ -11,54 +10,51 @@ import { convertToHtml } from './wordParcer/entry';
 import { openFile } from './1-zip/zipFile';
 import { parseXml } from './2-lightParser/entry';
 
-export async function makeHlz(wordFile: File)
-: Promise<[
-    File | null,
-    CountingReport,
-    InspectionReport,
-    DiffReport,
-    Img[],
-] | null> {
-    try {
-        log('=== hlz 생성 시작 ===');
+type HlzFileEtc = {
+    hlzFile: File | null,
+    hlzImgs: Img[],
+    countingReport: CountingReport,
+    diffReport: DiffReport,
+    msgReport: MsgReport,
+}
 
+export async function makeHlz(wordFile: File): Promise<HlzFileEtc> {
+    try {
         const docxFile = await openFile({ file: wordFile });
 
-        const docxHtml = await convertToHtml(docxFile, {
-            ignoreEmptyParagraphs: false,
-        });
+        const docxHtml = await convertToHtml(docxFile);
+        collectRefs({ 'HTML_document.html': docxHtml });
 
         // document.xml 파일 찾기
         const ooxml = await docxFile.readFile('word/document.xml', 'text');
-        collectRefs({
-            'Xml_document.xml': ooxml,
-        });
+        collectRefs({ 'Xml_document.xml': ooxml });
 
         // hlz 구성물 생성
-        const { hlzXml, hImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
+        const { hlzXml, hlzImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
+        collectRefs({ 'Xml_1차.xml': hlzXml });
 
         const hlzDom = parseXml(hlzXml);
         const { xDoc: hlzDom2, countingReport } = KipoInspector.generateReport(hlzDom);
-        generateDiffAfterInspection(hlzDom2, hlzDom);
+        collectRefs({ 'Xml_2차.xml': hlzDom2.outerXML });
+        // collectRefs({ 'Rpt_countingReport.json': countingReport });
+
+        const diffAfterInsp = generateDiffAfterInspection(hlzDom2, hlzDom);
+        collectRefs({ 'Rpt_diffAfterInspection.json': diffAfterInsp });
 
         // hlz 생성
         const hlzZip = new JSZip();
         const baseName = getBaseName(wordFile);
         hlzZip.file(`${baseName}.xml`, hlzDom2.outerXML);
-        hImgs.forEach(hImg => hlzZip.file(hImg.name, hImg.buffer));
+        hlzImgs.forEach(hImg => hlzZip.file(hImg.name, hImg.buffer));
         const hlzFile = await generateKipoFile(`${baseName}.hlz`, hlzZip);
+        collectFile({ [`${baseName}.hlz`]: hlzFile });
 
-        collectFile({
-            [`${baseName}.hlz`]: hlzFile,
-        });
+        const diffReport = await generateDiffReport(hlzDom2, wordFile);
+        collectRefs({ 'Rpt_diffReport.json': diffReport });
+        
+        const msgReport = MsgCollector.$.getMsgs();
+        // collectRefs({ 'Rpt_msgReport.json': msgReport });
 
-        log(`=== hlz 생성 완료 ===`);
-
-        const wordArrBuff = await toArrayBuffer(wordFile);
-        const html = await getMammothHtml(wordArrBuff);
-        const diffReport = await generateDiffReport(hlzDom2, html);
-
-        const inspectionReport = MsgCollector.$.getMsgs();
         MsgCollector.$.logMsgs();
         MsgCollector.$.clearMsgs();
 
@@ -68,16 +64,23 @@ export async function makeHlz(wordFile: File)
         DataCollector.$.saveFiles(baseName);
         DataCollector.$.saveLatex(baseName);
 
-        return [
+        return {
             hlzFile,
+            hlzImgs,
             countingReport,
-            inspectionReport,
             diffReport,
-            hImgs,
-        ];
+            msgReport,
+        };
 
     } catch (error) {
+        console.debug('error', error);
         collectError('Hlz 파일 생성 중 오류 발생', error as Error);
-        return null;
+        return {
+            hlzFile: null,
+            hlzImgs: [],
+            countingReport: [],
+            diffReport: [],
+            msgReport: MsgCollector.$.getMsgs(),
+        };
     }
 };

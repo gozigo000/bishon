@@ -43,7 +43,7 @@ export default function Notice({ status }: ReporterProps) {
                     flex items-center justify-center pointer-events-none
                     text-red-500/20 text-[20vw] font-bold select-none"
                 >
-                    Rejected
+                    Failed
                 </div>
             )}
         </div>

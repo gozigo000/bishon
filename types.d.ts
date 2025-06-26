@@ -8,14 +8,13 @@ declare type Ooxml = string; // 나중에 Ooxml | OXml 중에 하나로 정하�
 declare type deliveryBox = {
     userDownloadFile: string | null;
     report: FinalReport;
-    images?: Record<string, string>;
 };
 
 declare type FinalReport = {
     status: 'success' | 'fail' | 'error';
     generatedFiles: string[];
     countingReport: string;
-    inspectionReport: string;
+    magReport: string;
     diffReport: string;
     jpgImgs?: string;
     errorMsg?: string;
@@ -28,7 +27,7 @@ declare type CountInfo = {
     nums: string[]
 };
 
-declare type InspectionReport = MsgInfo[];
+declare type MsgReport = MsgInfo[];
 declare type MsgInfo = {
     kind: 'ERROR' | 'WARNING' | 'INFO';
     timestamp: Date;

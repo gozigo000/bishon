@@ -1,4 +1,5 @@
 import { DocNode, DocParagraph } from "../4-docNode/docNodes";
+import { collectInfo } from "@/kipo/0-utils/errorCollector";
 
 export interface MatcherOptions {
     styleId?: string;
@@ -27,7 +28,7 @@ export class Matcher {
     matches(element: DocNode): boolean {
         function isListElement(element: DocParagraph, levelIndex: number, isOrdered: boolean): boolean {
             if (element.numbering) {
-                console.debug(`체크 - element.numbering: ${element.numbering}`);
+                collectInfo(`체크 - element.numbering: ${element.numbering}`);
             }
             return Number(element.numbering?.level) === levelIndex &&
                 element.numbering?.isOrdered === isOrdered;
