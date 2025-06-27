@@ -4,7 +4,7 @@ import { isString } from '../0-utils/typeCheck';
 
 /**
  * 전역 메시지 수집 클래스
- * @note 싱글톤 패턴으로 구현
+ * @note 싱글톤 패턴
  */
 export class MsgCollector {
     private static instance: MsgCollector;
@@ -47,7 +47,7 @@ export class MsgCollector {
     }
     
     /** 수집한 메시지를 콘솔에 출력 */
-    @OnDevTest()
+    @OnDevTest
     public logMsgs(): void {
         console.log(this.formatMsgs());
     }

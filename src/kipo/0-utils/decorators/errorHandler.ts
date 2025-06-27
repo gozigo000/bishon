@@ -7,10 +7,10 @@ import { styleText as style } from "util";
  * @param returnValue 에러 발생 시 반환할 기본값 (생략 시 원본 메서드의 반환 타입에 맞는 기본값 사용)
  */
 export function ErrorHandler(errorMessage: string, returnValue?: any) {
-    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-        const originalMethod = descriptor.value;
+    return function (target: any, propKey: string, desc: PropertyDescriptor) {
+        const originalMethod = desc.value;
 
-        descriptor.value = function (...args: any[]) {
+        desc.value = function (...args: any[]) {
             try {
                 const result = originalMethod.apply(this, args);
                 // Promise인 경우 await 처리
@@ -33,6 +33,6 @@ export function ErrorHandler(errorMessage: string, returnValue?: any) {
             }
         };
 
-        return descriptor;
+        return desc;
     };
 }
