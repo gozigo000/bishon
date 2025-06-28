@@ -30,12 +30,12 @@ export function inspect_numbering(elems: XElement[]): string[] {
         // 번호 형식 검사
         if (!/^\d{1,3}[a-z]?$/.test(num)) {
             collectError(
-                `${title} 번호는 '숫자(최대 3자리) + 알파벳 소문자(최대 1자)'만 가능합니다: ${currTitle}`
+                `${title} 번호는 '숫자(최대 3자리) + 알파벳 소문자(최대 1자)'만 가능: ${currTitle}`
             )
         }
         // 번호 중복 검사
         if (numSet.has(num)) {
-            collectError(`${title} 번호가 중복 사용되었습니다: ${currTitle}`)
+            collectError(`${title} 번호가 중복 사용됨: ${currTitle}`)
         }
         numSet.add(num);
 
@@ -49,32 +49,32 @@ export function inspect_numbering(elems: XElement[]): string[] {
             if (alpha === '' || prevAlpha === '') {
                 // 같은 숫자인데 알파벳이 없는 경우 (예: 5 -> 5, 6a -> 6, 7 -> 7a)
                 collectError(
-                    `숫자가 같은 ${title} 번호는 알파벳을 순차적으로 부여해야 합니다: ${prevTitle}, ${currTitle}`
+                    `숫자가 같은 ${title} 번호는 알파벳을 순차적으로 부여해야 함: ${prevTitle}, ${currTitle}`
                 )
             }
             else if (alpha.charCodeAt(0) !== 1 + prevAlpha.charCodeAt(0)) {
                 // 같은 숫자인데 알파벳 순서가 맞지 않는 경우 (예: 5a -> 5c)
                 collectError(
-                    `숫자가 같은 ${title} 번호는 알파벳을 순차적으로 부여해야 합니다: ${prevTitle}, ${currTitle}`
+                    `숫자가 같은 ${title} 번호는 알파벳을 순차적으로 부여해야 함: ${prevTitle}, ${currTitle}`
                 )
             }
         }
         else if (digit !== 1 + prevDigit && prevDigit > 0) {
             // 숫자가 1씩 증가하지 않는 경우 (예: 5/5a -> 4/4a, 5/5a -> 7/7a)
             collectError(
-                `${title} 번호는 순차적으로 증가(1, 2, 3, ...)해야 합니다: ${prevTitle}, ${currTitle}`
+                `${title} 번호는 순차적으로 증가(1, 2, 3, ...)해야 함: ${prevTitle}, ${currTitle}`
             )
         }
         else if (prevNum === '-' && num !== '1' && num !== '1a') {
             // 첫번째 번호가 '1' 또는 '1a'가 아닌 경우 (예: 2, 1b)
             collectError(
-                `${title} 번호는 '1' 또는 '1a'로 시작해야 합니다: ${currTitle}`
+                `${title} 번호는 '1' 또는 '1a'로 시작해야 함: ${currTitle}`
             )
         }
         else {
             // 그 외의 경우 - HACK: 여기에 걸리는 경우가 있는지 체크
             collectWarning(
-                `${title} 번호에 오류가 있는 것 같습니다: ${currTitle}`
+                `${title} 번호에 오류가 있을 수 있음: ${currTitle}`
             )
         }
         prevNum = num;
@@ -96,16 +96,16 @@ export function inspect_claimNumbering(eachClaims: XElement[]): string[] {
     for (const num of nums) {
         // 숫자만 사용 가능
         if (!/^\d+$/.test(num)) {
-            collectError(`청구항 번호는 숫자만 사용할 수 있습니다: [청구항 ${num}]`)
+            collectError(`청구항 번호는 숫자만 사용할 수 있음: [청구항 ${num}]`)
         }
         // 중복 검사
         if (numSet.has(num)) {
-            collectError(`청구항 번호가 중복됩니다: [청구항 ${num}]`)
+            collectError(`청구항 번호가 중복됨: [청구항 ${num}]`)
         }
         // 1씩 증가 검사
         if (Number(num) !== prevNum + 1) {
             collectError(
-                `청구항 번호를 순차적으로(1, 2, 3, ...) 부여해야 합니다: [청구항 ${prevNum}], [청구항 ${num}]`
+                `청구항 번호를 순차적으로(1, 2, 3, ...) 부여해야 함: [청구항 ${prevNum}], [청구항 ${num}]`
             )
         }
         numSet.add(num);

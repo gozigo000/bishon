@@ -90,7 +90,7 @@ export abstract class XNodeBase {
     }
 
     /** 태그명이 일치하는 모든 '후손' 노드 배열 */
-    getAllElemsByTag(tagName: string): XElement[] {
+    getElemsByTag(tagName: string): XElement[] {
         tagName = tagName.replace(/^<|>$/g, '');
         return findAll(this as XNode, node => isXElem(node) && node.tagName === tagName, true) as XElement[];
     }
@@ -257,7 +257,7 @@ export abstract class XNodeWithData extends XNodeBase {
     override getChildNodeAt(_: number): XNode | null { return null; }
     override hasElem(_: string): boolean { return false; }
     override getElemByTag(_: string): XElement | null { return null; }
-    override getAllElemsByTag(_: string): XElement[] { return []; }
+    override getElemsByTag(_: string): XElement[] { return []; }
     override getChildElemByTag(_: string): XElement | null { return null; }
     override getChildElemsByTag(_: string): XElement[] { return []; }
     override getNodesByType(_: XNodeType): XNode[] { return []; }

@@ -3,7 +3,7 @@ import { collectError, collectWarning } from "../0-utils/errorCollector";
 
 export function inspect_paragraph(paragraph: XElement) {
     if (/^\s*$/.test(paragraph.innerXML)) {
-        collectWarning(`공백이 있는 <p> 태그가 존재합니다: ${paragraph.outerXML}`);
+        collectWarning(`공백이 있는 <p> 태그가 있음: ${paragraph.outerXML}`);
     };
     // HACK: 추가 검사 필요하면 추가하기
 }
@@ -11,16 +11,16 @@ export function inspect_paragraph(paragraph: XElement) {
 export function inspect_table(tablesTag: XElement) {
     const tNum = tablesTag.getAttrValue('num')!;
 
-    const img = tablesTag.getAllElemsByTag('<img>');
+    const img = tablesTag.getElemsByTag('<img>');
     if (img.length > 1) {
-        collectError(`표에 복수의 이미지가 있습니다: [표 ${tNum}]`);
+        collectError(`표에 복수의 이미지가 있음: [표 ${tNum}]`);
         // TODO: 복수의 이미지가 있거나, 텍스트가 있는 경우 
         // 제목을 【】에서 [] 형식으로 변경해주기
     };
 
-    const tbl = tablesTag.getAllElemsByTag('<table>');
+    const tbl = tablesTag.getElemsByTag('<table>');
     if (tbl.length > 1) {
-        collectError(`표에 복수의 테이블이 있습니다: [표 ${tNum}]`);
+        collectError(`표에 복수의 테이블이 있음: [표 ${tNum}]`);
     };
     // if (tablesTag.hasElem('<title>')) {
     //     // TODO: 표 제목 처리 - 임시로 표 제목은 제거함
@@ -28,19 +28,19 @@ export function inspect_table(tablesTag: XElement) {
     // }
 
     if (img.length === 0 && tbl.length === 0) {
-        collectError(`표에 내용이 없습니다: [표 ${tNum}]`);
+        collectError(`표에 내용이 없음: [표 ${tNum}]`);
     }
 }
 
 export function inspect_math(mathsTag: XElement) {
     const eNum = mathsTag.getAttrValue('num')!;
 
-    const img = mathsTag.getAllElemsByTag('<img>');
+    const img = mathsTag.getElemsByTag('<img>');
     if (img.length === 0) {
-        collectError(`[수학식]에 수학식 이미지가 없습니다: [수학식 ${eNum}]`);
+        collectError(`[수학식]에 수학식 이미지가 없음: [수학식 ${eNum}]`);
     }
     if (img.length > 1) {
-        collectError(`[수학식]에 복수의 수학식 이미지가 있습니다: [수학식 ${eNum}]`);
+        collectError(`[수학식]에 복수의 수학식 이미지가 있음: [수학식 ${eNum}]`);
         // TODO: 복수의 수학식 이미지가 있거나, 텍스트가 있는 경우 
         // 제목을 【】에서 [] 형식으로 변경해주기
     };
@@ -50,7 +50,7 @@ export function inspect_img(imgs: XElement[]) {
     for (const img of imgs) {
         if (!/<img id="(\w+)" he="(\d+)" wi="(\d+)" file="pat(\d{5})\.(\w+)" img-format="(\w+)" \/>/
             .test(img.outerXML)) {
-            collectError(`이미지 태그 형식이 잘못되었습니다: XML:${img.outerXML}`);
+            collectError(`이미지 태그 형식이 잘못됨: XML:${img.outerXML}`);
         }
 
         const id = img.getAttrValue('id')!;

@@ -18,10 +18,9 @@ export function makeLatexFromOmml(omml: string): string | null {
         
         // oMathPara 처리
         const oMathPara = root.getElemByTag('m:oMathPara');
-
         if (oMathPara) {
             const latexStrs: string[] = [];
-            for (const oMath of oMathPara.getAllElemsByTag('m:oMath')) {
+            for (const oMath of oMathPara.getElemsByTag('m:oMath')) {
                 const latexStr = convertMoMath(oMath);
                 if (!latexStr) continue;
                 latexStrs.push(latexStr);

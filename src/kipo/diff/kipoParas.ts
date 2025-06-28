@@ -116,7 +116,7 @@ export function getKipoParas(kXml: string | XDocument): string[] {
         paras.push('【도면】');
         for (const figure of xDoc.getKipoElems('<도>')) {
             paras.push(`【도 ${figure.getAttrValue('num')}】`);
-            for (const img of figure.getAllElemsByTag('<img>')) {
+            for (const img of figure.getElemsByTag('<img>')) {
                 paras.push(img.outerXML);
             }
         }
@@ -135,14 +135,14 @@ function processParas(kTitleNode: XNode[]): string[] {
         }
         else if (tag === 'maths') {
             paras.push(`【수학식 ${node.getAttrValue('num')}】`);
-            const imgs = node.getAllElemsByTag('<img>');
+            const imgs = node.getElemsByTag('<img>');
             for (const img of imgs) {
                 paras.push(img.outerXML);
             }
         }
         else if (tag === 'tables') {
             paras.push(`【표 ${node.getAttrValue('num')}】`);
-            const cells = node.getAllElemsByTag('<entry>');
+            const cells = node.getElemsByTag('<entry>');
             // TODO: 페이지 카운트 위한 표 내용 처리 필요
             for (const cell of cells) {
                 const cellParas = cell.innerXML

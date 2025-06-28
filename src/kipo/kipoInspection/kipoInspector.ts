@@ -65,40 +65,40 @@ export class KipoInspector {
 
         const docType = root.getNodeByType(XNodeType.Directive);
         if (!docType) {
-            collectError(`문서 타입이 지정되지 않았습니다: <? ... ?>`);
+            collectError(`문서 타입이 지정되지 않음: <? ... ?>`);
             root.prependChild(new XProcessingInstruction('?xml', '?xml version="1.0" encoding="utf-8"?'));
         }
 
         const KIPO = root.getElemByTag('<KIPO>');
-        if (!KIPO) collectError('<KIPO> 태그가 없습니다');
+        if (!KIPO) collectError('<KIPO> 태그가 없음');
 
         const PatentCAFDOC = root.getElemByTag('<PatentCAFDOC>');
-        if (!PatentCAFDOC) collectError('<PatentCAFDOC> 태그가 없습니다');
+        if (!PatentCAFDOC) collectError('<PatentCAFDOC> 태그가 없음');
 
         // 발명의설명
-        const description = root.getElemByTag('<description>');
+        const description = root.getKipoElem('<발명의설명>');
         if (description) this.partFlags |= Flag.발명의설명;
         // TODO: [발명의설명] 제목 안적었을 때 처리 작성하기
 
-        const invTitle = root.getElemByTag('<invention-title>');
+        const invTitle = root.getKipoElem('<발명의명칭>');
         if (invTitle) {
             this.partFlags |= Flag.발명의명칭;
             inspect_invenTitle(invTitle);
         }
 
-        const techField = root.getElemByTag('<technical-field>');
+        const techField = root.getKipoElem('<기술분야>');
         if (techField) {
             this.partFlags |= Flag.기술분야;
             // TODO: 문단 검사
         }
 
-        const backgArt = root.getElemByTag('<background-art>');
+        const backgArt = root.getKipoElem('<배경기술>');
         if (backgArt) {
             this.partFlags |= Flag.배경기술;
             // TODO: 문단 검사
         }
 
-        const citationList = root.getElemByTag('<citation-list>');
+        const citationList = root.getKipoElem('<선행기술문헌>');
         if (citationList) {
             this.partFlags |= Flag.선행기술문헌;
             this.inspect_citations(citationList, root);
@@ -106,31 +106,31 @@ export class KipoInspector {
 
         /* 여기까지 테스트 코드 만들다가 멈춤 */
 
-        const invSummary = root.getElemByTag('<summary-of-invention>');
+        const invSummary = root.getKipoElem('<발명의내용>');
         if (invSummary) {
             this.partFlags |= Flag.발명의내용;
             this.inspect_invenSummary(invSummary, root);
         }
 
-        const briefDrawings = root.getElemByTag('<description-of-drawings>');
+        const briefDrawings = root.getKipoElem('<도간설>');
         if (briefDrawings) {
             this.partFlags |= Flag.도간설;
             // TODO: 문단 검사
         }
 
-        const embodiments = root.getElemByTag('<description-of-embodiments>');
+        const embodiments = root.getKipoElem('<발실구내>');
         if (embodiments) {
             this.partFlags |= Flag.발실구내;
             inspect_embodiments(embodiments, root);
         }
 
-        const refSigns = root.getElemByTag('<reference-signs-list>');
+        const refSigns = root.getKipoElem('<부호의설명>');
         if (refSigns) {
             this.partFlags |= Flag.부호의설명;
             inspect_refSigns(refSigns, root);
         }
 
-        const maths = root.getAllElemsByTag('<maths>');
+        const maths = root.getKipoElems('<수학식>');
         if (maths.length > 0) {
             this.partFlags |= Flag.수학식;
             this.mathNums = inspect_numbering(maths);
@@ -139,7 +139,7 @@ export class KipoInspector {
             }
         }
 
-        const tables = root.getAllElemsByTag('<tables>');
+        const tables = root.getKipoElems('<표>');
         if (tables.length > 0) {
             this.partFlags |= Flag.표;
             this.tableNums = inspect_numbering(tables);
@@ -149,13 +149,13 @@ export class KipoInspector {
         }
 
         // 청구범위
-        const claims = root.getElemByTag('<claims>');
+        const claims = root.getKipoElem('<청구범위>');
         if (claims) {
             this.partFlags |= Flag.청구범위;
             inspect_claims(claims, root);
         }
 
-        const eachClaims = root.getAllElemsByTag('<claim>');
+        const eachClaims = root.getKipoElems('<청구항>');
         if (eachClaims.length > 0) {
             this.partFlags |= Flag.청구항;
             this.claimNums = inspect_claimNumbering(eachClaims);
@@ -165,27 +165,27 @@ export class KipoInspector {
         }
 
         // 도면
-        const drawings = root.getElemByTag('<drawings>');
+        const drawings = root.getKipoElem('<도면>');
         if (drawings) {
             this.partFlags |= Flag.도면;
             inspect_drawings(drawings, root);
         }
 
-        const figs = root.getAllElemsByTag('<figure>');
+        const figs = root.getKipoElems('<도>');
         if (figs.length > 0) {
             this.partFlags |= Flag.도;
             this.figNums = inspect_numbering(figs);
         }
 
         // 요약서 - 도면 번호 체크 위해서 도면 검사 이후에 검사
-        const abstract = root.getElemByTag('<abstract>');
+        const abstract = root.getKipoElem('<요약서>');
         if (abstract) {
             this.partFlags |= Flag.요약서;
             this.inspect_abstract(abstract, root);
         }
 
         // 이미지
-        const imgs = root.getAllElemsByTag('<img>');
+        const imgs = root.getElemsByTag('<img>');
         if (imgs.length > 0) {
             inspect_img(imgs);
         }
@@ -196,19 +196,19 @@ export class KipoInspector {
     }
 
     private inspect_citations(citations: XElement, root: XDocument) {
-        const patLiterature = root.getElemByTag('<patent-literature>');
-        const nonPatLiterature = root.getElemByTag('<non-patent-literature>');
+        const patLiterature = root.getKipoElem('<특허문헌>');
+        const nonPatLiterature = root.getKipoElem('<비특허문헌>');
         if (!patLiterature && !nonPatLiterature) {
             removeNode(citations);
             this.partFlags &= ~Flag.선행기술문헌;
             return;
         }
 
-        const patcits = root.getAllElemsByTag('<patcit>');
+        const patcits = root.getKipoElems('<특허목록>');
         if (patLiterature && patcits.length === 0) {
             removeNode(patLiterature);
         }
-        const nplcits = root.getAllElemsByTag('<nplcit>');
+        const nplcits = root.getKipoElems('<비특허목록>');
         if (nonPatLiterature && nplcits.length === 0) {
             removeNode(nonPatLiterature);
         }
@@ -219,11 +219,11 @@ export class KipoInspector {
     }
 
     private inspect_invenSummary(invSummary: XElement, root: XDocument) {
-        const problem = root.getElemByTag('<tech-problem>');
+        const problem = root.getKipoElem('<과제>');
         if (problem) this.partFlags |= Flag.과제;
-        const solution = root.getElemByTag('<tech-solution>');
+        const solution = root.getKipoElem('<수단>');
         if (solution) this.partFlags |= Flag.수단;
-        const effects = root.getElemByTag('<advantageous-effects>');
+        const effects = root.getKipoElem('<효과>');
         if (effects) this.partFlags |= Flag.효과;
 
         if (problem && solution && effects) {
@@ -241,22 +241,22 @@ export class KipoInspector {
     }
 
     private inspect_abstract(abstract: XElement, root: XDocument) {
-        const summary = root.getElemByTag('<summary>');
+        const summary = root.getKipoElem('<요약>');
         if (summary) this.partFlags |= Flag.요약;
-        else collectError(`요약서에 [요약]이 없습니다`);
+        else collectError(`요약서에 [요약]이 없음`);
 
-        const absFig = root.getElemByTag('<abstract-figure>');
+        const absFig = root.getKipoElem('<대표도>');
         if (absFig) this.partFlags |= Flag.대표도;
 
         if (!absFig && this.figNums.length > 0) {
-            collectError(`[도면]을 작성한 경우 [요약서]에 [대표도]를 기재해야 합니다`);
+            collectError(`[도면]을 작성한 경우 [요약서]에 [대표도]를 기재해야 함`);
         }
 
         if (absFig && this.figNums.length > 0) {
             const ref = root.getElemByTag('<figref>')!;
             const refNum = ref.getAttrValue('num')!;
             if (!this.figNums.includes(refNum)) {
-                collectError(`[대표도]의 도면 번호(도 ${refNum})에 대응하는 [도면]이 없습니다`);
+                collectError(`[대표도]의 도면 번호(도 ${refNum})에 대응하는 [도면]이 없음`);
             }
         }
 
@@ -291,9 +291,9 @@ function inspect_refSigns(refSigns: XElement, root: XDocument) {
 }
 
 function inspect_claims(claimsTag: XElement, root: XDocument) {
-    const eachClaims = root.getAllElemsByTag('<claim>');
+    const eachClaims = root.getKipoElems('<청구항>');
     if (eachClaims.length === 0) {
-        collectError(`[청구범위]에 [청구항]이 없습니다`);
+        collectError(`[청구범위]에 [청구항]이 없음`);
         removeNode(claimsTag);
     }
 }
@@ -304,32 +304,32 @@ function inspect_eachClaims(claim: XElement) {
 
     if (/^\s*삭\s*제[\.\,\s]*$/.test(cText)) {
         collectError(
-            `청구항을 삭제하려면 해당 청구항 자체를 목차에서 삭제하세요: [청구항 ${cNum}] -> 전부 삭제`
+            `청구항을 삭제하는 경우 해당 청구항 자체를 목차에서 삭제: [청구항 ${cNum}] -> 전부 삭제`
         );
     }
     if (
         // TODO: 화학식/반응식 검사 추가
-        claim.getAllElemsByTag('<tables>').length > 0 ||
-        claim.getAllElemsByTag('<maths>').length > 0 ||
+        claim.getKipoElems('<표>').length > 0 ||
+        claim.getKipoElems('<수학식>').length > 0 ||
         /\[(표|수학식|화학식|반응식) ?\w+?\]/.test(cText)
     ) {
         collectError(
-            `청구항에는 [표], [수학식], [화학식], [반응식]을 삽입할 수 없습니다: [청구항 ${cNum}]`
+            `청구항에는 [표], [수학식], [화학식], [반응식]을 삽입할 수 없음: [청구항 ${cNum}]`
         );
     }
 }
 
 function inspect_drawings(drawings: XElement, root: XDocument) {
-    const figs = root.getAllElemsByTag('<figure>');
+    const figs = root.getKipoElems('<도>');
     for (const fig of figs) {
         const fNum = fig.getAttrValue('num')!;
-        const imgs = fig.getAllElemsByTag('<img>');
+        const imgs = fig.getElemsByTag('<img>');
 
         if (imgs.length === 0) {
-            collectError(`도면에 이미지가 없습니다: [도 ${fNum}]`);
+            collectError(`도면에 이미지가 없음: [도 ${fNum}]`);
         }
         if (imgs.length > 1) {
-            collectError(`하나의 도면에 복수의 이미지가 있습니다: [도 ${fNum}]`);
+            collectError(`하나의 도면에 복수의 이미지가 있음: [도 ${fNum}]`);
         }
         // TODO: 이미지 외 내용 삭제
     }
@@ -355,21 +355,21 @@ function inspect_mustHaveTitles(partFlags: Flag) {
     const has = partFlags;
     const hasNo = ~partFlags;
     // if ((hasNo & MUST_HAVE_PARTS) === 0) return;
-    if (hasNo & Flag.발명의설명) collectError('필수 목차가 없습니다: [발명의 설명]');
-    if (hasNo & Flag.발명의명칭) collectError('필수 목차가 없습니다: [발명의 명칭]');
-    if (hasNo & Flag.기술분야) collectError('필수 목차가 없습니다: [기술분야]');
-    if (hasNo & Flag.배경기술) collectError('필수 목차가 없습니다: [배경기술]');
-    if (hasNo & Flag.발명의내용) collectError('필수 목차가 없습니다: [발명의 내용]');
-    if (hasNo & Flag.발실구내) collectError('필수 목차가 없습니다: [발명을 실시하기 위한 구체적인 내용]');
-    if (hasNo & Flag.요약서) collectError('필수 목차가 없습니다: [요약서]');
+    if (hasNo & Flag.발명의설명) collectError('필수 목차가 없음: [발명의 설명]');
+    if (hasNo & Flag.발명의명칭) collectError('필수 목차가 없음: [발명의 명칭]');
+    if (hasNo & Flag.기술분야) collectError('필수 목차가 없음: [기술분야]');
+    if (hasNo & Flag.배경기술) collectError('필수 목차가 없음: [배경기술]');
+    if (hasNo & Flag.발명의내용) collectError('필수 목차가 없음: [발명의 내용]');
+    if (hasNo & Flag.발실구내) collectError('필수 목차가 없음: [발명을 실시하기 위한 구체적인 내용]');
+    if (hasNo & Flag.요약서) collectError('필수 목차가 없음: [요약서]');
 
     // if (has & Flag.도면 && this.figNums.length > 0 && hasNo & Flag.도간설) {
-    //     collectError('[도면]을 작성한 경우 [도면의 간단한 설명]을 작성해야 합니다');
+    //     collectError('[도면]을 작성한 경우 [도면의 간단한 설명]을 작성해야 함');
     // }
 
-    if (has & Flag.청구범위 && hasNo & Flag.청구항) collectError('[청구범위]에 [청구항]을 작성해야 합니다');
-    if (has & Flag.요약서 && hasNo & Flag.요약) collectError('[요약서]에 [요약]을 작성해야 합니다');
-    if (has & Flag.도면 && hasNo & Flag.도) collectError('[도면]에 [도]를 작성해야 합니다');
+    if (has & Flag.청구범위 && hasNo & Flag.청구항) collectError('[청구범위]에 [청구항]을 작성해야 함');
+    if (has & Flag.요약서 && hasNo & Flag.요약) collectError('[요약서]에 [요약]을 작성해야 함');
+    if (has & Flag.도면 && hasNo & Flag.도) collectError('[도면]에 [도]를 작성해야 함');
 
     // 포함하면 안되는 식별항목
     // [의견서] -> [표 #] X

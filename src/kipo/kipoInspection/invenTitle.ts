@@ -32,12 +32,12 @@ export function inspect_invenTitle(invTitle: XElement) {
         return;
     }
 
-    const krTitle = match[1].
-        replace(/[^a-zA-Z0-9가-힣 ~!@#$%^*\*\(\)-_=+,./?:;'’\\|]/g, '').
-        replace(/\s+/g, ' ').trim();
-    const enTitle = match[2].
-        replace(/[^a-zA-Z0-9 ~!@#$%^*\*\(\)-_=+,./?:;'’\\|]/g, '').
-        replace(/\s+/g, ' ').trim();
+    const krTitle = match[1]
+        .replace(/[^a-zA-Z0-9가-힣 ~!@#$%^*\*\(\)-_=+,./?:;'’\\|]/g, '')
+        .trim();
+    const enTitle = match[2]
+        .replace(/[^a-zA-Z0-9 ~!@#$%^*\*\(\)-_=+,./?:;'’\\|]/g, '')
+        .trim();
     if (!/[가-힣]+/.test(krTitle)) collectError(`발명의 명칭에 한글 명칭이 없습니다: ${title}`);
     if (!/[a-zA-Z]+/.test(enTitle)) collectError(`발명의 명칭에 영문 명칭이 없습니다: ${title}`);
     if (krTitle.length > 270) collectError(`발명의 한글 명칭이 270자를 초과합니다: ${krTitle.length}자`);

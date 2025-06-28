@@ -16,7 +16,7 @@ export async function getHtmlParasForDiff(input: FileOrBuffer | Html): Promise<s
         collectRefs({ 'Html_심플맘모스_Diff용.html': html });
         
         const dom = parseXml(html);
-        const pTags = dom.getAllElemsByTag('<p>');
+        const pTags = dom.getElemsByTag('<p>');
         removeSubsets(pTags);
         const paras = pTags.map(e => e.innerXML);
 
