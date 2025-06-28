@@ -3,7 +3,7 @@ import { writeHtml } from "./convert-to-html";
 
 export interface HtmlWriter {
     openTag: (tagName: string, attributes: Record<string, string>) => void;
-    closeTag: (tagName: string) => void;
+    closeTag: () => void;
     selfCloseTag: (tagName: string, attributes: Record<string, string>) => void;
     writeText: (text: string) => void;
     writeHtml: (nodes: AstNode[]) => this;
@@ -19,11 +19,13 @@ class SimpleWriter implements HtmlWriter {
     private htmlSeg: string = '';
     private htmlSegs: string[] = [];
     private isInTable: number = 0;
+    private openTagStack: string[] = [];
 
     public openTag(tagName: string, attributes: Record<string, string>): void {
         const attrs = this.makeAttrsStr(attributes);
         this.htmlSeg += `<${tagName}${attrs}>`;
         if (tagName === 'table') this.isInTable++;
+        this.openTagStack.push(tagName);
     }
 
     public writeText(text: string): void {
@@ -34,7 +36,10 @@ class SimpleWriter implements HtmlWriter {
         'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
     ]);
 
-    public closeTag(tagName: string): void {
+    public closeTag(): void {
+        const tagName = this.openTagStack.pop();
+        if (!tagName) return;
+
         this.htmlSeg += `</${tagName}>`;
         if (tagName === 'table') this.isInTable--;
 
@@ -47,6 +52,12 @@ class SimpleWriter implements HtmlWriter {
     }
 
     public selfCloseTag(tagName: string, attributes: Record<string, string>): void {
+        if (tagName === 'br') {
+            // br 태그로 구분된 문장은 서로 다른 문단으로 처리
+            this.closeTag();
+            this.openTag('p', {});
+            return;
+        }
         const attrsStr = this.makeAttrsStr(attributes);
         const tag = `<${tagName}${attrsStr} />`;
         this.htmlSeg += tag;
@@ -94,13 +105,15 @@ class PrettyWriter implements HtmlWriter {
         this.start = false;
     }
 
-    public closeTag(tagName: string): void {
+    public closeTag(): void {
+        const tagName = this.stack.pop();
+        if (!tagName) return;
+
         if (indentElems.has(tagName)) {
             this.indentLevel--;
             this.addIndent();
         }
-        this.stack.pop();
-        this.writer.closeTag(tagName);
+        this.writer.closeTag();
     }
 
     public writeText(text: string): void {

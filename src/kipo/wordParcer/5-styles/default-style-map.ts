@@ -13,7 +13,7 @@ export const defaultStyleMap: string[] = [
     "p[style-name='Heading 5'] => p:fresh", // h5:fresh",
     "p[style-name='Heading 6'] => p:fresh", // h6:fresh",
     
-    // "r[style-name='Strong'] => strong",
+    "r[style-name='Strong'] =>",
     
     "p[style-name='annotation text'] => p:fresh",
     "r[style-name='annotation reference'] =>",

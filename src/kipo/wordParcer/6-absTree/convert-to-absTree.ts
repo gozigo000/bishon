@@ -52,7 +52,7 @@ function convertNode(elem: DocNode): AstNode[] {
 function convertParagraph(elem: DocParagraph): AstNode[] {
     const style = findStyle(elem);
     if (!style && elem.styleId &&
-        !['Normal (Web)', '바탕글'].includes(elem.styleName || '-')
+        !['Normal (Web)', '바탕글', 'MS바탕글', '스타일1'].includes(elem.styleName || '-')
     ) {
         collectWarning(`인식할 수 없는 paragraph style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
     }

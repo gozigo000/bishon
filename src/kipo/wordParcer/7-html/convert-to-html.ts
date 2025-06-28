@@ -23,7 +23,7 @@ function generateElemStr(writer: HtmlWriter, node: AstNode): void {
     } else {
         writer.openTag(tagName, attributes);
         writeHtml(writer, node.children || []);
-        writer.closeTag(tagName);
+        writer.closeTag();
     }
 }
 
