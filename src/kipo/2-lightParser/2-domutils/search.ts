@@ -13,7 +13,7 @@ export function findAll(
 ): XNode[] {
     const result: XNode[] = [];
     // Stack of the arrays we are looking at.
-    const nodeStack: XNode[][] = [nodes.childNodes];
+    const nodeStack: XNode[][] = [nodes.children];
     // Stack of the indices within the arrays.
     const idxStack: number[] = [0];
 
@@ -36,10 +36,10 @@ export function findAll(
             result.push(node);
         }
 
-        if (isRecursive && node.childNodes.length > 0) {
+        if (isRecursive && node.children.length > 0) {
             // Add the children to the stack. We are DFS, 
             // so this is the next array we look at.
-            nodeStack.unshift(node.childNodes);
+            nodeStack.unshift(node.children);
             idxStack.unshift(0);
         }
     }
@@ -52,13 +52,13 @@ export function findAll(
  * @returns The first node that passes `test` or `null` if no node passes.
  */
 export function findOne(node: XNode, test: (node: XNode) => boolean, isRecursive: boolean): XNode | null {
-    const nodesToTest = node.childNodes;
+    const nodesToTest = node.children;
     for (let i = 0; i < nodesToTest.length; i++) {
         const node = nodesToTest[i];
         if (test(node)) {
             return node;
         }
-        if (isRecursive && node.childNodes.length > 0) {
+        if (isRecursive && node.children.length > 0) {
             const found = findOne(node, test, true);
             if (found) return found;
         }
@@ -73,11 +73,11 @@ export function findOne(node: XNode, test: (node: XNode) => boolean, isRecursive
  * @returns Whether this node contains at least one child node passing the test.
 */
 export function hasOne(node: XNode, test: (node: XNode) => boolean, isRecursive: boolean): boolean {
-    return node.childNodes.some(node => {
+    return node.children.some(node => {
         if (test(node)) {
             return true;
         }
-        if (isRecursive && node.childNodes.length > 0) {
+        if (isRecursive && node.children.length > 0) {
             return hasOne(node, test, true)
         }
         return false;
@@ -113,7 +113,7 @@ export function getSiblings<T extends XNode>(node: T): T[] {
     // First, attempts to get the children through the node's parent.
     const parent = node.parent;
     if (parent !== null) {
-        return parent.childNodes as T[];
+        return parent.children as T[];
     }
     // Second, if we don't have a parent (the node is a root node), 
     // we walk the node's `prevSibling` & `nextSibling` to get all siblings.

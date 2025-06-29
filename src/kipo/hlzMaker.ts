@@ -8,7 +8,6 @@ import { collectError, MsgCollector } from './0-utils/errorCollector';
 import { collectRefs, collectFile, DataCollector } from './0-utils/dataCollector';
 import { convertToHtml } from './wordParcer/entry';
 import { openFile } from './1-zip/zipFile';
-import { parseXml } from './2-lightParser/entry';
 
 type HlzFileEtc = {
     hlzFile: File | null,
@@ -30,10 +29,9 @@ export async function makeHlz(wordFile: File): Promise<HlzFileEtc> {
         collectRefs({ 'Xml_document.xml': ooxml });
 
         // hlz 구성물 생성
-        const { hlzXml, hlzImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
-        collectRefs({ 'Xml_1차.xml': hlzXml });
+        const { hlzDom, hlzImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
+        collectRefs({ 'Xml_1차.xml': hlzDom.outerXML });
 
-        const hlzDom = parseXml(hlzXml);
         const { xDoc: hlzDom2, countingReport } = KipoInspector.generateReport(hlzDom);
         collectRefs({ 'Xml_2차.xml': hlzDom2.outerXML });
         // collectRefs({ 'Rpt_countingReport.json': countingReport });

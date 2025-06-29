@@ -26,7 +26,7 @@ export function renderNodes(nodes: XNode[], options?: SerializerOptions): string
 export function renderNode(node: XNode, options?: SerializerOptions): string {
     switch (node.type) {
         case XNodeType.Root:
-            return renderNodes(node.childNodes, options);
+            return renderNodes(node.children, options);
         case XNodeType.Element:
             return renderTag(node, options);
         case XNodeType.Text:
@@ -36,7 +36,7 @@ export function renderNode(node: XNode, options?: SerializerOptions): string {
         case XNodeType.Directive:
             return `<${node.content}>`;
         case XNodeType.CDATA:
-            return `<![CDATA[${node.childNodes[0].content}]]>`;
+            return `<![CDATA[${node.children[0].content}]]>`;
         case XNodeType.Comment:
             return '';
     }
@@ -72,10 +72,10 @@ function renderTag(elem: XElement, opts?: SerializerOptions) {
     if (attribs) tag += ` ${attribs}`;
 
     if (selfClosingTags.has(elem.tagName)) {
-        if (elem.childNodes.length > 0) {
+        if (elem.children.length > 0) {
             collectWarning('inner/outerXML 생성하는 중에 자식이 있는 \
                 self-closing tag를 발견함: XML 생성이 잘못되었을 수 있음',
-                `tagName: ${elem.tagName}, childNodes: ${elem.childNodes.map(node => node.type)}`)
+                `tagName: ${elem.tagName}, childNodes: ${elem.children.map(node => node.type)}`)
         }
         if (elem.tagName === 'br') {
             tag += "/>";
@@ -84,8 +84,8 @@ function renderTag(elem: XElement, opts?: SerializerOptions) {
         }
     } else {
         tag += ">"; // 추가
-        if (elem.childNodes.length > 0) {
-            tag += renderNodes(elem.childNodes, opts);
+        if (elem.children.length > 0) {
+            tag += renderNodes(elem.children, opts);
         }
         tag += `</${elem.tagName}>`;
     }

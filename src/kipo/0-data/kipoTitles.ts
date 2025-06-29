@@ -1,3 +1,43 @@
+// 스킵할 제목
+export const titlesToSkip = new Set([
+    '[발명의 설명]',
+    '[선행기술문헌]',
+    '[청구범위]',
+    '[요약서]',
+    '[도면]',
+]);
+
+// 처리할 제목
+export const specTitles = new Set([
+    '[발명의 명칭]',
+    '[기술분야]',
+    '[발명의 배경이 되는 기술]',
+    '[배경기술]',
+    '[특허문헌]',
+    '[비특허문헌]',
+    '[발명의 내용]',
+    '[해결하고자 하는 과제]',
+    '[해결하려는 과제]',
+    '[과제]',
+    '[과제의 해결 수단]',
+    '[수단]',
+    '[발명의 효과]',
+    '[효과]',
+    '[도면의 간단한 설명]',
+    '[발명을 실시하기 위한 구체적인 내용]',
+    '[부호의 설명]',
+    '[요약]',
+    '[대표도]',
+]);
+
+// 번호 있는 제목
+export const specTitlesRegex = [
+    /\[수학식 ?\w+\]/,
+    /\[표 ?\w+\]/,
+    /\[청구항 ?\w+\]/,
+    /\[도 ?\w+\]/,
+];
+
 // 레벨 1 제목
 export const sTitlesLv1 = new Set([
     '[발명의 설명]',
@@ -28,7 +68,7 @@ export const sTitlesLv123 = new Set([
     '[해결하고자 하는 과제]',
     '[해결하려는 과제]',
     '[과제의 해결 수단]',
-    '[발명의 효과]'
+    '[발명의 효과]',
 ]);
 
 export const preventTagFromParaNumRapping = new Set<string>([
@@ -65,27 +105,27 @@ export const preventTagFromParaNumRapping = new Set<string>([
 ]);
 
 export const numberingParaInsideTag = new Set<string>([
-    '<technical-field>',
-    '<background-art>',
+    'technical-field',
+    'background-art',
 
-    '<patent-literature>',
-    '<non-patent-literature>',
+    'patent-literature',
+    'non-patent-literature',
 
-    '<summary-of-invention>',
-    '<tech-problem>',
-    '<tech-solution>',
-    '<advantageous-effects>',
+    'summary-of-invention',
+    'tech-problem',
+    'tech-solution',
+    'advantageous-effects',
 
-    '<description-of-drawings>',
-    '<description-of-embodiments>',
-    '<reference-signs-list>',
+    'description-of-drawings',
+    'description-of-embodiments',
+    'reference-signs-list',
 ]);
 
 export const dividingParaByBrTag = new Set<string>([
-    '<description-of-drawings>',
-    '<summary>',
-    '<claim>',
-    '<reference-signs-list>',
+    'description-of-drawings',
+    'summary',
+    'claim',
+    'reference-signs-list',
 ]);
 
 export type KipoTag =

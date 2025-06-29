@@ -598,6 +598,7 @@ const ignoredElements = new Set([
     "w:lastRenderedPageBreak",
     "w:commentRangeStart",
     "w:commentRangeEnd",
+    "w:commentReference",
     "w:del",
     "w:footnoteRef",
     "w:endnoteRef",

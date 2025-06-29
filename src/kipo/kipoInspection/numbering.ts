@@ -59,16 +59,22 @@ export function inspect_numbering(elems: XElement[]): string[] {
                 )
             }
         }
-        else if (digit !== 1 + prevDigit && prevDigit > 0) {
-            // 숫자가 1씩 증가하지 않는 경우 (예: 5/5a -> 4/4a, 5/5a -> 7/7a)
-            collectError(
-                `${title} 번호는 순차적으로 증가(1, 2, 3, ...)해야 함: ${prevTitle}, ${currTitle}`
-            )
-        }
         else if (prevNum === '-' && num !== '1' && num !== '1a') {
             // 첫번째 번호가 '1' 또는 '1a'가 아닌 경우 (예: 2, 1b)
             collectError(
                 `${title} 번호는 '1' 또는 '1a'로 시작해야 함: ${currTitle}`
+            )
+        }
+        else if (digit !== 1 + prevDigit) {
+            // 숫자가 1씩 증가하지 않는 경우 (예: 5/5a -> 4/4a, 5/5a -> 7/7a)
+            collectError(
+                `${title} 번호는 순차적으로 증가해야 함: ${prevTitle}, ${currTitle}`
+            )
+        }
+        else if (digit === 1 + prevDigit && alpha !== '' && alpha !== 'a') {
+            // 숫자가 1씩 증가하는데 알파벳이 잘못된 경우 (예: 5 -> 6c)
+            collectError(
+                `${title} 번호는 순차적으로 증가해야 함: ${prevTitle}, ${currTitle}`
             )
         }
         else {

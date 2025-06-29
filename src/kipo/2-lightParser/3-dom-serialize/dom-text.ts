@@ -10,8 +10,8 @@ export function textContent(node: XNode): string {
         return node.content;
     }
     let text = '';
-    if (node.childNodes.length > 0) {
-        for (const child of node.childNodes) {
+    if (node.children.length > 0) {
+        for (const child of node.children) {
             text += textContent(child);
         }        
     }
@@ -30,7 +30,7 @@ export function innerText(node: XNode): string {
     }
     let text = '';
     if (isXElem(node) || isXCDATA(node)) {
-        for (const child of node.childNodes) {
+        for (const child of node.children) {
             text += innerText(child);
         }
     }

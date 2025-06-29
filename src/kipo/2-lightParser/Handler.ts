@@ -149,9 +149,9 @@ export class DomHandler {
     protected addNode(node: XNode): void {
         const parent = this.openTagStack[this.openTagStack.length - 1];        
         node.parent = parent;
-        parent.childNodes.push(node);
+        parent.children.push(node);
 
-        const prevSibling = parent.childNodes[parent.childNodes.length - 2];
+        const prevSibling = parent.children[parent.children.length - 2];
         if (prevSibling) {
             node.prevSibling = prevSibling;
             prevSibling.nextSibling = node;

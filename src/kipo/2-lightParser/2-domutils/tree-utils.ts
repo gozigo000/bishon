@@ -25,7 +25,7 @@ export function forEachNode(
     apply: (node: XNode) => void,
 ): void {
     apply(node);
-    node.childNodes.forEach(child => forEachNode(child, apply));
+    node.children.forEach(child => forEachNode(child, apply));
 }
 
 /**
@@ -131,7 +131,7 @@ export function compareRelativePos(nodeA: XNode, nodeB: XNode): RelPos {
         return RelPos.B_CONTAINS_A;
     }
 
-    const branchs = sharedAcendant.childNodes;
+    const branchs = sharedAcendant.children;
     const branchA = acensA[idx];
     const branchB = acensB[idx];
     if (branchs.indexOf(branchA) < branchs.indexOf(branchB)) {
@@ -149,11 +149,11 @@ export function isEqualNode(node1: XNode, node2: XNode): boolean {
         return node1.content === node2.content;
     }
     if (isXDocu(node1) && isXDocu(node2)) {
-        if (node1.childNodes.length !== node2.childNodes.length) {
+        if (node1.children.length !== node2.children.length) {
             return false;
         }
-        for (let i = 0; i < node1.childNodes.length; i++) {
-            if (!isEqualNode(node1.childNodes[i], node2.childNodes[i])) {
+        for (let i = 0; i < node1.children.length; i++) {
+            if (!isEqualNode(node1.children[i], node2.children[i])) {
                 return false;
             }
         }
@@ -170,11 +170,11 @@ export function isEqualNode(node1: XNode, node2: XNode): boolean {
                 return false;
             }
         }
-        if (node1.childNodes.length !== node2.childNodes.length) {
+        if (node1.children.length !== node2.children.length) {
             return false;
         }
-        for (let i = 0; i < node1.childNodes.length; i++) {
-            if (!isEqualNode(node1.childNodes[i], node2.childNodes[i])) {
+        for (let i = 0; i < node1.children.length; i++) {
+            if (!isEqualNode(node1.children[i], node2.children[i])) {
                 return false;
             }
         }
@@ -201,12 +201,12 @@ export function cloneNode<T extends XNode>(node: T, isRecursive: boolean): T {
     if (isXText(node)) {
         result = new XText(node.content);
     } else if (isXElem(node)) {
-        const children = isRecursive ? cloneChildNodes(node.childNodes) : [];
+        const children = isRecursive ? cloneChildNodes(node.children) : [];
         const clone = new XElement(node.tagName, { ...node.attrs }, children);
         children.forEach(child => child.parent = clone);
         result = clone;
     } else if (isXDocu(node)) {
-        const children = isRecursive ? cloneChildNodes(node.childNodes) : [];
+        const children = isRecursive ? cloneChildNodes(node.children) : [];
         const clone = new XDocument(children);
         children.forEach(child => child.parent = clone);
         result = clone;

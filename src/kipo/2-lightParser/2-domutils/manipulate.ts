@@ -10,8 +10,8 @@ export function appendChild(node: XParentNode, child: XNode): void {
     child.nextSibling = null;
     child.parent = node;
 
-    if (node.childNodes.push(child) > 1) {
-        const sibling = node.childNodes[node.childNodes.length - 2];
+    if (node.children.push(child) > 1) {
+        const sibling = node.children[node.children.length - 2];
         sibling.nextSibling = child;
         child.prevSibling = sibling;
     } else {
@@ -29,8 +29,8 @@ export function prependChild(node: XParentNode, child: XNode): void {
     child.parent = node;
     child.prevSibling = null;
 
-    if (node.childNodes.unshift(child) !== 1) {
-        const sibling = node.childNodes[1];
+    if (node.children.unshift(child) !== 1) {
+        const sibling = node.children[1];
         sibling.prevSibling = child;
         child.nextSibling = sibling;
     } else {
@@ -53,11 +53,11 @@ export function appendSibling(node: XNode, sibling: XNode): void {
     if (currNext) {
         currNext.prevSibling = sibling;
         if (parent) {
-            const siblings = parent.childNodes;
+            const siblings = parent.children;
             siblings.splice(siblings.lastIndexOf(currNext), 0, sibling);
         }
     } else if (parent) {
-        parent.childNodes.push(sibling);
+        parent.children.push(sibling);
     }
 }
 
@@ -67,7 +67,7 @@ export function prependSibling(node: XNode, sibling: XNode): void {
 
     const parent = node.parent;
     if (parent) {
-        const siblings = parent.childNodes;
+        const siblings = parent.children;
         siblings.splice(siblings.indexOf(node), 0, sibling);
     }
 
@@ -94,7 +94,7 @@ export function removeNode(node: XNode): void {
     }
 
     if (node.parent) {
-        const childs = node.parent.childNodes;
+        const childs = node.parent.children;
         const childsIdx = childs.lastIndexOf(node);
         if (childsIdx >= 0) {
             childs.splice(childsIdx, 1);
@@ -127,7 +127,7 @@ export function replaceNode(oldNode: XNode, newNode: XNode): void {
     const parent = oldNode.parent;
     newNode.parent = parent;
     if (parent) {
-        const childs = parent.childNodes;
+        const childs = parent.children;
         childs[childs.lastIndexOf(oldNode)] = newNode;
         oldNode.parent = null;
     }

@@ -40,6 +40,7 @@ export async function getMammothHtml(input: FileOrBuffer): Promise<string> {
                 "b => b",
                 "i => i",
                 "u => u",
+                "r[style-name='Strong'] =>",
                 "p[style-name='Heading 1'] => p:fresh",
                 "p[style-name='Heading 2'] => p:fresh",
                 "p[style-name='Heading 3'] => p:fresh",

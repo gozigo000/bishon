@@ -234,9 +234,9 @@ export class KipoInspector {
             }
         }
         else if (problem || solution || effects) {
-            problem?.childNodes.forEach(invSummary.appendChild);
-            solution?.childNodes.forEach(invSummary.appendChild);
-            effects?.childNodes.forEach(invSummary.appendChild);
+            problem?.children.forEach(invSummary.appendChild);
+            solution?.children.forEach(invSummary.appendChild);
+            effects?.children.forEach(invSummary.appendChild);
         }
     }
 
@@ -326,12 +326,14 @@ function inspect_drawings(drawings: XElement, root: XDocument) {
         const imgs = fig.getElemsByTag('<img>');
 
         if (imgs.length === 0) {
-            collectError(`도면에 이미지가 없음: [도 ${fNum}]`);
+            collectError(`도면에 이미지가 없거나 인식되지 않음: [도 ${fNum}]`);
+            // fig._childNodes = [new XElement('img', {he: '100', wi: '100'})];
+            continue;
         }
         if (imgs.length > 1) {
-            collectError(`하나의 도면에 복수의 이미지가 있음: [도 ${fNum}]`);
+            collectError(`[도 ${fNum}]에 복수의 이미지가 있어서 첫 번째 이미지만 사용함`);
         }
-        // TODO: 이미지 외 내용 삭제
+        // fig._childNodes = [imgs[0]]; // 이미지 외 내용 삭제
     }
 }
 

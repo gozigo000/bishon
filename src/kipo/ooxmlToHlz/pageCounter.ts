@@ -2,6 +2,7 @@ import { BATANGCHE_WIDTH_PT } from '../0-data/batangche/batangche_width_pt';
 import { getKipoParas } from '../diff/kipoParas';
 import { collectLine } from '../0-utils/dataCollector';
 import { parseXml } from '../2-lightParser/entry';
+import { XDocument, XElement } from '../2-lightParser/1-node/node';
 
 // NOTE: 폰트 사이즈
 // 한글 문자 너비: 12 pt
@@ -39,7 +40,7 @@ export class PageCounter {
     private drawingParas: string[] = [];
     public specPages = 0;
 
-    public static countPages(hXml: string): number {
+    public static countPages(hXml: string | XDocument | XElement): number {
         const paras = getKipoParas(hXml);
         return new PageCounter(paras).specPages;
     }
@@ -79,13 +80,22 @@ export class PageCounter {
         };
 
         if (isDrawings && totalLines.length > 0) {
-            const lines: Line[] = totalLines.splice(1);
-            for (let i = 0; i < lines.length; i += 2) {
-                totalLines.push({
-                    W: lines[i].W,
-                    H: lines[i].H + lines[i + 1].H,
-                    lineText: `${lines[i].lineText} ${lines[i + 1].lineText}`
-                });
+            const lines = totalLines.splice(1);
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].H < lines[i + 1]?.H) {
+                    totalLines.push({
+                        W: lines[i].W,
+                        H: lines[i].H + lines[i + 1].H,
+                        lineText: `${lines[i].lineText} ${lines[i + 1].lineText}`
+                    });
+                    i += 1;
+                } else {
+                    totalLines.push({
+                        W: lines[i].W,
+                        H: lines[i].H,
+                        lineText: lines[i].lineText
+                    });
+                }
             }
         }
 
@@ -96,7 +106,7 @@ export class PageCounter {
         const root = parseXml(para);
         
         const cubes: Cube[] = [];
-        for (const child of root.childNodes) {
+        for (const child of root.children) {
             const type = child.type;
             if (type === 'text') {
                 const text = child.textContent.split('');

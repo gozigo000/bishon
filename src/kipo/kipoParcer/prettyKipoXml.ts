@@ -1,185 +1,67 @@
-import { XNode, XText } from "../2-lightParser/1-node/node";
+import { XElement, XNode, XText } from "../2-lightParser/1-node/node";
 
 export function prettyKipoXml(root: XNode): string {
 
-    const docType = root.childNodes[0]
+    const docType = root.children[0]
     docType.appendSibling(new XText('\n'));
 
-    const KIPO = root.getElemByTag('<KIPO>');
-    if (KIPO) {
-        KIPO.prependChild(new XText('\n'));
-        KIPO.appendChild(new XText('\n'));
-    }
-
-    const PatentCAFDOC = root.getElemByTag('<PatentCAFDOC>');
-    if (PatentCAFDOC) {
-        PatentCAFDOC.prependChild(new XText('\n'));
-        PatentCAFDOC.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
-
-    const description = root.getElemByTag('<description>');
-    if (description) {
-        description.prependChild(new XText('\n'));
-        description.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
+    insertNewLinesInTag('<KIPO>', root);
+    insertNewLinesInTag('<PatentCAFDOC>', root);
+    insertNewLinesInTag('<description>', root);
 
     const invTitle = root.getElemByTag('<invention-title>');
-    if (invTitle) {
-        invTitle.appendChild(new XText('\n'));
-    }
+    if (invTitle) invTitle.appendChild(new XText('\n'));
 
-    const techField = root.getElemByTag('<technical-field>');
-    if (techField) {
-        techField.prependChild(new XText('\n'));
-        techField.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
-
-    const backgArt = root.getElemByTag('<background-art>');
-    if (backgArt) {
-        backgArt.prependChild(new XText('\n'));
-        backgArt.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
+    insertNewLinesInTag('<technical-field>', root);
+    insertNewLinesInTag('<background-art>', root);
 
     const citationList = root.getElemByTag('<citation-list>');
     if (citationList) {
-        citationList.prependChild(new XText('\n'));
-        citationList.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
+        insertNewLines(citationList);
+        citationList.getElemsByTag('<p>')
+            .forEach(child => insertNewLines(child));
 
-        const pTags = citationList.getAllElemsByTag('<p>');
-        pTags.forEach(child => {
-            child.prependChild(new XText('\n'));
-            child.childElems.forEach(child => {
-                child.appendSibling(new XText('\n'));
-            });
-        });
-
-        const patentLiterature = root.getElemByTag('<patent-literature>');
-        if (patentLiterature) {
-            patentLiterature.prependChild(new XText('\n'));
-            patentLiterature.childElems.forEach(child => {
-                child.appendSibling(new XText('\n'));
-            });
-        }
-
-        const patcit = root.getElemByTag('<patcit>');
-        if (patcit) {
-            patcit.prependChild(new XText('\n'));
-            patcit.childElems.forEach(child => {
-                child.appendSibling(new XText('\n'));
-            });
-        }
-
-        const nonPatentLiterature = root.getElemByTag('<non-patent-literature>');
-        if (nonPatentLiterature) {
-            nonPatentLiterature.prependChild(new XText('\n'));
-            nonPatentLiterature.childElems.forEach(child => {
-                child.appendSibling(new XText('\n'));
-            });
-        }
-
-        const nplcit = root.getElemByTag('<nplcit>');
-        if (nplcit) {
-            nplcit.prependChild(new XText('\n'));
-            nplcit.childElems.forEach(child => {
-                child.appendSibling(new XText('\n'));
-            });
-        }
+        insertNewLinesInTag('<patent-literature>', root);
+        insertNewLinesInTag('<patcit>', root);
+        insertNewLinesInTag('<non-patent-literature>', root);
+        insertNewLinesInTag('<nplcit>', root);
     }
 
-    const invSummary = root.getElemByTag('<summary-of-invention>');
-    if (invSummary) {
-        invSummary.prependChild(new XText('\n'));
-        invSummary.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    };
-
-    const problem = root.getElemByTag('<tech-problem>');
-    if (problem) {
-        problem.prependChild(new XText('\n'));
-        problem.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
-
-    const solution = root.getElemByTag('<tech-solution>');
-    if (solution) {
-        solution.prependChild(new XText('\n'));
-        solution.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
-
-    const effects = root.getElemByTag('<advantageous-effects>');
-    if (effects) {
-        effects.prependChild(new XText('\n'));
-        effects.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
+    insertNewLinesInTag('<summary-of-invention>', root);
+    insertNewLinesInTag('<tech-problem>', root);
+    insertNewLinesInTag('<tech-solution>', root);
+    insertNewLinesInTag('<advantageous-effects>', root);
 
     const briefDrawings = root.getElemByTag('<description-of-drawings>');
     if (briefDrawings) {
-        briefDrawings.prependChild(new XText('\n'));
-        briefDrawings.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-
-        const brTags = briefDrawings.getAllElemsByTag('<br>');
-        brTags.forEach(br => {
-            br.appendSibling(new XText('\n'));
-        });
+        insertNewLines(briefDrawings);
+        briefDrawings.getElemsByTag('<br>')
+            .forEach(br => br.appendSibling(new XText('\n')));
     }
 
-    const embodiments = root.getElemByTag('<description-of-embodiments>');
-    if (embodiments) {
-        embodiments.prependChild(new XText('\n'));
-        embodiments.childElems.forEach(embodiment => {
-            embodiment.appendSibling(new XText('\n'));
-        });
-    }
+    insertNewLinesInTag('<description-of-embodiments>', root);
 
-    const tables = root.getAllElemsByTag('<tables>');
+    const tables = root.getElemsByTag('<tables>');
     if (tables.length > 0) {
         tables.forEach(tbl => {
             if (tbl.getChildNodeAt(0)?.tagName === 'img') {
                 return;
             }
             tbl.appendChild(new XText('\n'));
-            const table = tbl.getElemByTag('<table>');
-            table?.appendChild(new XText('\n'));
-            const tgroup = tbl.getElemByTag('<tgroup>');
-            tgroup?.appendChild(new XText('\n'));
+            tbl.getElemByTag('<table>')?.appendChild(new XText('\n'));
+            tbl.getElemByTag('<tgroup>')?.appendChild(new XText('\n'));
 
-            const colspecs = tbl.getAllElemsByTag('<colspec>');
+            const colspecs = tbl.getElemsByTag('<colspec>');
             colspecs[0]?.prependSibling(new XText('\n'));
-            colspecs.forEach(colspec => {
-                colspec.appendSibling(new XText('\n'));
-            });
+            colspecs.forEach(colspec => colspec.appendSibling(new XText('\n')));
 
             const tbody = tbl.getElemByTag('<tbody>');
-            tbody?.prependChild(new XText('\n'));
-            tbody?.childElems.forEach(child => {
-                child.appendSibling(new XText('\n'));
-            });
+            if (tbody) insertNewLines(tbody);
 
-            const rows = tbl.getAllElemsByTag('<row>');
-            rows.forEach(row => {
-                row.prependChild(new XText('\n'));
-                row.appendChild(new XText('\n'));
-            });
+            tbl.getElemsByTag('<row>')
+                .forEach(row => insertNewLines(row));
 
-            const entries = tbl.getAllElemsByTag('<entry>');
+            const entries = tbl.getElemsByTag('<entry>');
             entries.forEach(entry => {
                 if (entry.nextSibling?.tagName === 'entry') {
                     entry.appendSibling(new XText('\n'));
@@ -188,45 +70,13 @@ export function prettyKipoXml(root: XNode): string {
         });
     }
 
-    const claims = root.getElemByTag('<claims>');
-    if (claims) {
-        claims.prependChild(new XText('\n'));
-        claims.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
+    insertNewLinesInTag('<claims>', root);
+    root.getElemsByTag('claim')
+        .forEach(claim => insertNewLines(claim));
 
-    const eachClaims = root.getAllElemsByTag('claim');
-    eachClaims.forEach(claim => {
-        claim.prependChild(new XText('\n'));
-        claim.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    });
-
-    const abstract = root.getElemByTag('<abstract>');
-    if (abstract) {
-        abstract.prependChild(new XText('\n'));
-        abstract.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
-
-    const summary = root.getElemByTag('<summary>');
-    if (summary) {
-        summary.prependChild(new XText('\n'));
-        summary.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
-
-    const absfig = root.getElemByTag('<abstract-figure>');
-    if (absfig) {
-        absfig.prependChild(new XText('\n'));
-        absfig.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
+    insertNewLinesInTag('<abstract>', root);
+    insertNewLinesInTag('<summary>', root);
+    insertNewLinesInTag('<abstract-figure>', root);
 
     const figref = root.getElemByTag('<figref>');
     if (figref) {
@@ -234,21 +84,23 @@ export function prettyKipoXml(root: XNode): string {
         figref.appendSibling(new XText('\n'));
     }
 
-    const drawings = root.getElemByTag('<drawings>');
-    if (drawings) {
-        drawings.prependChild(new XText('\n'));
-        drawings.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    }
-
-    const figs = root.getAllElemsByTag('<figure>');
-    figs.forEach(fig => {
-        fig.prependChild(new XText('\n'));
-        fig.childElems.forEach(child => {
-            child.appendSibling(new XText('\n'));
-        });
-    });
+    insertNewLinesInTag('<drawings>', root);
+    root.getElemsByTag('<figure>')
+        .forEach(fig => insertNewLines(fig));
 
     return root.outerXML;
+}
+
+function insertNewLinesInTag(tagName: string, root: XNode) {
+    const elem = root.getElemByTag(tagName);
+    if (!elem) return;
+
+    insertNewLines(elem)
+}
+
+function insertNewLines(elem: XElement) {
+    elem.prependChild(new XText('\n'));
+    elem.childElems.forEach(child => {
+        child.appendSibling(new XText('\n'));
+    });
 }

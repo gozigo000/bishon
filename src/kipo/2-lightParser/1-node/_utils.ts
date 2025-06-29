@@ -15,7 +15,7 @@ export function printTree(root: XNode, textLimit: number = 35) {
         text += node.type === 'elem' ? `<${node.tagName}>\n` :
             node.type === 'text' ? `${getShortContent(node)}\n` :
                 `\n`;
-        for (const child of node.childNodes) {
+        for (const child of node.children) {
             text += toText(child, depth + 1)
         }
         return text;

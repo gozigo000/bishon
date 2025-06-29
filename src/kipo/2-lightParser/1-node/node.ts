@@ -62,19 +62,33 @@ export abstract class XNodeBase {
     }
 
     /** Only `XDocument`, `XElement`, `XCDATA` nodes can have children. */
-    childNodes: XNode[] = [];
+    children: XNode[] = [];
+
+    get childNodes(): XNode[] {
+        return this.children;
+    }
+
+    set childNodes(children: XNode[]) {
+        for (let i = 0; i < children.length; i++) {
+            const node = children[i];
+            node.parent = this as XParentNode;
+            node.prevSibling = (i > 0) ? children[i - 1] : null;
+            node.nextSibling = (i < children.length - 1) ? children[i + 1] : null;
+        }
+        this.children = children;
+    }
 
     get childElems(): XElement[] {
-        return this.childNodes.filter(node => isXElem(node));
+        return this.children.filter(node => isXElem(node));
     }
 
     get childTexts(): XText[] {
-        return this.childNodes.filter(node => isXText(node));
+        return this.children.filter(node => isXText(node));
     }
 
     /** 자식노드 or `null` */
     getChildNodeAt(idx: number): XNode | null {
-        return this.childNodes.at(idx) ?? null;
+        return this.children.at(idx) ?? null;
     }
 
     /** 태그명이 일치하는 '후손' 노드가 있는지 확인 */
@@ -141,7 +155,7 @@ export abstract class XNodeBase {
             callback(this as XElement);
             return;
         }
-        this.childNodes.forEach(node => {
+        this.children.forEach(node => {
             node.forEachElem(callback);
         });
     }
@@ -152,7 +166,7 @@ export abstract class XNodeBase {
             this.content = callback(this.content);
             return;
         }
-        this.childNodes.forEach(node => {
+        this.children.forEach(node => {
             node.forEachXText(callback);
         });
     }
@@ -167,7 +181,7 @@ export abstract class XNodeBase {
             }
             return;
         }
-        this.childNodes.forEach(node => {
+        this.children.forEach(node => {
             node.mergeTextNodes();
         });
     }
@@ -186,6 +200,22 @@ export abstract class XNodeBase {
      */
     prependChild(child: XNode): void {
         prependChild(this as XParentNode, child);
+    }
+
+    /**
+     * 자식 노드들 뒤에 추가
+     * @note 각 `child`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
+     */
+    appendChildren(...children: XNode[]): void {
+        children.forEach(child => appendChild(this as XParentNode, child));
+    }
+
+    /**
+     * 자식 노드들 앞에 추가
+     * @note 각 `child`는 원래 위치하던 DOM에서 제거된 후에 삽입됨
+     */
+    prependChildren(...children: XNode[]): void {
+        children.reverse().forEach(child => prependChild(this as XParentNode, child));
     }
 
     prevSibling: XNode | null = null;
@@ -230,7 +260,7 @@ export abstract class XNodeBase {
     }
     
     get innerXML(): string {
-        return renderNodes(this.childNodes);
+        return renderNodes(this.children);
     }
 
     get textContent(): string {
@@ -268,6 +298,8 @@ export abstract class XNodeWithData extends XNodeBase {
     override forEachElem(_: (_: XElement) => void): void { return; }
     override appendChild(_: XNode): void { return; }
     override prependChild(_: XNode): void { return; }
+    override appendChildren(..._: XNode[]): void { return; }
+    override prependChildren(..._: XNode[]): void { return; }
 }
 
 export class XText extends XNodeWithData {
@@ -308,7 +340,7 @@ export class XElement extends XNodeWithChildren {
     readonly type = XNodeType.Element;
     constructor(
         tagName: string,
-        attrs: Record<string, string>,
+        attrs: Record<string, string> = {},
         children: XNode[] = [],
     ) {
         super(children);
