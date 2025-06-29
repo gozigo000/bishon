@@ -12,6 +12,7 @@
 
 # 테스트 파일
 test/**/*
+dataCollector.ts
 
 # 참고자료
 참고자료/**/*
