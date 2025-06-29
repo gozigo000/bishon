@@ -1,5 +1,5 @@
 import { styleText as style, inspect } from "util";
-import { isObject } from "../kipo/0-utils/typeCheck";
+import { isObject } from "./typeCheck";
 
 // 기타 스타일 옵션
 // "bold", "italic", "underline"

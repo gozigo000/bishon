@@ -2,7 +2,7 @@ import { getMammothHtml } from "../0-utils/utils";
 import { collectRefs } from "../0-utils/dataCollector";
 import { parseXml } from "../2-lightParser/entry";
 import { removeSubsets } from "../2-lightParser/2-domutils/array-utils";
-import { isString } from "../0-utils/typeCheck";
+import { isString } from "../../_utils/typeCheck";
 
 export async function getHtmlParasForDiff(input: FileOrBuffer | Html): Promise<string[]> {
     try {

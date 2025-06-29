@@ -8,6 +8,7 @@ import { collectError, MsgCollector } from './0-utils/errorCollector';
 import { collectRefs, collectFile, DataCollector } from './0-utils/dataCollector';
 import { convertToHtml } from './wordParcer/entry';
 import { openFile } from './1-zip/zipFile';
+import { isDev, isTest } from '@/_utils/env';
 
 type HlzFileEtc = {
     hlzFile: File | null,
@@ -22,22 +23,14 @@ export async function makeHlz(wordFile: File): Promise<HlzFileEtc> {
         const docxFile = await openFile({ file: wordFile });
 
         const docxHtml = await convertToHtml(docxFile, { ignoreEmptyParagraphs: true });
-        collectRefs({ 'HTML_document.html': docxHtml.join('\n') });
 
-        // document.xml 파일 찾기
-        const ooxml = await docxFile.readFile('word/document.xml', 'text');
-        collectRefs({ 'Xml_document.xml': ooxml });
-
-        // hlz 구성물 생성
         const { hlzDom, hlzImgs } = await OoxmlConverter.generateHlzXml(docxHtml, docxFile);
-        collectRefs({ 'Xml_1차.xml': hlzDom.outerXML });
 
-        const { xDoc: hlzDom2, countingReport } = KipoInspector.generateReport(hlzDom);
-        collectRefs({ 'Xml_2차.xml': hlzDom2.outerXML });
-        // collectRefs({ 'Rpt_countingReport.json': countingReport });
+        const { hlzDom2, countingReport } = KipoInspector.generateReport(hlzDom);
 
-        const diffAfterInsp = generateDiffAfterInspection(hlzDom2, hlzDom);
-        collectRefs({ 'Rpt_diffAfterInspection.json': diffAfterInsp });
+        const diffReport = await generateDiffReport(hlzDom2, wordFile);
+
+        const msgReport = MsgCollector.$.getMsgs();
 
         // hlz 생성
         const hlzZip = new JSZip();
@@ -45,21 +38,24 @@ export async function makeHlz(wordFile: File): Promise<HlzFileEtc> {
         hlzZip.file(`${baseName}.xml`, hlzDom2.outerXML);
         hlzImgs.forEach(hImg => hlzZip.file(hImg.name, hImg.buffer));
         const hlzFile = await generateKipoFile(`${baseName}.hlz`, hlzZip);
-        collectFile({ [`${baseName}.hlz`]: hlzFile });
 
-        const diffReport = await generateDiffReport(hlzDom2, wordFile);
-        collectRefs({ 'Rpt_diffReport.json': diffReport });
-        
-        const msgReport = MsgCollector.$.getMsgs();
-        // collectRefs({ 'Rpt_msgReport.json': msgReport });
+        // 테스트
+        if (isDev() || isTest()) {
+            const ooxml = await docxFile.readFile('word/document.xml', 'text');
+            collectRefs({ 'OOXML_document.xml': ooxml });
+            collectRefs({ 'HTML_document.html': docxHtml.join('\n') });
+            collectRefs({ 'KIPOXML_1차.xml': hlzDom.outerXML });
+            collectRefs({ 'KIPOXML_2차.xml': hlzDom2.outerXML });
+            const diffAfterInsp = generateDiffAfterInspection(hlzDom2, hlzDom);
+            collectRefs({ 'REPORT_diffAfterInspection.json': diffAfterInsp });
+            collectRefs({ 'REPORT_counting.json': countingReport });
+            collectRefs({ 'REPORT_diff.json': diffReport });
+            collectRefs({ 'REPORT_msg.json': msgReport });
+            collectFile({ [`${baseName}.hlz`]: hlzFile });
 
-        MsgCollector.$.logMsgs();
-
-        // 테스트 관련
-        DataCollector.$.savePages(baseName);
-        DataCollector.$.saveRefs(baseName);
-        DataCollector.$.saveFiles(baseName);
-        DataCollector.$.saveLatex(baseName);
+            MsgCollector.$.logMsgs();
+            DataCollector.$.saveAll(baseName);
+        }
 
         return {
             hlzFile,

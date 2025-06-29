@@ -12,7 +12,7 @@
 
 # 테스트 파일
 test/**/*
-dataCollector.ts
+test-dir-path.txt
 
 # 참고자료
 참고자료/**/*

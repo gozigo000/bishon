@@ -1,5 +1,5 @@
 import { escapeXmlText } from "../0-utils/escape";
-import { isString } from "../0-utils/typeCheck";
+import { isString } from "../../_utils/typeCheck";
 import { XNode, XDocument, XElement } from '../2-lightParser/1-node/node';
 import { parseXml } from "../2-lightParser/entry";
 

@@ -1,6 +1,6 @@
 import { OnDevTest } from './decorators/devHandler';
 import { styleText as style } from 'util';
-import { isString } from '../0-utils/typeCheck';
+import { isString } from '../../_utils/typeCheck';
 
 /**
  * 전역 메시지 수집 클래스
@@ -49,7 +49,7 @@ export class MsgCollector {
     /** 수집한 메시지를 콘솔에 출력 */
     @OnDevTest
     public logMsgs(): void {
-        console.log(this.formatMsgs());
+        console.debug(this.formatMsgs());
     }
 
     /** 메시지를 포맷팅하여 문자열로 반환 */

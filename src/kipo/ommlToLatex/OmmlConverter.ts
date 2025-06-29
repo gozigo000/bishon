@@ -5,7 +5,7 @@ import { getValue, format, getUnicodeString, escapeLatex, isComplexEquation } fr
 import { XmlPropNode } from './XmlPropNode';
 import { collectError, collectWarning } from '../0-utils/errorCollector';
 import { collectLatex } from '../0-utils/dataCollector';
-import { isString } from '../0-utils/typeCheck';
+import { isString } from '../../_utils/typeCheck';
 
 /**
  * OMML 문자열을 LaTeX 문자열로 변환

@@ -1,7 +1,7 @@
 import { BREAK } from "./data";
 import { NodeInfo } from "./OmmlConverter";
 import { XElement } from "../2-lightParser/1-node/node";
-import { isString } from "../0-utils/typeCheck";
+import { isString } from "../../_utils/typeCheck";
 
 export class XmlPropNode {
 
