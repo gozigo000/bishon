@@ -1,18 +1,18 @@
 import { parseXml } from '../2-lightParser/entry';
 import { XElement } from '../2-lightParser/1-node/node';
-import { ACCENT_DEFAULT, ACCENTS, LATEX_SYMBOLS, BAR_DEFAULT, BAR, FRACTION_DEFAULT, FRACTION_TYPES, FUNC, BREAK, LIM_FUNC, LIM_UPP, ALIGN, BIG_OPERATORS } from './data';
-import { getValue, format, getUnicodeString, escapeLatex, isComplexEquation } from './utils';
-import { XmlPropNode } from './XmlPropNode';
-import { collectError, collectWarning } from '../0-utils/errorCollector';
+import { ACCENT_DEFAULT, ACCENTS, LATEX_SYMBOLS, BAR_DEFAULT, BAR, FRACTION_DEFAULT, FRACTION_TYPES, FUNC, BREAK, LIM_FUNC, ALIGN, BIG_OPERATORS } from './data';
+import { getValue, getUnicodeString, escapeLatex } from './utils';
+import { collectError, collectInfo } from '../0-utils/errorCollector';
 import { collectLatex } from '../0-utils/dataCollector';
-import { isString } from '../../_utils/typeCheck';
+
+type Latex = string;
 
 /**
  * OMML 문자열을 LaTeX 문자열로 변환
  * @param omml - 변환할 OMML 문자열
  * @returns 변환된 LaTeX 문자열
  */
-export function makeLatexFromOmml(omml: string): string | null {
+export function fromOmmlToLatex(omml: string): string | null {
     try {
         const root = parseXml(omml);
         
@@ -21,13 +21,13 @@ export function makeLatexFromOmml(omml: string): string | null {
         if (oMathPara) {
             const latexStrs: string[] = [];
             for (const oMath of oMathPara.getElemsByTag('m:oMath')) {
-                const latexStr = convertMoMath(oMath);
+                const latexStr = convertOMath(oMath);
                 if (!latexStr) continue;
                 latexStrs.push(latexStr);
             }
             
             if (latexStrs.length === 1) {
-                const latex = latexStrs[0].trim();
+                const latex = latexStrs[0];
                 collectLatex({ latex, omml });
                 return latex;
             }
@@ -41,8 +41,7 @@ export function makeLatexFromOmml(omml: string): string | null {
         // oMath 처리
         const oMath = root.getElemByTag('m:oMath');
         if (oMath) {
-            const latexStr = convertMoMath(oMath);
-            const latex = latexStr.trim();
+            const latex = convertOMath(oMath);
             collectLatex({ latex, omml });
             return latex;
         }
@@ -55,112 +54,51 @@ export function makeLatexFromOmml(omml: string): string | null {
     }
 } 
 
-export interface NodeInfo {
-    tag: string;
-    /**
-     * - `string`: LaTeX 문자열로 변환된 노드
-     * - `XmlPropNode`: 속성 노드
-     */
-    result: string | XmlPropNode;
-}
-
 /**
  * <m:oMath> 태그를 LaTeX 문자열로 변환
- * @param oMath - XML 노드
- * @returns LaTeX 문자열
  */
-function convertMoMath(oMath: XElement): string {
-    // ommlStr = ommlStr
-    //     .replaceAll(' ', ' ')
-    //     .replaceAll('＝', '=')
-    let latexStr = processChildren(oMath.childElems)
+function convertOMath(oMath: XElement): Latex {
+    let latexStr = processChildren(oMath)
     latexStr = latexStr
         .replace(/(?<!\\) }/g, '}')
         .replace(/(\\\s+)+/g, '\\ ') // 연속된 공백(`\ `) 제거
         .replace(/([^\\]) \\/g, '$1\\')
+        .trim();
     return latexStr;
 }
 
 /**
- * 자식 노드들을 처리하고 결과를 LaTeX 문자열로 반환
- * @param elems - 자식 XML 노드들
- * @param include - 포함할 태그 목록 (선택적)
- * @returns LaTeX 문자열
+ * 자식 노드들을 LaTeX 문자열로 변환
  */
-function processChildren(elems: XElement[], include?: Set<string>): string {
-    const nodesInfo = generateNodesInfo(elems, include);
-    if (nodesInfo.length === 0) return '';
-
-    let latexStr = '';
-    for (const info of nodesInfo) {
-        if (isString(info.result)) {
-            latexStr += info.result;
-        }
-    }
-    return latexStr;
-}
-
-/**
- * 자식 노드들을 {태그명: 처리결과} 형태의 딕셔너리로 처리
- * @param elems - 자식 노드들
- * @param include - 포함할 태그 목록 (선택적)
- * @returns 태그별 처리된 노드 딕셔너리
- */
-function processChildrenForDict(elems: XElement[], include?: Set<string>): Record<string, string | XmlPropNode> {
-    const nodesInfo = generateNodesInfo(elems, include);
-    const latexChars: Record<string, string | XmlPropNode> = {};
-    for (const info of nodesInfo) {
-        latexChars[info.tag] = info.result;
-    }
-    return latexChars;
-}
-
-/**
- * 자식 노드 리스트 처리
- * @param elems - 자식 노드들
- * @param include - 포함할 태그 목록 (선택적)
- * @returns `{태그명: 처리결과}[]`
- */
-function generateNodesInfo(elems: XElement[], include?: Set<string>): NodeInfo[] {
-    const nodesInfo: NodeInfo[] = [];
-    for (const elem of elems) {
-        const tagName = elem.tagName || '';
-        if (include && !include.has(tagName)) continue;
-
-        let result: string | XmlPropNode = processTag(elem);
-        if (tagName.endsWith('Pr')) {
-            result = new XmlPropNode(elem);
-        }
-        if (!result) continue;
-
-        nodesInfo.push({ tag: tagName, result: result });
-    }
-    return nodesInfo;
+function processChildren(elem: XElement): Latex {
+    return elem.childElems
+        .map(processTag)
+        .join('');
 }
 
 /**
  * 태그별 처리
- * @returns LaTeX 문자열 (@exception 해당하는 노드가 없으면 빈 문자열)
+ * @returns LaTeX (해당하는 태그가 없으면 빈 문자열)
  */
-function processTag(elem: XElement): string {
+function processTag(elem: XElement): Latex {
     switch (elem.tagName) {
         // 그룹 1
-        case 'm:acc': return doAcc(elem);
+        case 'm:acc': return doAccent(elem);
         case 'm:bar': return doBar(elem);
-        case 'm:d': return doD(elem);
+        case 'm:d': return doDelim(elem);
         case 'm:eqArr': return doEqArr(elem);
-        case 'm:f': return doF(elem);
-        case 'm:fName': return doFName(elem);
+        case 'm:f': return doFraction(elem);
         case 'm:func': return doFunc(elem);
+        case 'm:fName': return doFnName(elem);
         case 'm:groupChr': return doGroupChr(elem);
         case 'm:limLow': return doLimLow(elem);
         case 'm:limUpp': return doLimUpp(elem);
         case 'm:lim': return doLim(elem);
-        case 'm:m': return doM(elem);
-        case 'm:mr': return doMr(elem);
+        case 'm:m': return doMat(elem);
+        case 'm:mr': return doMatRow(elem);
         case 'm:nary': return doNary(elem);
-        case 'm:r': return doR(elem);
-        case 'm:rad': return doRad(elem);
+        case 'm:r': return doRun(elem);
+        case 'm:rad': return doRadical(elem);
         case 'm:sub': return doSub(elem);
         case 'm:sup': return doSup(elem);
         // 그룹 2 - 기존 패키지에서 directTags라고 이름 붙였던 것
@@ -171,37 +109,38 @@ function processTag(elem: XElement): string {
         case 'm:num':
         case 'm:sSub':
         case 'm:sSup':
-        case 'm:sSubSup': {
-            return processChildren(elem.childElems);
-        }
+        case 'm:sSubSup':
+            return processChildren(elem);
         // 기타 태그
-        default: return '';
+        default:
+            return '';
     }
 }
 
 /**
- * 액센트 처리
- * @returns LaTeX 문자열
+ * <m:acc> 액센트 태그 처리
  */
-function doAcc(elem: XElement): string {
-    const children = processChildrenForDict(elem.childElems);
-    const pr = children['m:accPr'];
-    if (isString(pr)) return '';
-    const accent = getValue(pr.getAttributeValue('m:chr'), ACCENT_DEFAULT, ACCENTS);
-    return format(accent, children['m:e']);
+function doAccent(elem: XElement): Latex {
+    const e = elem.getElemByPath('m:e');
+    if (!e) return '';
+
+    const chr = elem.getAttrByPath('m:accPr > m:chr : m:val');
+    const accent = getValue(chr, ACCENT_DEFAULT, ACCENTS);
+    const eTex = processChildren(e);
+    return `${accent}{${eTex}}`;
 }
 
 /**
- * Run: 런 처리
- * @returns LaTeX 문자열
+ * <m:r> 런 태그 처리
  */
-function doR(elem: XElement): string {
-    const tNode = elem.getElemByTag('m:t');
-    if (!tNode) return '';
+function doRun(elem: XElement): Latex {
+    const t = elem.getElemByPath('m:t');
+    if (!t) return '';
 
-    const text = tNode.textContent;
-    const isSpaces = tNode.getAttrValue('xml:space') === 'preserve';
-    let result = Array.from(text).map(ch => {
+    const text = t.textContent;
+    const isSpaces = t.getAttrValue('xml:space') === 'preserve';
+    
+    let ret = Array.from(text).map(ch => {
         if (isSpaces && ch === ' ') {
             return '\\ ';
         }
@@ -209,250 +148,222 @@ function doR(elem: XElement): string {
         return LATEX_SYMBOLS[ch] || LATEX_SYMBOLS[uni] || ch;
     }).join('');
 
-    const children = processChildrenForDict(elem.childElems);
-    const mrPr = children['m:rPr'];
-    if (mrPr instanceof XmlPropNode) {
+    if (elem.hasElem('m:rPr')) {
         const regex = /(?<=^|\s)([^\s\\]+?)(?=\s|\\|$)/g;
-        switch (mrPr.getAttributeValue('m:sty')) {
-            case 'b': result = result.replace(regex, '\\textbf{$1}'); break;
-            case 'i': result = result.replace(regex, '\\textit{$1}'); break;
-            case 'bi': result = result.replace(regex, '\\textbf{\\textit{$1}}'); break;
+        switch (elem.getAttrByPath('m:rPr > m:sty : m:val')) {
+            case 'b': ret = ret.replace(regex, '\\textbf{$1}'); break;
+            case 'i': ret = ret.replace(regex, '\\textit{$1}'); break;
+            case 'bi': ret = ret.replace(regex, '\\textbf{\\textit{$1}}'); break;
         }
-        if (mrPr.hasInnerTag('m:aln')) {
-            result = ALIGN + result;
+        if (elem.getElemByPath('m:rPr > m:aln')) {
+            ret = ALIGN + ret;
         }
     }
 
-    return result;
+    return ret;
 }
 
 /**
- * 바 처리
- * @returns LaTeX 문자열
+ * <m:bar> 바 태그 처리
  */
-function doBar(elem: XElement): string {
-    const children = processChildrenForDict(elem.childElems);
-    const pr = children['m:barPr'];
-    if (isString(pr)) return '';
-    const latexStr = getValue(pr.getAttributeValue('m:pos'), BAR_DEFAULT, BAR);
-    return pr + format(latexStr, children['m:e']);
+function doBar(elem: XElement): Latex {
+    const e = elem.getElemByPath('m:e');
+    if (!e) return '';
+
+    const br = elem.getElemByPath('m:barPr > m:brk') ? BREAK : ''
+    const val = getValue(elem.getAttrByPath('m:barPr > m:pos : m:val'), BAR_DEFAULT, BAR);
+    const eTex = processChildren(e);
+    return br + `${val}{${eTex}}`;
 }
 
 /**
- * Delimiter: 구분자 (괄호 등) 처리
- * @returns LaTeX 문자열
+ * <m:d>: 구분자 (괄호 등) 처리
  */
-function doD(elem: XElement): string {
-    const children = processChildrenForDict(elem.childElems);
+function doDelim(elem: XElement): Latex {
+    const e = elem.getElemByPath('m:e');
+    if (!e) return '';
 
-    // HACK: <m:dPr> 태그 처리하는 부분이 구현되어 있지 않음.
-    // 이로 인해 결과물에 'undefined' 문자열이 포함되고 있음.
-    // 우선은 리턴 값에 'pr + ' 대신 (pr ? pr : '') + 를 사용하여 해결함.
-    // - OOXML 문서: 22.1.2.31 dPr (Delimiter Properties)
-    const dPr = children['m:dPr'];
-    if (isString(dPr)) return '';
-
-    // NOTE: `nullVal` vs `defaultValue`
+    // NOTE:
     // `<m:begChr />`인 경우에는 `defaultValue` 값을 사용하고,
-    // `<m:begChr m:val=""/>`인 경우에는 `nullVal` 값을 사용함
-    const nullVal = '.';
-    const begChr = getValue(dPr.getAttributeValue('m:begChr'), '(', LATEX_SYMBOLS);
-    const endChr = getValue(dPr.getAttributeValue('m:endChr'), ')', LATEX_SYMBOLS);
-    const left = begChr ? escapeLatex(begChr) : nullVal;
-    const right = endChr ? escapeLatex(endChr) : nullVal;
-    const text = children['m:e'];
-
-    return (dPr ? dPr : '') + `\\left${left}${text}\\right${right}`;
+    // `<m:begChr m:val=""/>`인 경우에는 `.` 값을 사용함
+    const br = elem.getElemByPath('m:dPr > m:brk') ? BREAK : ''
+    const begChr = getValue(elem.getAttrByPath('m:dPr > m:begChr : m:val'), '(', LATEX_SYMBOLS);
+    const endChr = getValue(elem.getAttrByPath('m:dPr > m:endChr : m:val'), ')', LATEX_SYMBOLS);
+    const left = begChr ? escapeLatex(begChr) : '.';
+    const right = endChr ? escapeLatex(endChr) : '.';
+    const eTex = processChildren(e);
+    return br + `\\left${left}${eTex}\\right${right}`;
 }
 
 /**
  * 아래 첨자 처리
- * @returns LaTeX 문자열
  */
-function doSub(elem: XElement): string {
-    const val = processChildren(elem.childElems);
+function doSub(elem: XElement): Latex {
+    const val = processChildren(elem);
     return val ? `_{${val}}` : '';
 }
 
 /**
  * 위 첨자 처리
- * @returns LaTeX 문자열
  */
-function doSup(elem: XElement): string {
-    const val = processChildren(elem.childElems);
+function doSup(elem: XElement): Latex {
+    const val = processChildren(elem);
     return val ? `^{${val}}` : '';
 }
 
 /**
- * 분수 처리
- * @returns LaTeX 문자열
+ * <m:f> 분수 태그 처리
  */
-function doF(elem: XElement): string {
-    const children = processChildrenForDict(elem.childElems);
+function doFraction(elem: XElement): Latex {
+    const type = elem.getAttrByPath('m:fPr > m:type : m:val');
+    const num = elem.getElemByPath('m:num');
+    const den = elem.getElemByPath('m:den');
+    if (!num || !den) return '';
 
-    // HACK: <m:fPr> 태그 처리하는 부분이 구현되어 있지 않음.
-    // 이로 인해 결과물에 'undefined' 문자열이 포함되고 있음.
-    // 우선은 리턴 값에 'pr + ' 대신 (pr ? pr : '') + 를 사용하여 해결함.
-    // doD() 메서드도 동일한 문제점을 가짐.
-    // - OOXML 문서: 22.1.2.38 fPr (Fraction Properties)
-    const pr = children['m:fPr'];
-    if (isString(pr)) return '';
-    const frac = getValue(pr.getAttributeValue('m:type'), FRACTION_DEFAULT, FRACTION_TYPES);
-    return (pr ? pr : '') + format(frac, children['m:num'], children['m:den']);
+    const br = elem.getElemByPath('m:fPr > m:brk') ? BREAK : ''
+    const fracType = getValue(type, FRACTION_DEFAULT, FRACTION_TYPES);
+    const numTex = processChildren(num);
+    const denTex = processChildren(den);
+    return br + fracType.replace('{num}', numTex).replace('{den}', denTex);
 }
 
 /**
- * 함수 처리
- * @returns LaTeX 문자열
+ * <m:func> 함수 태그 처리
  */
-function doFunc(elem: XElement): string {
-    const children = processChildrenForDict(elem.childElems);
-    const fnName = children['m:fName'];
-    const e = children['m:e'];
-    if (!isString(fnName) || !isString(e)) return '';
-    return fnName + e;
+function doFunc(elem: XElement): Latex {
+    const fnName = elem.getElemByPath('m:fName');
+    const e = elem.getElemByPath('m:e');
+    if (!fnName || !e) return '';
+
+    const fnNameTex = doFnName(fnName);
+    const eTex = processChildren(e);
+    return fnNameTex + eTex;
 }
 
 /**
- * 함수 이름 처리
- * @returns LaTeX 문자열
+ * <m:fName> 함수 이름 태그 처리
  */
-function doFName(elem: XElement): string {
-    let fnName: string = '';
-    let isR: boolean = false;
-    for (const info of generateNodesInfo(elem.childElems)) {
-        const res = info.result;
-        if (isString(res)) {
-            if (info.tag === 'm:r') isR = true;
-            fnName += res;
-        }
-    }
+function doFnName(elem: XElement): Latex {
+    const fnName = processChildren(elem);
     const cleanFnName = fnName.split('^{')[0].split('_{')[0];
     const fnSymbol = FUNC[cleanFnName];
-    if (isR && !fnSymbol) {
-        collectWarning(`함수목록(FUNC)에 없는 함수입니다: '${fnName}'`);
+
+    if (!fnSymbol) {
+        collectInfo(`함수심볼목록(FUNC)에 없는 함수: '${fnName}'`);
     }
+    
     return fnSymbol ? fnName.replace(cleanFnName, fnSymbol) : fnName;
 }
 
 /**
- * 그룹 문자 처리
- * @returns LaTeX 문자열
+ * <m:groupChr> 그룹 문자 태그 처리
  */
-function doGroupChr(elem: XElement): string {
-    const children = processChildrenForDict(elem.childElems);
-    const pr = children['m:groupChrPr'];
-    if (isString(pr)) return '';
-    const chr = getValue(pr.getAttributeValue('m:chr'));
-    return pr + format(chr, children['m:e']);
+function doGroupChr(elem: XElement): Latex {
+    const e = elem.getElemByPath('m:e');
+    if (!e) return '';
+
+    const br = elem.getElemByPath('m:groupChrPr > m:brk') ? BREAK : ''
+    const groupChr = getValue(elem.getAttrByPath('m:groupChrPr > m:chr : m:val'), '', ACCENTS);
+    const eTex = processChildren(e);
+    return br + `${groupChr}{${eTex}}`;
 }
 
 /**
- * 근호 처리
- * @returns LaTeX 문자열
+ * <m:rad> 근호 태그 처리
  */
-function doRad(elem: XElement): string {
-    const children = processChildrenForDict(elem.childElems);
-    if (children['m:deg'] && isString(children['m:deg']) && children['m:deg'].length > 0) {
-        return `\\sqrt[${children['m:deg']}]{${children['m:e']}}`;
+function doRadical(elem: XElement): Latex {
+    const deg = elem.getElemByPath('m:deg');
+    const e = elem.getElemByPath('m:e');
+    if (!deg || !e) return '';
+
+    const degTex = processChildren(deg);
+    const eTex = processChildren(e);
+
+    if (degTex.length > 0) {
+        return `\\sqrt[${degTex}]{${eTex}}`;
     }
-    return `\\sqrt{${children['m:e']}}`;
+    return `\\sqrt{${eTex}}`;
 }
 
 /**
- * 배열 처리
- * @returns LaTeX 문자열
+ * <m:eqArr> 배열 태그 처리
  */
-function doEqArr(elem: XElement): string {
-    const include = new Set(['m:e']);
-    const text = generateNodesInfo(elem.childElems, include)
-        .map(t => t.result)
-        .join(BREAK);
-    return `\\begin{array}{c}${text}\\end{array}`;
+function doEqArr(elem: XElement): Latex {
+    const es = elem.getChildElemsByTag('m:e');
+    const eTex = es.map(processChildren).join(BREAK);
+    return `\\begin{array}{c}${eTex}\\end{array}`;
 }
 
 /**
- * 하한 처리
- * @returns LaTeX 문자열
+ * <m:limLow> 하한 태그 처리
  */
-function doLimLow(elem: XElement): string {
-    const include = new Set(['m:e', 'm:lim']);
-    const children = processChildrenForDict(elem.childElems, include);
-    const funcName = children['m:e'];
-    if (!isString(funcName) || !LIM_FUNC[funcName]) {
-        collectError(`지원되지 않는 극한함수(limit function)입니다: '${funcName}'!`);
-        return `${funcName}_{${children['m:lim']}}`;
+function doLimLow(elem: XElement): Latex {
+    const e = elem.getElemByPath('m:e');
+    const lim = elem.getElemByPath('m:lim');
+    if (!e || !lim) return '';
+
+    const fnName = processChildren(e);
+    const limTex = doLim(lim);
+    if (LIM_FUNC[fnName]) {
+        return `${LIM_FUNC[fnName]}_{${limTex}}`;
+    } else {
+        // latex 심볼이 없는 극한함수는 아래처럼 처리하기로 함
+        return `\\underset{${limTex}}{\\mathrm{${fnName}}}`; // \\operatorname{}`; \\operatorname*{}`;
     }
-    return format(LIM_FUNC[funcName], children['m:lim']);
 }
 
 /**
- * 상한 처리
- * @returns LaTeX 문자열
+ * <m:limUpp> 상한 태그 처리
  */
-function doLimUpp(elem: XElement): string {
-    const include = new Set(['m:e', 'm:lim']);
-    const children = processChildrenForDict(elem.childElems, include);
-    return format(LIM_UPP, children['m:lim'], children['m:e']);
+function doLimUpp(elem: XElement): Latex {
+    const lim = elem.getElemByPath('m:lim');
+    const e = elem.getElemByPath('m:e');
+    if (!lim || !e) return '';
+
+    const limTex = doLim(lim);
+    const eTex = processChildren(e);
+    return `\\overset{${limTex}}{${eTex}}`;
 }
 
 /**
- * 극한 처리
- * @returns LaTeX 문자열
+ * <m:lim> 극한 태그 처리
  */
-function doLim(elem: XElement): string {
-    return processChildren(elem.childElems).replace('\\rightarrow', '\\to');
+function doLim(elem: XElement): Latex {
+    const limTex = processChildren(elem);
+    return limTex.replace('\\rightarrow', '\\to');
 }
 
 /**
- * 행렬 처리
- * @returns LaTeX 문자열
+ * <m:m> 행렬 태그 처리
  */
-function doM(elem: XElement): string {
-    const rows = generateNodesInfo(elem.childElems)
-        .filter(info => info.tag === 'm:mr')
-        .map(info => info.result)
-        .join(BREAK);
+function doMat(elem: XElement): Latex {
+    const mr = elem.getChildElemsByTag('m:mr');
+    const rows = mr.map(m => doMatRow(m)).join(BREAK);
     return `\\begin{matrix}${rows}\\end{matrix}`;
 }
 
 /**
- * 행렬 행 처리
- * @returns LaTeX 문자열
+ * <m:mr> 행렬 행 태그 처리
  */
-function doMr(elem: XElement): string {
-    const include = new Set(['m:e']);
-    return generateNodesInfo(elem.childElems, include)
-        .map(t => t.result)
-        .join(ALIGN);
+function doMatRow(elem: XElement): Latex {
+    const es = elem.getChildElemsByTag('m:e');
+    const eTex = es.map(processChildren).join(ALIGN);
+    return eTex;
 }
 
 /**
- * n항 연산자 처리
- * @returns LaTeX 문자열
+ * <m:nary> n항(n-ary) 연산자 태그 처리
  */
-function doNary(elem: XElement): string {
-    const res: string[] = [];
-    let bigOper = '';
+function doNary(elem: XElement): Latex {
+    const sub = elem.getElemByPath('m:sub');
+    const sup = elem.getElemByPath('m:sup');
+    const e = elem.getElemByPath('m:e');
+    if (!e) return '';
 
-    for (const info of generateNodesInfo(elem.childElems)) {
-        if (info.tag === 'm:naryPr') {
-            if (isString(info.result)) continue;
-            bigOper = getValue(info.result.getAttributeValue('m:chr'), null, BIG_OPERATORS);
-            if (!bigOper) {
-                bigOper = '\\int';
-            }
-        } else if (info.tag === 'm:e' && isString(info.result) && isComplexEquation(info.result)) {
-            res.push(`{${info.result}}`);
-        } else if (isString(info.result)) {
-            res.push(info.result);
-        }
-    }
+    const bigOper = getValue(elem.getAttrByPath('m:naryPr > m:chr : m:val'), '\\int', BIG_OPERATORS);
+    const subTex = sub ? doSub(sub) : '';
+    const supTex = sup ? doSup(sup) : '';
+    const eTex = processChildren(e);
 
-    const val = res.join('');
-    if (!val.startsWith('_') && !val.startsWith('^')) {
-        bigOper += ' ';
-    }
-
-    return bigOper + val;
+    return bigOper + subTex + supTex + `{${eTex}}`;
 }

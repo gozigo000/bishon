@@ -10,9 +10,26 @@ import { AllPackages } from 'mathjax-full/js/input/tex/AllPackages.js';
 import sharp from 'sharp';
 import { collectError } from '../0-utils/errorCollector';
 import { collectLatex } from '../0-utils/dataCollector';
-import { makeLatexFromOmml } from '../ommlToLatex/OmmlConverter';
-import { getFailedImg } from '../0-utils/utils';
+import { fromOmmlToLatex } from '../ommlToLatex/OmmlConverter';
+import { failedImg } from '../0-utils/utils';
 
+/**
+ * omml 문자열을 JPG 버퍼로 변환
+ */
+export default async function convertToJpg(ooxml: string): Promise<Buffer<ArrayBufferLike>> {
+    const latex = fromOmmlToLatex(ooxml);
+    if (!latex) return failedImg;
+
+    const svg = await fromLatexToSvg(latex);
+    if (!svg) return failedImg;
+
+    const jpg = await fromSvgToJpg(svg);
+    if (!jpg) return failedImg;
+
+    return jpg;
+}
+
+// MathJax 초기화
 const adaptor = liteAdaptor();
 RegisterHTMLHandler(adaptor);
 const tex = new TeX({
@@ -29,64 +46,52 @@ const html = mathjax.document('', {
 });
 
 /**
- * MathJax 라이브러리 래핑한 클래스
+ * MathJax 래퍼
  */
-export class MathJax {
-    /**
-     * omml 문자열을 JPG 이미지 버퍼로 변환
-     */
-    public static async convertToJpg(ooxml: string): Promise<Buffer<ArrayBufferLike>> {
-        const latex = makeLatexFromOmml(ooxml);
-        if (!latex) {
-            return getFailedImg();
-        }
+export async function fromLatexToSvg(latex: string): Promise<string | null> {
+    try {
+        const node = html.convert(latex, {
+            display: true // 수식 표시 모드 (true: 블록, false: 인라인)
+        });
+        const svg = adaptor.innerHTML(node);
+        collectLatex({ latex, svg });
+        return svg;
 
-        try {
-            // MathJax 사용
-            const node = html.convert(latex, {
-                display: true // 수식 표시 모드 (true: 블록, false: 인라인)
-            });
-            const svg = adaptor.innerHTML(node);
-            collectLatex({ latex, svg });
-
-            return await this.makeJpgBuff(svg)
-
-        } catch (error) {
-            collectError(`latex > svg 변환 실패`, error as Error,
-                `latex 문자열: ${latex}\n mathjax 변환 사이트: https://thomasahle.com/latex2png/`);
-            return getFailedImg();
-        }
+    } catch (error) {
+        collectError(`latex > svg 변환 실패`, error as Error,
+            `latex 문자열: ${latex}\n mathjax 변환 사이트: https://thomasahle.com/latex2png/`);
+        return null;
     }
+}
 
-    private static async makeJpgBuff(svgStr: string): Promise<Buffer<ArrayBufferLike>> {
-        try {
-            const svgBuffer = Buffer.from(svgStr);
+export async function fromSvgToJpg(svgStr: string): Promise<Buffer<ArrayBufferLike> | null> {
+    try {
+        const svgBuffer = Buffer.from(svgStr);
 
-            // 원본 이미지 크기 가져오기
-            const svgMetadata = await sharp(svgBuffer).metadata();
-            const svgWidth = svgMetadata.width || 1;
+        // 원본 이미지 크기 가져오기
+        const svgMetadata = await sharp(svgBuffer).metadata();
+        const svgWidth = svgMetadata.width || 1;
 
-            // SVG를 JPG로 변환
-            const jpgBuffer = await sharp(svgBuffer)
-                .flatten({ background: { r: 255, g: 255, b: 255 } })
-                .resize({
-                    width: svgWidth * 3, // 크기 3배
-                    fit: 'contain', // 원본 비율 유지
-                })
-                .extend({
-                    bottom: 5,
-                    left: 2,
-                    right: 2,
-                    background: { r: 255, g: 255, b: 255 }
-                })
-                .jpeg({ quality: 80 }) // 80% 품질로 설정
-                .toBuffer();
+        // SVG를 JPG로 변환
+        const jpgBuffer = await sharp(svgBuffer)
+            .flatten({ background: { r: 255, g: 255, b: 255 } })
+            .resize({
+                width: svgWidth * 3, // 크기 3배
+                fit: 'contain', // 원본 비율 유지
+            })
+            .extend({
+                bottom: 5,
+                left: 2,
+                right: 2,
+                background: { r: 255, g: 255, b: 255 }
+            })
+            .jpeg({ quality: 80 }) // 80% 품질로 설정
+            .toBuffer();
 
-            return jpgBuffer;
+        return jpgBuffer;
 
-        } catch (error) {
-            collectError(`svg > jpg 변환 실패`, error as Error);
-            return getFailedImg();
-        }
+    } catch (error) {
+        collectError(`svg > jpg 변환 실패`, error as Error);
+        return null;
     }
 }

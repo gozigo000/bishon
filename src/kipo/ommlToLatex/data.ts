@@ -1,20 +1,14 @@
 /** OMML 네임스페이스 */
 // export const OMML_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math';
 
-/** LaTeX에서 이스케이프가 필요한 문자들 */
-export const ESCAPING_CHARS = ['{', '}', '_', '^', '#', '&', '$', '%', '~'];
-
 /** 정렬 문자 */
 export const ALIGN = '&';
 
 /** 줄바꿈 문자 */
 export const BREAK = '\\\\';
 
-/** 백슬래시 문자 */
-export const BACKSLASH = '\\';
-
 /** Mapping of accents and symbols to LaTeX representations */
-export const ACCENT_DEFAULT = '\\hat{{0}}';
+export const ACCENT_DEFAULT = '\\hat';
 export const ACCENTS: Record<string, string> = {
     // NOTE: MathJax 지원 목록 https://docs.mathjax.org/en/latest/input/tex/macros/index.html
     // NOTE: KaTeX 지원 목록 https://katex.org/docs/supported
@@ -24,25 +18,25 @@ export const ACCENTS: Record<string, string> = {
     // a′: a'
     // a′′: a''
     // a′: a^{\prime}
-    '0301': '\\acute{{0}}',
-    '0304': '\\bar{{0}}',
-    '0306': '\\breve{{0}}',
-    '030c': '\\check{{0}}',
-    '0307': '\\dot{{0}}',
-    '0308': '\\ddot{{0}}',
-    '20db': '\\dddot{{0}}',
-    '20dc': '\\ddddot{{0}}',
-    '0300': '\\grave{{0}}',
-    '0302': '\\hat{{0}}',
+    '0301': '\\acute',
+    '0304': '\\bar',
+    '0306': '\\breve',
+    '030c': '\\check',
+    '0307': '\\dot',
+    '0308': '\\ddot',
+    '20db': '\\dddot',
+    '20dc': '\\ddddot',
+    '0300': '\\grave',
+    '0302': '\\hat',
 
-    '0303': '\\tilde{{0}}',
-    '0330': '\\widetilde{{0}}',
+    '0303': '\\tilde',
+    '0330': '\\widetilde',
     // \\utilde{AB}
-    '20d7': '\\vec{{0}}',
-    '20d6': '\\overleftarrow{{0}}',
-    '20ee': '\\underleftarrow{{0}}',
+    '20d7': '\\vec',
+    '20d6': '\\overleftarrow',
+    '20ee': '\\underleftarrow',
     // \\overleftharpoon{ac}
-    '20e1': '\\overleftrightarrow{{0}}',
+    '20e1': '\\overleftrightarrow',
     // \\underleftrightarrow{AB}
     // \\overline{AB} // 따로 구현됨
     // \\underline{AB} // 따로 구현됨
@@ -54,38 +48,38 @@ export const ACCENTS: Record<string, string> = {
     // \\undergroup{AB}
     // \\Overrightarrow{AB}
     // \\overrightarrow{AB}
-    '20ef': '\\underrightarrow{{0}}',
+    '20ef': '\\underrightarrow',
     // \\overrightharpoon{ac}
-    '23de': '\\overbrace{{0}}',
-    '23df': '\\underbrace{{0}}',
+    '23de': '\\overbrace', // ⏞
+    '23df': '\\underbrace', // ⏟
     // \\overlinesegment{AB}
     // \\underlinesegment{AB}
-    '0331': '\\underbar{{0}}',
+    '0331': '\\underbar',
     
     // 처음부터 있던 것들
-    '20e8': '\\threeunderdot{{0}}',
-    '20ec': '\\underrightharpoondown{{0}}',
-    '20ed': '\\underleftharpoondown{{0}}',
+    '20e8': '\\threeunderdot',
+    '20ec': '\\underrightharpoondown',
+    '20ed': '\\underleftharpoondown',
 
-    '23b4': '\\overbracket{{0}}',
-    '23dc': '\\overparen{{0}}',
-    '23b5': '\\underbracket{{0}}',
-    '23dd': '\\underparen{{0}}',
+    '23b4': '\\overbracket',
+    '23dc': '\\overparen',
+    '23b5': '\\underbracket',
+    '23dd': '\\underparen',
 
-    '0305': '\\overbar{{0}}',
-    '0309': '\\ovhook{{0}}',
-    '030a': '\\ocirc{{0}}',
-    '0310': '\\candra{{0}}',
-    '0312': '\\oturnedcomma{{0}}',
-    '0315': '\\ocommatopright{{0}}',
-    '031a': '\\droang{{0}}',
-    '0338': '\\not{{0}}',
-    '20d0': '\\leftharpoonaccent{{0}}',
-    '20d1': '\\rightharpoonaccent{{0}}',
-    '20d2': '\\vertoverlay{{0}}',
-    '20e7': '\\annuity{{0}}',
-    '20e9': '\\widebridgeabove{{0}}',
-    '20f0': '\\asteraccent{{0}}',
+    '0305': '\\overbar',
+    '0309': '\\ovhook',
+    '030a': '\\ocirc',
+    '0310': '\\candra',
+    '0312': '\\oturnedcomma',
+    '0315': '\\ocommatopright',
+    '031a': '\\droang',
+    '0338': '\\not',
+    '20d0': '\\leftharpoonaccent',
+    '20d1': '\\rightharpoonaccent',
+    '20d2': '\\vertoverlay',
+    '20e7': '\\annuity',
+    '20e9': '\\widebridgeabove',
+    '20f0': '\\asteraccent',
 };
 
 /** Mapping of Big Operators to LaTeX representations */
@@ -453,25 +447,24 @@ export const FUNC: Record<string, string> = {
     // 'abs': '\\abs ',
 };
 
-export const BAR_DEFAULT = '\\overline{{0}}';
+export const BAR_DEFAULT = '\\overline';
 export const BAR: Record<string, string> = {
-    'top': '\\overline{{0}}', // Not sure about this
-    'bot': '\\underline{{0}}'
+    'top': '\\overline', // Not sure about this
+    'bot': '\\underline'
 };
 
 /** Mapping of fraction types to LaTeX representations */
-export const FRACTION_DEFAULT = '\\frac{{0}}{{1}}';
+export const FRACTION_DEFAULT = '\\frac{{num}}{{den}}';
 export const FRACTION_TYPES: Record<string, string> = {
-    'bar': '\\frac{{0}}{{1}}',
-    'skw': '^{{0}}/_{{1}}',
-    'noBar': '\\genfrac{}{}{0pt}{}{{0}}{{1}}',
-    'lin': '{{0}}/{{1}}'
+    'bar': '\\frac{{num}}{{den}}',
+    'skw': '^{{num}}/_{{den}}',
+    'noBar': '\\genfrac{}{}{0pt}{}{{num}}{{den}}',
+    'lin': '{{num}}/{{den}}'
 };
 
 /** Mapping of limit functions to LaTeX representations */
 export const LIM_FUNC: Record<string, string> = {
-    'lim': '\\lim_{{0}}',
-    'max': '\\max_{{0}}',
-    'min': '\\min_{{0}}'
+    'lim': '\\lim',
+    'max': '\\max',
+    'min': '\\min',
 };
-export const LIM_UPP = '\\overset{{0}}{{1}}';

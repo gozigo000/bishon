@@ -149,6 +149,28 @@ export abstract class XNodeBase {
         return findOne(this as XNode, node => isXElem(node) && node.tagName === tagName, true) as XElement | null;
     }
 
+    getAttrByPath(path: string): string | undefined {
+        const [tags, attr] = path.split(' : ');
+    
+        let child = this as XElement;
+        for (const tag of tags.split(' > ')) {
+            const next = child.getChildElemByTag(tag);
+            if (!next) return undefined;
+            child = next;
+        }
+        return child.getAttrValue(attr ?? '');
+    }
+
+    getElemByPath(path: string): XElement | null {
+        let child = this as XElement;
+        for (const tag of path.split(' > ')) {
+            const next = child.getChildElemByTag(tag);
+            if (!next) return null;
+            child = next;
+        }
+        return child;
+    }
+
     /** 자기 자신을 포함한 모든 `XElement`에 대해서 {@link callback} 수행 */
     forEachElem(callback: (elem: XElement) => void): void {
         if (this.type === XNodeType.Element) {

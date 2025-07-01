@@ -20,7 +20,8 @@ export async function generateKipoFile(fileName: string, zip: JSZip): Promise<Fi
     return file;
 }
 
-export function getFailedImg(): Buffer<ArrayBufferLike> {
+export const failedImg = fs.readFileSync(path.join(process.cwd(), 'public/null.jpg'));
+export const getFailedImg = (): Buffer<ArrayBufferLike> => {
     const failedImg = path.join(process.cwd(), 'public/null.jpg');
     return fs.readFileSync(failedImg);
 }

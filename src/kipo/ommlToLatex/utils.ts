@@ -1,5 +1,3 @@
-import { ESCAPING_CHARS, BACKSLASH, ACCENTS } from "./data";
-
 /**
  * 문자를 유니코드 문자열로 변환
  * - 유니코드 문자열은 4자리 또는 8자리(확장 유니코드)로 구성됨
@@ -18,19 +16,20 @@ export function getUnicodeString(ch: string): string {
     }
 }
 
+/** 
+ * LaTeX에서 이스케이프 처리하는 문자들
+ */
+const ESCAPING_CHARS = ['{', '}', '_', '^', '#', '&', '$', '%', '~'];
 /**
  * LaTeX 문자열 이스케이프 처리
- * @param str - 처리할 문자열
- * @returns 이스케이프된 문자열
  */
 export function escapeLatex(str: string): string {
-    let last = '\0';
-    const sb: string[] = [];
     str = str.replace(/\\\\/g, '\\');
-    
+    const sb: string[] = [];
+    let last = '\0';
     for (const c of str) {
-        if (ESCAPING_CHARS.includes(c) && last !== BACKSLASH[0]) {
-            sb.push(BACKSLASH + c);
+        if (ESCAPING_CHARS.includes(c) && last !== '\\') {
+            sb.push('\\' + c);
         } else {
             sb.push(c);
         }
@@ -41,27 +40,6 @@ export function escapeLatex(str: string): string {
 }
 
 /**
- * 문자열 포맷팅
- * @param str - 포맷 문자열
- * @param args - 포맷 인자들
- * @returns 포맷된 문자열
- */
-export function format(str: string, ...args: unknown[]): string {
-    return str.replace(/{(\d+)}/g, (match, number) => {
-        return typeof args[number] !== 'undefined' ? String(args[number]) : match;
-    });
-}
-
-/**
- * 복잡한 수식인지 확인
- * @param e - 확인할 수식 문자열
- * @returns 복잡한 수식이면 true
- */
-export function isComplexEquation(e: string): boolean {
-    return e.length > 2 && (e.includes('+') || e.includes('-') || e.includes('\\'));
-}
-
-/**
  * 키에 해당하는 값을 가져옴
  * @param key - 찾을 키
  * @param defaultValue - 기본값
@@ -69,14 +47,12 @@ export function isComplexEquation(e: string): boolean {
  * @returns 찾은 값 또는 기본값
  */
 export function getValue(
-    key: string | null, 
-    defaultValue: string | null = null, 
-    values: Record<string, string> = ACCENTS
+    key: string | undefined, 
+    defaultValue: string, 
+    values: Record<string, string>
 ): string {
-    if (key === null) return defaultValue || '';
+    if (key === undefined) return defaultValue;
     if (key === '') return '';
-    if (key in values) return values[key];
     const unicode = getUnicodeString(key);
-    return values[unicode] || key;
+    return values[key] || values[unicode] || key;
 }
-
