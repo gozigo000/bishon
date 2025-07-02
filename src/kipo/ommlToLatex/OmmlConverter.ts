@@ -61,7 +61,7 @@ function convertOMath(oMath: XElement): Latex {
     let latexStr = processChildren(oMath)
     latexStr = latexStr
         .replace(/(?<!\\) }/g, '}')
-        .replace(/(\\\s+)+/g, '\\ ') // 연속된 공백(`\ `) 제거
+        // .replace(/(\\\s+)+/g, '\\ ') // 연속된 공백(`\ `) 제거
         .replace(/([^\\]) \\/g, '$1\\')
         .trim();
     return latexStr;

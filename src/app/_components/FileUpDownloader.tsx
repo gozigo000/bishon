@@ -21,11 +21,12 @@ export default function FileUploader() {
                 method: 'POST',
                 body: formData,
             });
+            // 응답 실패 처리
             if (!res.ok) {
                 if (res.status === 413) {
-                    throw new Error('업로드 파일이 너무 큽니다. \n(Vercel 서버는 크기가 4.5MB 이상인 파일의 직접 업로드를 지원하지 않습니다)');
+                    throw new Error('업로드 파일이 너무 큽니다. (Vercel 서버에서 크기가 4.5MB 이상인 파일의 직접 업로드를 지원하지 않습니다)');
                 } else {
-                    throw new Error(`서버 응답 실패 - \nstatus: ${res.status}\nstatusText: ${res.statusText}`);
+                    throw new Error(`서버 응답 실패 - status: ${res.status} / statusText: ${res.statusText}`);
                 }
             }
 

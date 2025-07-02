@@ -100,7 +100,9 @@ function convertRun(elem: DocRun): AstNode[] {
         paths.push(new HtmlTag("sup") as any as HtmlPath);
     }
     const style = findStyle(elem);
-    if (!style && elem.styleId) {
+    if (!style && elem.styleId &&
+        !['제목 2 Char', ].includes(elem.styleName || '-')
+    ) {
         collectWarning(`인식할 수 없는 run style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
     }
     const stylePath = style ? style.to : emptyHtmlPath;
