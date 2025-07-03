@@ -24,6 +24,7 @@
     "test:ttfParser": "cls && npx jest ttfParser/ttfParser.test.ts"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.5.0",
     "@xmldom/xmldom": "^0.9.8",
     "diff-match-patch-ts": "^0.6.0",
     "dingbat-to-unicode": "^1.0.1",
