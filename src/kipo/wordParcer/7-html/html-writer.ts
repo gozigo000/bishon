@@ -11,8 +11,13 @@ export interface HtmlWriter {
     toString: () => string;
 }
 
-export function getHtmlWriter(prettyPrint = false): HtmlWriter {
-    return prettyPrint ? new PrettyWriter() : new SimpleWriter();
+type WriterOptions = {
+    prettyPrint?: boolean;
+    ignoreEmptyParagraphs?: boolean;
+}
+
+export function getHtmlWriter(opts: WriterOptions = {}): HtmlWriter {
+    return opts.prettyPrint ? new PrettyWriter(opts) : new SimpleWriter(opts);
 }
 
 class SimpleWriter implements HtmlWriter {
@@ -20,6 +25,11 @@ class SimpleWriter implements HtmlWriter {
     private htmlSegs: string[] = [];
     private isInTable: number = 0;
     private openTagStack: string[] = [];
+    private ignoreEmptyParagraphs: boolean;
+
+    constructor(opts: WriterOptions) {
+        this.ignoreEmptyParagraphs = opts.ignoreEmptyParagraphs || false;
+    }
 
     public openTag(tagName: string, attributes: Record<string, string>): void {
         const attrs = this.makeAttrsStr(attributes);
@@ -46,7 +56,11 @@ class SimpleWriter implements HtmlWriter {
         if (this.divisionElems.has(tagName) &&
             this.isInTable === 0
         ) {
-            this.htmlSegs.push(this.htmlSeg);
+            if (!this.ignoreEmptyParagraphs ||
+                !/^<p>\s*<\/p>$/.test(this.htmlSeg)
+            ) {
+                this.htmlSegs.push(this.htmlSeg);
+            }
             this.htmlSeg = '';
         }
     }
@@ -91,7 +105,11 @@ class PrettyWriter implements HtmlWriter {
     private stack: string[] = [];
     private start = true;
     private inText = false;
-    private writer = new SimpleWriter();
+    private writer: HtmlWriter;
+
+    constructor(opts: WriterOptions) {
+        this.writer = new SimpleWriter(opts);
+    }
 
     public openTag(tagName: string, attributes: Record<string, string>): void {
         if (indentElems.has(tagName)) {

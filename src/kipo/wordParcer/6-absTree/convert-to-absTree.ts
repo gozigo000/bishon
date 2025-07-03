@@ -14,7 +14,6 @@ import { defaultStyleMap } from "../5-styles/default-style-map";
 
 type HtmlOptions = {
     styleMap: StyleMapping[];
-    ignoreEmptyParagraphs?: boolean;
 }
 
 let options: HtmlOptions = { styleMap: [] };
@@ -25,7 +24,6 @@ export async function fromDocNodeToAbsTree(docDoc: DocDocument, opts?: Options):
 
     options = {
         styleMap: parsedStyleMap,
-        ignoreEmptyParagraphs: opts?.ignoreEmptyParagraphs || false
     };
 
     const ast = convertNode(docDoc);
@@ -50,21 +48,17 @@ function convertNode(elem: DocNode): AstNode[] {
 }
 
 function convertParagraph(elem: DocParagraph): AstNode[] {
-    const style = findStyle(elem);
-    if (!style && elem.styleId &&
-        !['Normal (Web)', '바탕글', 'MS바탕글', '스타일1'].includes(elem.styleName || '-')
-    ) {
-        collectWarning(`인식할 수 없는 paragraph style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
-    }
-    const htmlPath = (style) ?
-        style.to :
-        new HtmlPath([new HtmlTag("p", {}, { fresh: true })]);
+    // const style = findStyle(elem);
+    // if (!style && elem.styleId &&
+    //     !['Normal (Web)', '바탕글', 'MS바탕글', '스타일1'].includes(elem.styleName || '-')
+    // ) {
+    //     collectWarning(`인식할 수 없는 paragraph style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
+    // }
+    // const htmlPath = (style) ? style.to : new HtmlPath([new HtmlTag("p", {}, { fresh: true })]);
+    const htmlPath = new HtmlPath([new HtmlTag("p", {}, { fresh: true })]);
 
     return htmlPath.wrap(() => {
         const content = elem.children.map(elem => convertNode(elem)).flat();
-        if (options.ignoreEmptyParagraphs) {
-            return content;
-        }
         return [new AstNode("forceWrite"), ...content];
     });
 }
@@ -100,11 +94,11 @@ function convertRun(elem: DocRun): AstNode[] {
         paths.push(new HtmlTag("sup") as any as HtmlPath);
     }
     const style = findStyle(elem);
-    if (!style && elem.styleId &&
-        !['제목 2 Char', ].includes(elem.styleName || '-')
-    ) {
-        collectWarning(`인식할 수 없는 run style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
-    }
+    // if (!style && elem.styleId &&
+    //     !['제목 2 Char', ].includes(elem.styleName || '-')
+    // ) {
+    //     collectWarning(`인식할 수 없는 run style: '${elem.styleName}' (Style ID: ${elem.styleId})`);
+    // }
     const stylePath = style ? style.to : emptyHtmlPath;
     paths.push(stylePath);
 

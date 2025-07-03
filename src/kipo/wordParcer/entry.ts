@@ -12,7 +12,7 @@ export async function convertToHtml(docxFile: FileHandler, options?: Options): P
     // DocNode -> HtmlTag/AbsTree
     const astNodes = await fromDocNodeToAbsTree(docDoc, options);
     // AbsTree -> Html
-    const writer = getHtmlWriter(options?.prettyPrint).writeHtml(astNodes);
+    const writer = getHtmlWriter(options).writeHtml(astNodes);
     // Done
     return writer.getHtmlSegs();
 }
