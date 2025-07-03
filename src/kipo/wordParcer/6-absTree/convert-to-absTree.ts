@@ -199,9 +199,7 @@ function convertTableCell(elem: DocTableCell, isTableHeader: boolean): AstNode {
 }
 
 function convertBreak(elem: DocBreak): AstNode[] {
-    const style = findStyle(elem);
-    const htmlPath = style ? style.to :
-        (elem.breakType === "line") ?
+    const htmlPath = (elem.breakType === "line" || elem.breakType === "page") ?
             new HtmlPath([new HtmlTag("br", {}, { fresh: true })]) :
             emptyHtmlPath;
     return htmlPath.wrap(() => []);
